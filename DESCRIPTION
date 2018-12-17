@@ -1,0 +1,14 @@
+Package: catchr
+Type: Package
+Title: Catch, Collect, and Raise Conditions 
+Version: 0.1.0
+Authors@R: c(
+    person("Zachary", "Burchill", email = "zach.burchill.code@gmail.com", role = c("aut", "cre"))
+  )
+Maintainer: Zachary Burchill <zach.burchill.code@gmail.com>
+Description: Simple code to catch, collect, and raise conditions (errors, warnings, messages, etc.) without halting/restarting processes.
+License: MIT + file LICENSE
+Encoding: UTF-8
+LazyData: true
+RoxygenNote: 6.1.0
+Roxygen: list(markdown = TRUE, roclets = c("rd", "namespace", "collate"))
