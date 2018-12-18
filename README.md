@@ -59,23 +59,29 @@ print(res)
 #> $conditions
 #> $conditions[[1]]
 #> <custom: Custom condition!>
+```
 
+And with errors:
+
+``` r
+# `col_cond` is the shorter alias of `collect_conditions`
 errs <- col_cond(stop("Error!"), asStrings = T)
 print(errs$errors)
 #> [[1]]
 #> [1] "Error in doWithOneRestart(return(expr), restart): Error!\n"
 ```
 
-We can then decide to raise and signal all the conditions we've captured, while making the output pretty and easy to read:
+We can then decide to raise and signal all the conditions we've captured, while making the output pretty and easy to read. In the actual console (as opposed to this Markdown file), you won't get the `Warning in doWithOneRestart(return(expr), restart)` text.
 
 ``` r
-a<-capture.output(raise_conditions(res),type="message") %>%
-  paste0(collapse="\n")
+raise_conditions(res)
+#> Messages:
 #> message 1
+#> Warnings:
 #> Warning in doWithOneRestart(return(expr), restart): warning 1
 #> Warning in doWithOneRestart(return(expr), restart): warning 2
-print(a)
-#> [1] "Messages:\nWarnings:\nMisc. conditions:\nCustom condition!"
+#> Misc. conditions:
+#> Custom condition!
 ```
 
 Use in `future`
@@ -97,8 +103,11 @@ future_res %<-% {
 }
 
 raise_conditions(future_res, raise_errors = FALSE)
+#> Warnings:
 #> Warning in doWithOneRestart(return(expr), restart): You'll get an error
 #> because of X
+#> Errors:
+#> Why did you get this error?
 ```
 
 Use in `purrr`
@@ -114,20 +123,26 @@ results <- l %>% imap(function(e, i)
   raise_conditions(e, raise_errors=FALSE,
                    added_text=paste0(" in l[",i,"]:"))) %>%
   map(~evaluate_results(., raise_errors = FALSE))
+#> Warnings in l[1]:
 #> Warning in doWithOneRestart(return(expr), restart): Bad eigenvalues, bro
 #> Warning in doWithOneRestart(return(expr), restart): Model failed to
 #> converge!
+#> Messages in l[2]:
 #> Dropping contrasts
+#> Warnings in l[2]:
 #> Warning in doWithOneRestart(return(expr), restart): Were those contrasts
 #> important?
+#> Messages in l[3]:
 #> I'm tired of this data!
+#> Errors in l[3]:
+#> lmers became sentient!
 
 print(results)
 #> [[1]]
-#> [1] 1
+#> NULL
 #> 
 #> [[2]]
-#> [1] 2
+#> NULL
 #> 
 #> [[3]]
 #> NULL
