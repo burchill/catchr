@@ -2,15 +2,13 @@
 <!-- README.md is generated from README.Rmd. Please edit that file -->
 [![Travis-CI Build Status](https://travis-ci.com/burchill/catchr.svg?branch=master)](https://travis-ci.com/burchill/catchr)
 
-catchr
-======
+# catchr
 
 The goal of `catchr` is to provide a simple code base for handling conditions (e.g., warnings, errors, messages, etc.) in `R`. Other than the simplicity it offers, one of the primary benefits of `catchr` is that it can catch and collect conditions **without needing to halt or restart the code**. This can be especially useful if you're trying to catch the warning messages from code that takes a long time to run, where having to restart the whole process from square one would be too costly.
 
 `catchr` also comes in handy when trying to collect warnings, messages, and errors from code that is running remotely, where these conditions would not be returned with the rest of the results, such as with the [`future`](https://github.com/HenrikBengtsson/future/) package, or with packages like `purrr`.
 
-Installation
-------------
+## Installation
 
 You can install the released version of furrr from [CRAN](https://CRAN.R-project.org) with:
 
@@ -25,8 +23,7 @@ And the development version from [GitHub](https://github.com/) with:
 devtools::install_github("burchill/catchr")
 ```
 
-Basic example
--------------
+## Basic example
 
 Let's look at a simple case first. Here we see how we we can collect different types of conditions.
 
@@ -100,8 +97,7 @@ raise_conditions(res)
 #> <custom: Custom condition!>
 ```
 
-Use in `future`
----------------
+## Use in `future`
 
 `catchr` can be incredibly useful when trying to diagnose code run in parallel or on remote machines, like it is with `future`. Although `future` has come a long way in terms of how easy it is to debug (because [Henrik Bengtsson](https://github.com/HenrikBengtsson) is both a saint and a genius), but capturing and returning every condition that was raised is much easier with `catchr`.
 
@@ -140,8 +136,7 @@ raise_conditions(future_res, raise_errors = FALSE)
 #> <simpleError in doWithOneRestart(return(expr), restart): Why did you get this error?>
 ```
 
-Use in `purrr`
---------------
+## Use in `purrr`
 
 `catchr` is also great with `purrr`, for example, if you're running a bunch of models via `map`.[1] If you want to capture which models had which problems (and then print them all pretty), it's trivial to do so.
 
@@ -177,8 +172,7 @@ print(results)
 #> NULL
 ```
 
-Found a bug or have a suggestion?
----------------------------------
+## Found a bug or have a suggestion?
 
 Please open an issue and I'll try to get to it!
 

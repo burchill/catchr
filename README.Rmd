@@ -1,5 +1,7 @@
 ---
-output: github_document
+output: 
+  github_document:
+    pandoc_args: "--atx-headers"
 editor_options: 
   chunk_output_type: console
 ---
