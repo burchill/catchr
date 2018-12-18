@@ -1,6 +1,6 @@
 
 <!-- README.md is generated from README.Rmd. Please edit that file -->
-[![Travis-CI Build Status](https://travis-ci.org/burchill/catchr.svg?branch=master)](https://travis-ci.org/burchill/catchr)
+[![Travis-CI Build Status](https://travis-ci.com/burchill/catchr.svg?branch=master)](https://travis-ci.com/burchill/catchr)
 
 catchr
 ======

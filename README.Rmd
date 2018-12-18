@@ -21,7 +21,7 @@ library(purrr)
 library(future)
 ```
 
-[![Travis-CI Build Status](https://travis-ci.org/burchill/catchr.svg?branch=master)](https://travis-ci.org/burchill/catchr)
+[![Travis-CI Build Status](https://travis-ci.com/burchill/catchr.svg?branch=master)](https://travis-ci.com/burchill/catchr)
 
 ```{r, echo=FALSE}
 # [![CRAN status](https://www.r-pkg.org/badges/version/furrr)](https://cran.r-project.org/package=furrr)
