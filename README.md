@@ -59,14 +59,9 @@ print(res)
 #> $conditions
 #> $conditions[[1]]
 #> <custom: Custom condition!>
-```
 
-And with errors:
-
-``` r
 # `col_cond` is the shorter alias of `collect_conditions`
-errs <- col_cond(stop("Error!"), asStrings = T)
-print(errs$errors)
+col_cond(stop("Error!"), asStrings = T)$errors
 #> [[1]]
 #> [1] "Error in doWithOneRestart(return(expr), restart): Error!\n"
 ```
@@ -106,7 +101,7 @@ raise_conditions(res)
 Use in `future`
 ---------------
 
-`catchr` can be incredibly useful when trying to diagnose code run in parallel or on remote machines, like it is with `future`. Although `future` has come a long way in terms of how easy it is to debug (because [Henrik Bengtsson](https://github.com/HenrikBengtsson) is both a saint and a genius), capturing and returning every condition that was raised is much easier with `catchr`.
+`catchr` can be incredibly useful when trying to diagnose code run in parallel or on remote machines, like it is with `future`. Although `future` has come a long way in terms of how easy it is to debug (because [Henrik Bengtsson](https://github.com/HenrikBengtsson) is both a saint and a genius), but capturing and returning every condition that was raised is much easier with `catchr`.
 
 ``` r
 library(future)
@@ -116,7 +111,7 @@ future_res %<-% {
     {
       warning("You'll get an error because of X")
       stop("Why did you get this error?")
-      "finishes before this value"
+      "terminates before this value"
     }
   )
 }
@@ -193,7 +188,6 @@ The inception of the core of the `collect_conditions` function comes from [Luke 
 
 Likewise, much of this code came from other (more personal) packages I've worked on over the years, such as [`zplyr`](https://github.com/burchill/zplyr) and [`cs`](https://github.com/burchill/cs).
 
-Footnotes
----------
+### Footnotes
 
-[1] Or when you combine `purrr` and `future` via [`furrr`](https://github.com/DavisVaughan/furrr) to run millions of models in parallel like I've been doing. Shout-out to Davis Vaughan!
+[1] I've found it's even *more* useful when you combine `purrr` and `future` via [`furrr`](https://github.com/DavisVaughan/furrr) (e.g., to run models in parallel). Shout-out to Davis Vaughan for his lovely code!
