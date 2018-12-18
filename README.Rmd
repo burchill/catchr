@@ -1,0 +1,150 @@
+---
+output: github_document
+editor_options: 
+  chunk_output_type: console
+---
+
+<!-- README.md is generated from README.Rmd. Please edit that file -->
+
+```{r setup, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>",
+  fig.path = "man/figures/README-",
+  out.width = "100%"
+)
+```
+
+```{r, echo=FALSE, message=FALSE, warning=FALSE}
+library(catchr)
+library(purrr)
+library(future)
+```
+
+[![Travis-CI Build Status](https://travis-ci.org/burchill/catchr.svg?branch=master)](https://travis-ci.org/burchill/catchr)
+
+```{r, echo=FALSE}
+# [![CRAN status](https://www.r-pkg.org/badges/version/furrr)](https://cran.r-project.org/package=furrr)
+# [![AppVeyor build status](https://ci.appveyor.com/api/projects/status/github/DavisVaughan/furrr?branch=master&svg=true)](https://ci.appveyor.com/project/DavisVaughan/furrr)
+
+```
+
+# catchr
+
+The goal of `catchr` is to provide a simple code base for handling conditions (e.g., warnings, errors, messages, etc.) in `R`. Other than the simplicity it offers, one of the primary benefits of `catchr` is that it can catch and collect conditions **without needing to halt or restart the code**. This can be especially useful if you're trying to catch the warning messages from code that takes a long time to run, where having to restart the whole process from square one would be too costly.
+
+`catchr` also comes in handy when trying to collect warnings, messages, and errors from code that is running remotely, where these conditions would not be returned with the rest of the results, such as with the [`future`](https://github.com/HenrikBengtsson/future/) package, or with packages like `purrr`.
+
+## Installation
+
+You can install the released version of furrr from [CRAN](https://CRAN.R-project.org) with:
+
+``` r
+install.packages("catchr")
+```
+
+And the development version from [GitHub](https://github.com/) with:
+
+``` r
+# install.packages("devtools")
+devtools::install_github("burchill/catchr")
+```
+
+## Basic example
+
+Let's look at a simple case first. Here we see how we we can collect different types of conditions.
+
+```{r example}
+library(catchr)
+res <- collect_conditions(
+  {
+    warning("warning 1")
+    message("message 1", appendLF = F)
+    warning("warning 2")
+    signal_custom_condition("Custom condition!")
+    "test value"
+  },
+  catchErrors = FALSE)
+print(res)
+
+# `col_cond` is the shorter alias of `collect_conditions`
+col_cond(stop("Error!"), asStrings = T)$errors
+```
+
+We can then decide to raise and signal all the conditions we've captured, while making the output pretty and easy to read. In the actual console (as opposed to this Markdown file), you won't get the `Warning in doWithOneRestart(return(expr), restart)` text.
+
+```{r,echo=FALSE}
+# Have to do this to get the output to work right
+real_raise_conditions <- raise_conditions
+raise_conditions <- function(x, ...)  {
+  capture.output(real_raise_conditions(x, ...), type="message", file=stdout())
+  x
+}
+
+```
+
+```{r}
+raise_conditions(res)
+```
+
+
+## Use in `future`
+
+`catchr` can be incredibly useful when trying to diagnose code run in parallel or on remote machines, like it is with `future`. Although `future` has come a long way in terms of how easy it is to debug (because [Henrik Bengtsson](https://github.com/HenrikBengtsson) is both a saint and a genius), but capturing and returning every condition that was raised is much easier with `catchr`. 
+
+```{r future}
+library(future)
+plan(multiprocess) # you could use `remote` or whatever you need
+future_res %<-% {
+  col_cond(
+    {
+      warning("You'll get an error because of X")
+      stop("Why did you get this error?")
+      "terminates before this value"
+    }
+  )
+}
+
+raise_conditions(future_res, raise_errors = FALSE)
+```
+
+
+## Use in `purrr`
+
+`catchr` is also great with `purrr`, for example, if you're running a bunch of models via `map`.[^1] If you want to capture which models had which problems (and then print them all pretty), it's trivial to do so.
+
+```{r getting l, echo=FALSE}
+l <- list(
+  collect_conditions({warning("Bad eigenvalues, bro"); warning("Convergence failure!"); "model-1"}),
+  collect_conditions({message("Dropping contrasts"); warning("Were those contrasts important?"); "model-2"}),
+  collect_conditions({message("I'm tired of this data!"); stop("lmers became sentient!"); "model-3"},
+                     catchErrors=TRUE)
+)
+```
+
+```{r purrr}
+library(purrr)
+# Let's assume `l` came from `col_cond`-ing a bunch of models
+#   e.g., `map(datasets, ~col_cond(model_func(.)))`
+results <- l %>% imap(function(e, i)
+  raise_conditions(e, raise_errors=FALSE,
+                   added_text=paste0(" in l[",i,"]:"))) %>%
+  map(~evaluate_results(., raise_errors = FALSE))
+
+print(results)
+```
+
+
+## Found a bug or have a suggestion?
+
+Please open an issue and I'll try to get to it!
+
+### Acknowledgments
+
+The inception of the core of the `collect_conditions` function comes from [Luke Tierney's answer to a question on the R-help mailing list](https://tolstoy.newcastle.edu.au/R/help/04/06/0217.html), which was very helpful in my understanding of `R`'s error-handling.  
+
+Likewise, much of this code came from other (more personal) packages I've worked on over the years, such as [`zplyr`](https://github.com/burchill/zplyr) and [`cs`](https://github.com/burchill/cs).
+
+### Footnotes
+
+[^1]: I've found it's even *more* useful when you combine `purrr` and `future` via [`furrr`](https://github.com/DavisVaughan/furrr) (e.g., to run models in parallel). Shout-out to Davis Vaughan for his lovely code!

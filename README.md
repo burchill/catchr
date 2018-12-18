@@ -1,5 +1,7 @@
 
 <!-- README.md is generated from README.Rmd. Please edit that file -->
+[![Travis-CI Build Status](https://travis-ci.org/burchill/catchr.svg?branch=master)](https://travis-ci.org/burchill/catchr)
+
 catchr
 ======
 
@@ -153,8 +155,7 @@ results <- l %>% imap(function(e, i)
   map(~evaluate_results(., raise_errors = FALSE))
 #> Warnings in l[1]:
 #> Warning in doWithOneRestart(return(expr), restart): Bad eigenvalues, bro
-#> Warning in doWithOneRestart(return(expr), restart): Model failed to
-#> converge!
+#> Warning in doWithOneRestart(return(expr), restart): Convergence failure!
 #> Messages in l[2]:
 #> Dropping contrasts
 #> Warnings in l[2]:
@@ -181,8 +182,7 @@ Found a bug or have a suggestion?
 
 Please open an issue and I'll try to get to it!
 
-Acknowledgments
----------------
+### Acknowledgments
 
 The inception of the core of the `collect_conditions` function comes from [Luke Tierney's answer to a question on the R-help mailing list](https://tolstoy.newcastle.edu.au/R/help/04/06/0217.html), which was very helpful in my understanding of `R`'s error-handling.
 
