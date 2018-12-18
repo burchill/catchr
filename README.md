@@ -82,6 +82,25 @@ raise_conditions(res)
 #> Warning in doWithOneRestart(return(expr), restart): warning 2
 #> Misc. conditions:
 #> Custom condition!
+#> $value
+#> [1] "test value"
+#> 
+#> $warnings
+#> $warnings[[1]]
+#> <simpleWarning in doWithOneRestart(return(expr), restart): warning 1>
+#> 
+#> $warnings[[2]]
+#> <simpleWarning in doWithOneRestart(return(expr), restart): warning 2>
+#> 
+#> 
+#> $messages
+#> $messages[[1]]
+#> <simpleMessage in message("message 1", appendLF = F): message 1>
+#> 
+#> 
+#> $conditions
+#> $conditions[[1]]
+#> <custom: Custom condition!>
 ```
 
 Use in `future`
@@ -108,6 +127,20 @@ raise_conditions(future_res, raise_errors = FALSE)
 #> because of X
 #> Errors:
 #> Why did you get this error?
+#> $value
+#> NULL
+#> 
+#> $warnings
+#> $warnings[[1]]
+#> <simpleWarning in doWithOneRestart(return(expr), restart): You'll get an error because of X>
+#> 
+#> 
+#> $messages
+#> list()
+#> 
+#> $errors
+#> $errors[[1]]
+#> <simpleError in doWithOneRestart(return(expr), restart): Why did you get this error?>
 ```
 
 Use in `purrr`
@@ -139,10 +172,10 @@ results <- l %>% imap(function(e, i)
 
 print(results)
 #> [[1]]
-#> NULL
+#> [1] "model-1"
 #> 
 #> [[2]]
-#> NULL
+#> [1] "model-2"
 #> 
 #> [[3]]
 #> NULL
