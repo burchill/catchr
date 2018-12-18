@@ -12,11 +12,11 @@ findFirstMuffleRestart <- function(cond) {
 
 #' Collect conditions, without halting processes
 #'
-#' This function evaluates an expression, and will catch and collect all the conditions
+#' `collect_conditions` (and its shorter alias, `col_cond`) evaluates an expression, and will catch and collect all the conditions
 #' specified (e.g., warnings, errors, messages, etc.), without halting/restarting
 #' the evaluation of the expression (unless it encounters an error).
 #' It will then return a named list with the result of the expression and sublists
-#' that contain all the collected conditions.
+#' that contain all the collected conditions (see **Value**).
 #'
 #' The way this function suppresses conditions is simply by attempting to find the
 #' first available \code{\link{restartDescription}} with "muffle" in its name
@@ -69,9 +69,10 @@ findFirstMuffleRestart <- function(cond) {
 #' },
 #' asStrings = TRUE, catchErrors = TRUE, dropMiscIfEmpty = FALSE)
 #' print(res)
+#' @rdname col_cond_page
 #' @export
 collect_conditions <- function(expr,
-                               catchErrors = FALSE,
+                               catchErrors = TRUE,
                                asStrings = FALSE,
                                dropMiscIfEmpty = TRUE
 ) {
@@ -121,6 +122,9 @@ collect_conditions <- function(expr,
   # Drop the elements you don't want
   res[!(names(res) %in% dropList)]
 }
+#' @rdname col_cond_page
+#' @export
+col_cond <- collect_conditions
 
 
 

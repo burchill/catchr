@@ -2,9 +2,13 @@
 % Please edit documentation in R/code.R
 \name{collect_conditions}
 \alias{collect_conditions}
+\alias{col_cond}
 \title{Collect conditions, without halting processes}
 \usage{
-collect_conditions(expr, catchErrors = FALSE, asStrings = FALSE,
+collect_conditions(expr, catchErrors = TRUE, asStrings = FALSE,
+  dropMiscIfEmpty = TRUE)
+
+col_cond(expr, catchErrors = TRUE, asStrings = FALSE,
   dropMiscIfEmpty = TRUE)
 }
 \arguments{
@@ -27,11 +31,11 @@ A named list with the following structure: \cr
 }
 }
 \description{
-This function evaluates an expression, and will catch and collect all the conditions
+\code{collect_conditions} (and its shorter alias, \code{col_cond}) evaluates an expression, and will catch and collect all the conditions
 specified (e.g., warnings, errors, messages, etc.), without halting/restarting
 the evaluation of the expression (unless it encounters an error).
 It will then return a named list with the result of the expression and sublists
-that contain all the collected conditions.
+that contain all the collected conditions (see \strong{Value}).
 }
 \details{
 The way this function suppresses conditions is simply by attempting to find the
