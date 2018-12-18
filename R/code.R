@@ -253,7 +253,7 @@ raise_col_conditions <- function(conditions, added_text=":",
 #' @export
 print_errors <- function(conditions, added_text=":") {
   cat("Errors", added_text, "\n", file=stderr(), sep="")
-  Map(function(e) cat(e$message, file=stderr(), sep=""),
+  Map(function(e) cat(e$message, "\n", file=stderr(), sep=""),
       conditions)
   invisible()
 }

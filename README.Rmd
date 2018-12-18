@@ -31,7 +31,7 @@ library(future)
 
 # catchr
 
-The goal of `catchr` is to provide a simple code base for handling conditions (e.g., warnings, errors, messages, etc.) in `R`. Other than the simplicity it offers, one of the primary benefits of `catchr` is that it can catch and collect conditions **without needing to halt or restart the code**. This can be especially useful if you're trying to catch the warning messages from code that takes a long time to run, where having to restart the whole process from square one would be too costly. 
+The goal of `catchr` is to provide a simple code base for handling conditions (e.g., warnings, errors, messages, etc.) in `R`. Other than the simplicity it offers, one of the primary benefits of `catchr` is that it can catch and collect conditions **without needing to halt or restart the code**. This can be especially useful if you're trying to catch the warning messages from code that takes a long time to run, where having to restart the whole process from square one would be too costly.
 
 `catchr` also comes in handy when trying to collect warnings, messages, and errors from code that is running remotely, where these conditions would not be returned with the rest of the results, such as with the [`future`](https://github.com/HenrikBengtsson/future/) package, or with packages like `purrr`.
 
