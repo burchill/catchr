@@ -10,7 +10,7 @@ The goal of `catchr` is to provide a simple code base for handling conditions (e
 
 ## Installation
 
-You can install the released version of furrr from [CRAN](https://CRAN.R-project.org) with:
+You can install the released version of catchr from [CRAN](https://CRAN.R-project.org) with:
 
 ``` r
 install.packages("catchr")
