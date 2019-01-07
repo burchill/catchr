@@ -115,8 +115,14 @@
 
 
 
-
-
+# Makes sure a \n is at the end
+give_newline <- function(s, trim = FALSE) {
+  if (trim == T)
+    return(paste0(trimws(s, "right"), "\n"))
+  if (substr(s, nchar(s), nchar(s)) != "\n")
+    return(paste0(s, "\n"))
+  else return(s)
+}
 
 # Recursively moves through AST
 check_nodes <- function(x, nms) {
@@ -125,7 +131,8 @@ check_nodes <- function(x, nms) {
            "passer", val=deparse(x))
   # cnd_signal(msg=paste0("Reserved symbol in arguments: ", deparse(x)),
   #            .cnd="passer", val=deparse(x))
-  if (is_call(x))
+  #               e.g. `beepr::beep` shouldn't ruffle feathers
+  if (is_call(x) && !(call_name(x) %in% c("::", ":::")))
     call_args(x) %>%
     map(~check_nodes(., nms))
 }
@@ -158,7 +165,7 @@ warn_of_specials <- function(qs, names_to_check) {
     unlist() %>%
     unique()
   if (length(bad_boys) > 0)
-    warning("`", paste(bad_boys,collapse = "`,`"),
+    warning("`", paste(bad_boys,collapse = "`, `"),
             "` have special meaning in these arguments, but seem to already be defined elsewhere.  These previous definitions will not be used in determining condition behavior.",
             immediate. = TRUE, call. = FALSE)
   invisible()
@@ -185,7 +192,7 @@ classify_el <- function(el, nono_words) {
 
 # checks arguments to see if they meet criteria
 classify_arg <- function(arg, nono_words) {
-  if (length(arg) > 1) {
+  if (length(arg) > 1 || is_list(arg)) {
     if (!is_list(arg) && !is_bare_character(arg))
       abort(paste0("`", arg, "` has an invalid type: ", typeof(arg)), val=arg)
     walk(arg, ~classify_el(., nono_words))
@@ -213,6 +220,9 @@ clean_cond_input <- function(..., spec_names) {
       abort("Unnamed args must be unquoted names or strings", arg=.)) %>%
     as.character()
 
+  # Unbind the special names from v
+  env_unbind(v, spec_names)
+
   # Check args
   walk(args,
        function(arg)
@@ -221,14 +231,116 @@ clean_cond_input <- function(..., spec_names) {
   return(list(args = args, kwargs = kwargs))
 }
 
+
+
+
+
+
+
+
+test_that("Namespaces and environments", {
+  exit <- "A"
+  sup <- "NO"
+  diffnamespace <- function(x) return(sup)
+  samenamespace <- function(x) return(sup)
+  environment(diffnamespace) <- child_env(asNamespace("base"),
+                                sup = "YES",
+                                diffnamespace = diffnamespace)
+  # diffnamespace("fa") should return "YES"
+
+  expect_warning(res <- clean_cond_input(
+    # d1 = function(x) { return(exit) },
+    d2 = samenamespace,
+    d3 = diffnamespace,
+    spec_names = c("sup", "exit")))
+
+  expect_equal(res$kwargs$d1("."), exit)
+
+  expect_equal(sup, "NO")
+  expect_equal(res$kwargs$d2("~"), sup)
+  expect_equal(res$kwargs$d3("~"), "YES")
+
+})
+
+test_that("Explictly package-named functions", {
+  # picked a 'random' base function
+  acosh <- function(x) { return("dummy") }
+
+  expect_warning(
+    res1 <- clean_cond_input(d1 = acosh, spec_names = "acosh")
+  )
+  expect_silent(
+    res2 <- clean_cond_input(d1 = base::acosh, spec_names = "acosh")
+  )
+
+})
+
+
+
+
+
+
+# Testing
+
+#
+
+
+# Testing ######################
+surp <- clean_cond_input(#fafa = function(x) { print(exit) },
+                         nana = beepr::beep,
+                         yaya = function(x) {beepr::beep("beep")},
+                         # lala = exit,
+                         spec_names = c("exit", "abort", "sup", "display", "muffle", "collect", "beep"))
+surp$kwargs$fafa("soop")
+
+# Testing ######################
 surp <- clean_cond_input(fafa = function(x) { print(exit) },
-  nana = sip,
-  # lala = exit,
-  spec_names = c("exit", "abort", "sup", "display", "muffle", "collect"))$kwargs$fafa
-surp("soop")
+                         nana = sip,
+                         # lala = exit,
+                         spec_names = c("exit", "abort", "sup", "display", "muffle", "collect"))
+surp$kwargs$fafa("soop")
+###########################
+
+###########################
 
 
-# signal, display, exit, muffle, collect,
+quo(!!(!!test_cnd))
+
+
+
+
+use_special_terms <- function(s, spec_terms) {
+  switch(s,
+         towarn = function(cond) {
+           class(cond) <- c("warning","condition")
+           warning(cond)
+         }
+         tomessage = function(cond) {
+           class(cond) <- c("message","condition")
+           if (!is.null(cond$message) & cond$message != "")
+             cond$message <- give_newline(cond$message, trim = F)
+           message(cond)
+         }
+         beep = function(cond) {
+           if (!is_installed("beepr")) {
+             abort("Package `beepr` needs to be installed if `beep` is being used")
+           }
+         }
+  )
+
+}
+
+
+raise_stuff <- function() {
+  warning("YO")
+  message("hey")
+  warning("2")
+}
+
+with_handlers(
+  raise_stuff(),
+  warning = calling(function(cond) {message(cond); cond})
+)
 
 
 
@@ -236,12 +348,16 @@ surp("soop")
 
 
 
+# display, exit, muffle, collect, beep, #also: towarn, toerror, tomessage
 
-sip <- function(x) print(sup)
-environment(sip) <- child_env(asNamespace("base"),
-                              sup = "JAMMA",
-                              sip=sip)
-sip("fa")
+
+
+withCallingHandlers(warning(a), message = function(x) print(computeRestarts(x)))
+
+
+
+
+
 
 
   new_environment(data = list(sup = "JAMMA",
@@ -257,6 +373,83 @@ ye()
 
 
 
+#
+#
+#
+test_envs <- function(..., spec_names) {
+  kwargs2 <- enquos(...)
+  print(kwargs2)
+  parent_envir <- caller_env()
+
+  v <- as_environment(
+    set_names(spec_names, spec_names),
+    parent = parent_envir)
+
+  kwargs <- kwargs2 %>%
+    map(~eval_tidy(set_env(.,v))) %>%
+    map(~classify_arg(., spec_names))
+
+  env_unbind(v, spec_names)
+
+  return(kwargs)
+}
+
+
+
+
+exit <- "A"
+sup <- "NO"
+sip <- function(x) print(sup)
+environment(sip) <- child_env(asNamespace("base"),
+                              sup = "JAMMA",
+                              sip = sip,
+                              chaos="ba")
+sip("fa")
+
+
+gs <- test_envs(fafa = c(function(x) print(exit), "sup"),
+          nana = c(sip),
+          # lala = exit,
+          spec_names = c("exit", "abort", "sup", "display", "muffle", "collect"))
+# gs$fafa[[1]]("X")
+# gs$nana[[1]]("X")
+# env_names(get_env(gs$fafa[[1]]))
+# env_names(get_env(gs$nana[[1]]))
+#
+# env_get(get_env(gs$fafa[[1]]), "~")
+#
+# # fafa_maker <- function
+#
+# top <- new_environment(list(xxx = function() print("A")))
+# middle <- env(top)
+# bottom <- env(middle, xxx = "datasss")
+# mask <- new_data_mask(bottom, top)
+# eval_tidy(quote(xxx), mask)
+
+
+function (cnd)
+{
+  switch(cnd_type(cnd), message = invokeRestart("muffleMessage"),
+         warning = invokeRestart("muffleWarning"), interrupt = invokeRestart("resume"))
+  if (inherits(cnd, "rlang_condition")) {
+    invokeRestart("rlang_muffle")
+  }
+  abort("Can't find a muffling restart")
+}
+
+
+cnd_muffle <- function (cnd) {
+  possibleRestarts <- computeRestarts(cond)
+  muffleRestarts <- possibleRestarts[grepl("muffle", Map(function(x) x$name, possibleRestarts))]
+  resumeRestarts <- possibleRestarts[grepl("resume", Map(function(x) x$name, possibleRestarts))]
+  if (length(muffleRestarts)) {
+    invokeRestart(muffleRestarts[[1]])
+  } else if (length(muffleRestarts)) {
+    invokeRestart(resumeRestarts[[1]])
+  } else {
+    abort("Can't find a muffling restart")
+  }
+}
 
 
 
