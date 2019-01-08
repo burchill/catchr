@@ -137,10 +137,15 @@ clean_cond_input <- function(..., spec_names) {
 }
 
 # Not sure if this is that good!!!! Might run into environment issues
-# Combines functions
+# Combines functions and expressions into a single big function
 combine_functions <- function(...) {
   l <- enexprs(...) %>%
-    map(~substitute(zzzz(cond), c(zzzz = .)))
+    map(function(el) {
+      if (is_function(el))
+        substitute(zzzz(cond), c(zzzz = el))
+      else
+        substitute(zzzz, c(zzzz = el))
+    })
   e <- expr({!!!l})
   e <- expr(function(cond) !!e)
   eval_tidy(e)
@@ -173,9 +178,11 @@ use_special_terms <- function(s, cond_type) {
     display = function(cond) {
       str(cond, max.level = 1)
     },
-    collect = function(cond) {
-      .myConditions[[cond_type]] <<- append(.myConditions[[cond_type]],
-                                            list(cond))
+    collect = substitute({
+      .myConditions[[cond_type]] <<- append(.myConditions[[cond_type]], list(cond))
+    }, list(cond_type=cond_type)),
+    muffle = function(cond) {
+      findFirstMuffleRestart(cond)
     },
     stop(paste0("`", s, "` is not a possible choice"))
   )
@@ -195,11 +202,11 @@ make_handler <- function(vals, name) {
                      " other defined functions"))
     vals <- vals[1:(first_exit-1)]
     if (first_exit == 1)
-      vals <- function(x) { NULL }
+      vals <- list(function(x) { NULL })
   }
   vals <- map(vals, function(x) {
     if (is_callable(x)) x
-    else use_special_terms(x)
+    else use_special_terms(x, name)
   })
   combined_func <- combine_functions(!!!vals)
 
@@ -208,67 +215,60 @@ make_handler <- function(vals, name) {
 }
 
 # Turns the unnamed arguments into the defaults
-flesh_args_outs <- function(args, default_plan = NULL) {
+flesh_args_out <- function(args, default_plan = NULL) {
   if (is.null(default_plan))
     default_plan = getOption("default.catchr.plan", default_catchr_plan)
   map(args, ~default_plan) %>%
     set_names(args)
 }
 
-with_handlers({message("aaa"); "done"},
-              message = make_handler("message", c("display","towarn")))
-
-make_handler("message", c("display","towarn","exit"))
-
 
 # Ones to use: display, collect, beep, to<blank>, muffle
 # display, exit, muffle, collect, beep, #also: towarn, toerror, tomessage
 
-
-clean_cond_input(error = exit,
-  stop,
-  warning = c(display, muffle),
-  message = c(collect, warning, muffle),
-  spec_names = c("exit", "sup", "display", "muffle", "collect","stop"))$args %>%
-  str()
-
-baba <- function(...) {
-  args_and_kwargs(...)
-}
-baba("error",mex="no","gone","asa")
-
-
-
-
-make_catchr_function <- function(args, kwargs) {
-  myConditions <- NULL
+# DEAR GOD I DID IT
+# This function just applies the catchr_behavior to a single expression
+catch_expr <- function(expr, args, kwargs) {
+  .myConditions <- NULL
+  baby_env <- child_env(current_env())
 
   kwargs <- append(as_list(kwargs),
-                   as_list(flesh_args_outs))
+                   as_list(flesh_args_out(args)))
+  print(kwargs)
+  kwargs <- kwargs %>% imap(make_handler) %>%
+    map(~`environment<-`(., baby_env))
 
+  res <- with_handlers(expr, !!!kwargs)
+  append(list(value = res), .myConditions)
 
 }
 
+# plans <- clean_cond_input(error = exit,
+#                         warning = c(collect, muffle),
+#                         message = c(collect, towarning),
+#                         spec_names = c("exit", "towarning", "display", "muffle", "collect"))
+# blark({warning("a"); message("ooo"); message("nsass"); "yay"},
+#       plans$args, plans$kwargs)
 
-conditionHandler <- function(cond) {
-  .myConditions[[cond_type]] <<- append(.myConditions[[cond_type]], list(cond))
+# This function makes wrapper functions that use the plan
+make_catch_function <- function(args, kwargs) {
+  function(expr) {
+    .myConditions <- NULL
+    baby_env <- child_env(current_env())
+
+    kwargs <- append(as_list(kwargs),
+                     as_list(flesh_args_out(args)))
+    print(kwargs)
+    kwargs <- kwargs %>% imap(make_handler) %>%
+      map(~`environment<-`(., baby_env))
+
+    res <- with_handlers(expr, !!!kwargs)
+    append(list(value = res), .myConditions)
+  }
 }
+# make_catch_function(yap$args, yap$kwargs)({warning("a"); message("ooo"); message("nsass"); "yay"})
 
-blark <- function(e, f) {
-  .myConditions <- NULL
 
-  new_f <- calling(use_special_terms(f,"warning"))
-  # environment(new_f) <- current_env()
-  new_f("ASASA")
-  print(.myConditions)
-
-  za <- withCallingHandlers(
-    withRestarts(e, return_NULL = function() NULL),
-    warning = new_f)
-  print(.myConditions)
-  za
-}
-blark({warning("a"); warning("b"); "yay"}, "collect")
 
 
 
