@@ -5,7 +5,6 @@
 #'      Currently, error catching doesn't seem to be able to work with `calling` functions in `with_handlers`. Maybe use `with_restarts`?
 #'
 #' CODE-BASED:
-#'  - maybe check to see if there's a "muffle" and "exit" for the same thing, which probably shouldn't be
 #'  - make it so that the default catchr plan can work even if you only use a single function of the package
 #'  - let code use rlang lambda functions for functions
 #'  - figure out how you can avoid overlap between "warning" and "condition"
@@ -29,10 +28,22 @@
 #'      * Egh, just make a help page and connect it to the warning message
 
 
-special_terms <- c("towarning", "tomessage", "toerror",
-                   "display", "beep", "exit", "muffle", "collect")
 
-# Finds the first restart with "muffle" in its name
+#' @import rlang
+#' @import purrr
+
+special_terms <- c("towarning", "tomessage", "toerror",
+                   "display", "beep", "exit", "muffle", "collect",
+                   "raise")
+
+
+#' Find the first 'mufflable' restart
+#'
+#' This function attempts to return the first available \link[base:conditions]{restart} with the string "muffle" in its name. If the condition is an error, it will attempt to find the first restart named "return_error" (used internally in `catchr` to return a `NULL` value). If no such restarts can be found, it returns `NULL`
+#'
+#' @param cond A condition
+#' @return A restart or `NULL` if none can be found.
+#' @export
 findFirstMuffleRestart <- function(cond) {
   possibleRestarts <- computeRestarts(cond)
   restartNames <- Map(function(x) x$name, possibleRestarts)
@@ -44,7 +55,7 @@ findFirstMuffleRestart <- function(cond) {
     else
       return(NULL)
   } else {
-    muffleRestarts <- possibleRestarts[grepl("muffle", restartNames)]
+    muffleRestarts <- possibleRestarts[grepl("muffle", restartNames, ignore.case = TRUE)]
     if (length(muffleRestarts) > 0)
       # Picks the first restart with "muffle" in its name (hack-y?)
       return(muffleRestarts[[1]])
@@ -56,13 +67,17 @@ findFirstMuffleRestart <- function(cond) {
 }
 
 
-#' Special reserved terms
+#' The language of `catchr`
 #'
 #' @description
 #'
-#' `catchr` has a few special "reserved" terms that mean something different than they do in the rest of R. When given as part of the input for a `catchr` plan, these will be substituted for different functions when used to catch conditions.
+#' `catchr` implements a small but helpful "domain-specific language" (DSL) to make building condition-handling functions simpler to read and type, somewhat like \href{https://tidyeval.tidyverse.org/}{tidyeval}. Essentially, `catchr` reserves special 'terms' that mean something different than they do in the rest of R. When given as part of the input for a `catchr` plan, these terms will be substituted for special `catchr` functions when used to catch conditions.
 #'
-#' These reserved terms can be inputted as strings (e.g., `warning = c('collect', 'muffle')`) or as unquoted terms (e.g., `warning = c(collect, muffle)`)--`catchr` converts the unquoted terms to strings internally regardless, but it can save a few keystrokes. The following are the special terms and what they are used for:
+#' These special terms can be inputted as strings (e.g., `warning = list('collect', 'muffle')`) or as unquoted terms (e.g., `warning = c(collect, muffle)`)--`catchr` converts the unquoted terms to strings internally regardless, but having them unquoted saves keystrokes and can highlight their special meanings for readability.
+#'
+#' @section Special reserved terms
+#'
+#' The following are the special terms and what they are used for:
 #'
 #' - `tomessage`, `towarning`, `toerror`: these terms will be substituted for functions that will convert captured conditions into a message, warning, or error, respectively, and raise them. The original class of the condition will be lost.
 #'
@@ -70,18 +85,30 @@ findFirstMuffleRestart <- function(cond) {
 #'
 #'  - `display`: the purpose of this term is to immediately display information about the captured condition on the screen without raising additional conditions (as would be done with `tomessage`). Currently, this term just calls \link[utils]{str} on the condition, but this will probably change in later versions.
 #'
-#' - `exit`: when encountered, this will exit the evaluation of the expression immediately. Any instructions after this in the input will be ignored.
+#' - `exit`: when encountered, this will exit the evaluation of the expression immediately and by default muffle the captured condition. Any instructions after `exit` in the input will be ignored.
 #'
 #' - `collect`: this term will store the captured conditions and append them to the output of the evaluated expression. See the \link[collecting-conditions]{Collecting Conditions} help topic for a full explanation.
 #'
 #' - `muffle`: this term will be substituted for a function that 'muffles' (i.e., 'suppresses', 'catches', what have you) the captured condition, preventing it from being raised to higher levels. \cr
-#' Currently, it searches for and uses the first available \link[base:conditions]{'restart'} with `"muffle"` in its name (the two typical ones are `"muffleMessage"` and `"muffleWarning"`). If the captured condition is an error, which can't be muffled, it will exit the evaluation and give `NULL` for the returned value.
+#' Currently, it searches for and uses the first available \link[base:conditions]{restart} with `"muffle"` in its name (the two typical ones are `"muffleMessage"` and `"muffleWarning"`). If the captured condition is an error, which can't be muffled, it will exit the evaluation and give `NULL` for the returned value.
+#'
+#' - `raise`: a term that will raise the captured condition "as is". The only *real* use for this term is when you want to use `exit` to stop the evaluation, but to still raise the condition past that as well. The behavior of this raising might be slightly hard to predict for very odd edge-cases (e.g., if a condition were both a warning *and* an error).
 #'
 #' @section Masking
 #'
-#' To-do: write this section
+#' `catchr` will turn unquoted special terms into functions, but what happens if these unquoted terms are identical to variables previously declared? If `muffle` is the name of a user-defined function, e.g., `muffle <- function(x) print("Wooo!")`, in normal R we would expect `warning = muffle` to make `function(x) print("Wooo!")` the warning handler.
 #'
-#' @name spesh_terms
+#' *However*, `catchr`'s DSL 'masks' any symbol that matches one of its reserved terms, and when it evaluates these symbols, they are converted into strings. `catchr` for the most part will warn you when this happens.
+#'
+#' **Importantly**, `catchr` does *not* mask reserved terms when:
+#'
+#'  - the reserved names are being used as calls, e.g., `warning = collect(foo)`. In these cases, it will attempt to use a previously defined function `collect` on `foo`, and will attempt to use whatever that evaluates to. The reserved terms are all strings/unquoted bare symbols, so it is never a problem anyway.
+#'
+#'  - when the input specifically references a namespace/package, such as `warning = dplyr::collect`. When the symbol of a special terms is preceded by `::` or `:::`, it will be seen as the function of that package, and not as the special term `collect`.
+#'
+#'  - the reserved terms are used inside a function definition. For example, if the user had defined `muffle <- function(x) print("not special")`, and `fn <- function(x) muffle`, `warning = fn()` would not use the special term of `muffle`.
+#'
+#' @name catchr_DSL
 NULL
 
 # display, exit, muffle, collect, beep, #also: towarn, toerror, tomessage
@@ -238,14 +265,32 @@ add_back_arg_pos <- function(new_l, old_l) {
     `attr<-`(k, 'arg_pos', attr(old, 'arg_pos')) })
 }
 
-
+# uses the 'arg_pos' attribute to order a list
 order_by_arg_pos <- function(l) {
   l[order(map_dbl(l, ~attr(., "arg_pos")))]
 }
 
+#' Make `catchr` plans
+#'
+#' @section Input
+#'
+#' Input to `make_plans` is very similar to how one makes handlers for \code{\link[base]{withCallingHandlers}}, \code{\link[base]{tryCatch}} and `rlang`'s \code{\link[rlang]{with_handlers}}, albeit with some important differences.
+#'
+#' Like the functions above, the name of each argument determines which type of condition it will catch. Hence, `warnings = fn` will apply the `fn` function to the warnings raised in evaluating `expr`. However, *unnamed* arguments are *also* accepted: the value of any unnamed arguments will be treated as the type of condition to catch, and the way it handles the condition will be set by `default_plan` or `getOption("default.catchr.plan")`.
+#'
+#'
+#' @param \dots Named and unnamed arguments for making plans
+#' @export
+make_plans <- function(..., default_plan = NULL) {
+  akw <- clean_cond_input(..., spec_names = special_terms)
+  args <- as_list(flesh_args_out(akw$args, default_plan = default_plan)) %>%
+    add_back_arg_pos(akw$args)
 
+  kwargs <- append(as_list(akw$kwargs), args) %>%
+    order_by_arg_pos()
 
-
+  kwargs %>% imap(make_handler)
+}
 
 # Checks to see if input is safe and puts it into right format
 # Internal
@@ -295,7 +340,8 @@ combine_functions <- function(...) {
   eval_tidy(e)
 }
 
-# sub in special term functions
+
+
 # sub in special term functions
 use_special_terms <- function(s, cond_type) {
   switch(
@@ -313,6 +359,9 @@ use_special_terms <- function(s, cond_type) {
     toerror = function(cond) {
       class(cond) <- c("error","condition")
       stop(cond)
+    },
+    raise = function(cond) {
+      cnd_signal(cond)
     },
     beep = function(cond) {
       if (!is_installed("beepr"))
@@ -493,44 +542,44 @@ test_that("Function names are not masked", {
 
 
 
+# #
+# #
+# #
+# test_envs <- function(..., spec_names) {
+#   kwargs2 <- enquos(...)
+#   print(kwargs2)
+#   parent_envir <- caller_env()
+#
+#   v <- as_environment(
+#     set_names(spec_names, spec_names),
+#     parent = parent_envir)
+#
+#   kwargs <- kwargs2 %>%
+#     map(~eval_tidy(set_env(.,v))) %>%
+#     map(~classify_arg(., spec_names))
+#
+#   env_unbind(v, spec_names)
+#
+#   return(kwargs)
+# }
 #
 #
 #
-test_envs <- function(..., spec_names) {
-  kwargs2 <- enquos(...)
-  print(kwargs2)
-  parent_envir <- caller_env()
-
-  v <- as_environment(
-    set_names(spec_names, spec_names),
-    parent = parent_envir)
-
-  kwargs <- kwargs2 %>%
-    map(~eval_tidy(set_env(.,v))) %>%
-    map(~classify_arg(., spec_names))
-
-  env_unbind(v, spec_names)
-
-  return(kwargs)
-}
-
-
-
-
-exit <- "A"
-sup <- "NO"
-sip <- function(x) print(sup)
-environment(sip) <- child_env(asNamespace("base"),
-                              sup = "JAMMA",
-                              sip = sip,
-                              chaos="ba")
-sip("fa")
-
-
-gs <- test_envs(fafa = c(function(x) print(exit), "sup"),
-                nana = c(sip),
-                # lala = exit,
-                spec_names = c("exit", "abort", "sup", "display", "muffle", "collect"))
+#
+# exit <- "A"
+# sup <- "NO"
+# sip <- function(x) print(sup)
+# environment(sip) <- child_env(asNamespace("base"),
+#                               sup = "JAMMA",
+#                               sip = sip,
+#                               chaos="ba")
+# sip("fa")
+#
+#
+# gs <- test_envs(fafa = c(function(x) print(exit), "sup"),
+#                 nana = c(sip),
+#                 # lala = exit,
+#                 spec_names = c("exit", "abort", "sup", "display", "muffle", "collect"))
 # gs$fafa[[1]]("X")
 # gs$nana[[1]]("X")
 # env_names(get_env(gs$fafa[[1]]))
