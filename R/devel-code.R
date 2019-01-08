@@ -1,117 +1,13 @@
-# # Used to pass condition out of `withCallingHandlers`
-# exit_call_fn <- function(cond) {
-#   stop(cnd(".rlang_exit_calling_condition",
-#            message="Internal exit calling error",
-#            orig_cond = cond))
-# }
-#
-# # The 'internal' handler for ".rlang_exit_calling_condition" conditions
-# rlang_internal_handler <- function(cond) {
-#   cnd_signal(cond$orig_cond)
-# }
-#
-# # Adds class of ".rlang_checked_cond" to conditions, muffles the original and raises the new
-# mark_orig_conditions <- function(cond) {
-#   if (!inherits(cond, "error")) {
-#     class(cond) <- c(class(cond), ".rlang_checked_cond")
-#     cnd_signal(cond)
-#     cnd_muffle(cond)
-#   }
-# }
-# # Removes the ".rlang_checked_cond" class from conditions
-# remove_checked_cond_class <- function(cond) {
-#   classes <- class(cond)
-#   class(cond) <- classes[classes!=".rlang_checked_cond"]
-#   cond
-# }
-#
-# # Takes handler functions, and makes new ones that run `remove_checked_cond_class` on the input before processing it
-# # Dependent on the fact (I believe) that handler functions are always and only supplied one argument (the condition)
-# mod_handlers_to_remove <- function(fn) {
-#   first_arg <- fn_fmls_syms(fn)[[1]]
-#   body <- substitute(
-#     fn(remove_checked_cond_class(first_arg)),
-#     list("fn" = fn, "first_arg" = first_arg))
-#   new_func <- function(x) x
-#   formals(new_func) <- fn_fmls(fn)[1]
-#   body(new_func) <- body
-#   new_func
-# }
-#
-# # lets you use both handlers
-# with_both_handlers <- function (.expr, ...) {
-#   handlers <- rlang:::map(list2(...), as_function)
-#
-#   nms <- names2(handlers)
-#   nms <- ifelse(nms == "condition", ".rlang_checked_cond", nms)
-#
-#   if (any(nms == ""))
-#     abort("All handlers must be named arguments")
-#   if (length(unique(nms)) != length(nms))
-#     abort("Each handler argument must have a unique name")
-#
-#   fake_calling_fns <- rep(list(exit_call_fn),
-#                           length(handlers))
-#
-#   is_calling <- rlang:::map_lgl(handlers, inherits, "calling")
-#   exiting <- handlers[!is_calling]
-#
-#   calling <- ifelse(is_calling==T,
-#                     rlang:::map(handlers, mod_handlers_to_remove),
-#                     fake_calling_fns)
-#   names(calling) <- nms
-#
-#   calling <- c(condition = calling(mark_orig_conditions),
-#                     rlang:::map(calling, function(x) calling(x)))
-#
-#   expr <- quote(.expr)
-#   expr <- expr(
-#     tryCatch(
-#       tryCatch(
-#         withCallingHandlers(!!expr, !!!calling),
-#         .rlang_exit_calling_condition = rlang_internal_handler
-#       ), !!!exiting)
-#   )
-#   # print(calling)
-#   # I've been using the following to test my code in place of the `.Call` function
-#   eval_tidy(expr)
-#   # .Call(rlang_eval, expr, environment())
-# }
-#
-#
-# # ------------------ Some basic tests ---------------------------------------------#
-# testing_function <- function() {
-#   warn("Bottom warning")
-#   "end result!"
-# }
-#
-# with_both_handlers(testing_function(),
-#                    warning = exiting(function(x)
-#                      print(paste0("you had a warning: ", x$message))),
-#                    condition = calling(function(x) {
-#                      print("There was a condition but I squashed it")
-#                      cnd_muffle(x)}),
-#                    error = calling(function(x) print("C")))
-#
-# with_both_handlers(testing_function(),
-#                    condition = calling(function(x) {
-#                      print("This muffles any warnings before they can be exited")
-#                      print(paste0("This is the behavior one would both want and expect,",
-#                                   " given that handlers get checked in order."))
-#                      cnd_muffle(x)
-#                    }),
-#                    warning = exiting(function(x)
-#                      print(paste0("you had a warning: ", x$message))))
-#
-#
-#
-# # This is what I did at a conceptual level:
-# # Since `withCallingHandlers` only accepts calling handlers, I turn everything into 'calling handlers'. However, for the handlers that I pass into `withCallingHandlers`, I replace the `exiting` handlers with a function that throws a 'unique' condition with type: '.rlang_exit_calling_condition', which contains the originally thrown condition as data. The unique condition then halts `withCallingHandlers`. However, `withCallingHandlers` is wrapped by a `tryCatch` function that catches this unique condition, extracts the original condition, and signals that to a higher `tryCatch` function that contains all of the "real" `exiting` handlers. They then do whatever they're supposed to.
-# # What I did in practice is a bit more complicated. Although my code **IS** built on the assumption that the only code that will ever throw a '.rlang_exit_calling_condition' condition will be `rlang`, the way I've described the process so far would still run into problems when someone tries to catch "general" conditions (e.g., a handler like `condition = calling(print)`), which would catch the '.rlang_exit_calling_condition' condition and possibly prevent it from halting `withCallingHandlers`. I feel like catching general conditions like this is not so uncommon, so this would definitely be an issue.
-# # My work-around was to modify the supplied calling handlers and automatically add a specific handler to the front of the list (I believe they checked in order). The new handler is a general condition handler, and takes every condition that is raised from `.expr`, gives it a custom type of '.rlang_checked_cond', muffles the original condition and signals the one with the additional type. Any *supplied* general condition handlers are change to catch '.rlang_checked_cond' conditions, and I modify all the supplied functions so that they remove the '.rlang_checked_cond' class before they process the condition.
-# #
+#' To-do:
+#'  -  pretty sure that the checking to see what's evaluated is fucked
+#'  - make a help page that describes how things are masked:
+#'      * The only thing that is masked in evaluation is the non-function versions of the special names. The only way to get an error would be to use a function that took in a special name as an argument to make another function?
+#'      * Egh, just make a help page and connect it to the warning message
 
 
+#' I've decided that any special terms used *inside* functions should not be altered/bound to special terms
+#'
+#' Anything that evaluates to a *function* means that it "didn't" use the
 
 
 
@@ -166,7 +62,7 @@ warn_of_specials <- function(qs, names_to_check) {
     unique()
   if (length(bad_boys) > 0)
     warning("`", paste(bad_boys,collapse = "`, `"),
-            "` have special meaning in these arguments, but seem to already be defined elsewhere.  These previous definitions will not be used in determining condition behavior.",
+            "` have special meaning in these arguments, but seem to already be defined elsewhere.  These previous definitions may be masked when determining condition behavior.",
             immediate. = TRUE, call. = FALSE)
   invisible()
 }
@@ -231,7 +127,63 @@ clean_cond_input <- function(..., spec_names) {
   return(list(args = args, kwargs = kwargs))
 }
 
+# Not sure if this is that good!!!! Might run into environment issues
+# Combines functions
+combine_functions <- function(...) {
+  l <- enexprs(...) %>%
+    map(~substitute(zzzz(cond), c(zzzz = .)))
+  e <- expr({!!!l})
+  e <- expr(function(cond) !!e)
+  eval_tidy(e)
+}
 
+
+
+# yowza <- function(s) {
+#   return(function(x) { sup })
+# }
+#
+# # for (i in kwargs) {
+# #   print(env_names(get_env(i)))
+# # }
+#
+# fwah <- function(f, spec_names) {
+#   q
+#   q <- quo()
+#   q <- quo_set_expr(q, enexpr(f))
+#   v <- as_environment(
+#     set_names(spec_names, spec_names),
+#     parent = caller_env())
+#   # q <- set_env(q, v)
+#   mask <- new_data_mask(v)
+#
+#   print(set_env(q, v))
+#   # print()
+#   # print(eval_tidy(expr(print(sup)), env=v))
+#   eval_tidy(q, data = mask)
+# }
+# fwah(f(),"sup")
+#
+#
+# sip <- f
+# environment(sip) <- child_env(asNamespace("base"),
+#                               sup = "JAMMA",
+#                               sip = sip,
+#                               chaos="ba")
+# sip()
+
+
+#
+# # ignore stuff in functions that are defined
+# clean_cond_input(d1 = yowza, spec_names = taboo)
+# clean_cond_input(d1 = function(x) return(sup), spec_names = taboo)
+# clean_cond_input(d1 = list(function(x) { sup <- 3; return(sup) }), spec_names = taboo)
+#
+#
+# res1 <- clean_cond_input(d1 = list(sup, function(x) { return(sup) }), spec_names = taboo)
+# res1$kwargs$d1[[1]]
+# res1$kwargs$d1[[2]]("a")
+# res2 <- clean_cond_input(d1 = list(sup, sup), spec_names = taboo)
 
 
 
@@ -239,20 +191,26 @@ clean_cond_input <- function(..., spec_names) {
 
 
 test_that("Namespaces and environments", {
-  exit <- "A"
+  taboo <- "sup"
   sup <- "NO"
   diffnamespace <- function(x) return(sup)
   samenamespace <- function(x) return(sup)
   environment(diffnamespace) <- child_env(asNamespace("base"),
-                                sup = "YES",
-                                diffnamespace = diffnamespace)
-  # diffnamespace("fa") should return "YES"
+                                          sup = "YES",
+                                          diffnamespace = diffnamespace)
+  # diffnamespace() should return "YES"
 
-  expect_warning(res <- clean_cond_input(
-    # d1 = function(x) { return(exit) },
-    d2 = samenamespace,
-    d3 = diffnamespace,
-    spec_names = c("sup", "exit")))
+  # If you define it in the function, it should give a warning
+  expect_warning(
+    res1 <- clean_cond_input(d1 = function(x) { return(sup) }, spec_names = taboo)
+  )
+  expect_equal(res1$kwargs$d1(""), sup)
+
+  expect_silent(
+    res2 <- clean_cond_input(d2 = samenamespace,
+                             d3 = diffnamespace,
+                             spec_names = taboo)
+  )
 
   expect_equal(res$kwargs$d1("."), exit)
 
@@ -264,14 +222,28 @@ test_that("Namespaces and environments", {
 
 test_that("Explictly package-named functions", {
   # picked a 'random' base function
-  acosh <- function(x) { return("dummy") }
+  acosh <- function(x) { "dummy" }
 
   expect_warning(
     res1 <- clean_cond_input(d1 = acosh, spec_names = "acosh")
   )
+  expect_equal(res1$kwargs$d1, "acosh")
+
   expect_silent(
     res2 <- clean_cond_input(d1 = base::acosh, spec_names = "acosh")
   )
+  expect_equal(res2$kwargs$d1(10), base::acosh(10))
+
+})
+
+test_that("Function names are not masked", {
+  # picked a 'random' base function
+  sup <- function(x) { function(y) {return("dummy")} }
+
+  expect_silent(
+    res <- clean_cond_input(d1 = sup(""), spec_names = "sup")
+  )
+  expect_equal(res$kwargs$d1(""), "dummy")
 
 })
 
@@ -280,96 +252,76 @@ test_that("Explictly package-named functions", {
 
 
 
-# Testing
-
-#
-
-
-# Testing ######################
-surp <- clean_cond_input(#fafa = function(x) { print(exit) },
-                         nana = beepr::beep,
-                         yaya = function(x) {beepr::beep("beep")},
-                         # lala = exit,
-                         spec_names = c("exit", "abort", "sup", "display", "muffle", "collect", "beep"))
-surp$kwargs$fafa("soop")
-
-# Testing ######################
-surp <- clean_cond_input(fafa = function(x) { print(exit) },
-                         nana = sip,
-                         # lala = exit,
-                         spec_names = c("exit", "abort", "sup", "display", "muffle", "collect"))
-surp$kwargs$fafa("soop")
-###########################
-
-###########################
-
-
-quo(!!(!!test_cnd))
-
-
-
-
-use_special_terms <- function(s, spec_terms) {
+use_special_terms <- function(s) {
   switch(s,
          towarn = function(cond) {
            class(cond) <- c("warning","condition")
            warning(cond)
-         }
+         },
          tomessage = function(cond) {
            class(cond) <- c("message","condition")
            if (!is.null(cond$message) & cond$message != "")
              cond$message <- give_newline(cond$message, trim = F)
            message(cond)
-         }
+         },
+         toerror = function(cond) {
+           class(cond) <- c("error","condition")
+           stop(cond)
+         },
          beep = function(cond) {
-           if (!is_installed("beepr")) {
-             abort("Package `beepr` needs to be installed if `beep` is being used")
-           }
-         }
+           if (!is_installed("beepr"))
+             abort("Package `beepr` needs to be installed if `beep` is to be used.")
+           else
+             beepr::beep()
+         },
+         display = function(cond) {
+           str(cond, max.level = 1)
+         },
+         stop(paste0("`", s, "` is not a possible choice"))
   )
-
 }
 
 
-raise_stuff <- function() {
-  warning("YO")
-  message("hey")
-  warning("2")
+
+
+# Makes a handler from a kwarg
+make_handler <- function(vals, name) {
+  if (!is_vector(vals))
+    vals <- list(vals)
+  first_exit <- purrr::detect_index(a, ~is_string(.) && . =="exit")
+  exit_bool = F
+  if (first_exit > 0) {
+    exit_bool = T
+    if (first_exit < length(vals))
+      warning(paste0("'", name, "' set to exit before ",
+                     length(vals)-first_exit,
+                     " other defined functions"))
+    vals <- vals[1:(first_exit-1)]
+    if (first_exit == 1)
+      vals <- function(x) { NULL }
+  }
+  vals <- map(vals, function(x) {
+    if (is_callable(x)) x
+    else use_special_terms(x)
+  })
+  combined_func <- combine_functions(!!!vals)
+
+  if (exit_bool) exiting(combined_func)
+  else calling(combined_func)
 }
 
-with_handlers(
-  raise_stuff(),
-  warning = calling(function(cond) {message(cond); cond})
-)
+with_handlers({message("aaa"); "done"},
+              message = make_handler("message", c("display","towarn")))
+
+make_handler("message", c("display","towarn","exit"))
 
 
 
-
-
-
-
+# Ones to use: display, collect, beep, to<blank>
 # display, exit, muffle, collect, beep, #also: towarn, toerror, tomessage
 
 
 
-withCallingHandlers(warning(a), message = function(x) print(computeRestarts(x)))
-
-
-
-
-
-
-
-  new_environment(data = list(sup = "JAMMA",
-                                                sip=sip))
-eval_tidy(quote(sip("A")))
-
-
-ye <- function() {
-  ls()
-}
-environment(ye) <- new_environment(data = list(sup = "JAMMA"))
-ye()
 
 
 
@@ -408,9 +360,9 @@ sip("fa")
 
 
 gs <- test_envs(fafa = c(function(x) print(exit), "sup"),
-          nana = c(sip),
-          # lala = exit,
-          spec_names = c("exit", "abort", "sup", "display", "muffle", "collect"))
+                nana = c(sip),
+                # lala = exit,
+                spec_names = c("exit", "abort", "sup", "display", "muffle", "collect"))
 # gs$fafa[[1]]("X")
 # gs$nana[[1]]("X")
 # env_names(get_env(gs$fafa[[1]]))
