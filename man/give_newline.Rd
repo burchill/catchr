@@ -12,6 +12,6 @@ give_newline(s, trim = FALSE)
 \item{trim}{Indicates whether to remove trailing whitespace before adding newline.}
 }
 \description{
-\code{give_newline} will append a line return ('\n') to the end of a string if
+\code{give_newline} will append a line return ('\\n') to the end of a string if
 it doesn't already end with one. There is also the option to remove any trailing whitespace before doing so.
 }

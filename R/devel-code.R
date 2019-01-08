@@ -35,6 +35,8 @@ special_terms <- c("towarning", "tomessage", "toerror",
                    "display", "beep", "exit", "muffle", "collect",
                    "raise")
 
+default_catchr_plan <- list("collect","muffle")
+
 
 #' Find the first 'mufflable' restart
 #'
@@ -64,6 +66,17 @@ findFirstMuffleRestart <- function(cond) {
       return(NULL)
   }
 }
+
+#' Collecting conditions
+#'
+#' @description
+#'
+#' To-do: write docs
+#'
+#' @name collecting-conditions
+NULL
+
+
 
 
 #' The language of catchr
@@ -115,7 +128,7 @@ NULL
 
 #' Make a string end with a newline character
 #'
-#' `give_newline` will append a line return ('\\n') to the end of a string if
+#' `give_newline` will append a line return ('\\\n') to the end of a string if
 #' it doesn't already end with one. There is also the option to remove any trailing whitespace before doing so.
 #' @param s A string.
 #' @param trim Indicates whether to remove trailing whitespace before adding newline.
@@ -230,8 +243,7 @@ warn_of_specials <- function(qs, names_to_check) {
 #' @param fn A function
 #' @export
 has_handler_args <- function(fn) {
-  args <- fn_fmls(fn) %>%
-  {Map(is_missing, .)} # purrr can't iterate over pairlist
+  args <- Map(is_missing, fn_fmls(fn)) # purrr can't iterate over pairlist
   needed <- args %>% keep(~.) %>% length()
   supplied <- args %>% keep(~!.) %>% length()
   return(needed == 1 || (needed == 0 && supplied > 0))
@@ -281,6 +293,7 @@ order_by_arg_pos <- function(l) {
 #'
 #'
 #' @param \dots Named and unnamed arguments for making plans
+#' @param default_plan The default plan. If not supplied, `getOption("default.catchr.plan")` will be used
 #' @export
 make_plans <- function(..., default_plan = NULL) {
   akw <- clean_cond_input(..., spec_names = special_terms)
@@ -371,14 +384,14 @@ use_special_terms <- function(s, cond_type) {
         beepr::beep()
     },
     display = function(cond) {
-      str(cond, max.level = 1)
+      utils::str(cond, max.level = 1)
     },
-    muffle = expr({
+    muffle = substitute({
       restart = findFirstMuffleRestart(cond)
       if (!is.null(restart))
         on.exit(invokeRestart(restart), add = TRUE)
       NULL
-    }),
+    }, NULL),
     collect = substitute({
       .myConditions[[cond_type]] <<- append(.myConditions[[cond_type]], list(cond))
       NULL

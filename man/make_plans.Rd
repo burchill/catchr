@@ -8,6 +8,8 @@ make_plans(..., default_plan = NULL)
 }
 \arguments{
 \item{\dots}{Named and unnamed arguments for making plans}
+
+\item{default_plan}{The default plan. If not supplied, \code{getOption("default.catchr.plan")} will be used}
 }
 \description{
 To-do: add docs
