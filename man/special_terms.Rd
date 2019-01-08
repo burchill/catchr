@@ -9,33 +9,25 @@
 special_terms
 }
 \description{
-PRIORITY:
-\itemize{
-\item make it so that handlers that catch an error (both 'error', 'condition', and the general thing) can 'muffle' the error by returning NULL.
-Currently, error catching doesn't seem to be able to work with \code{calling} functions in \code{with_handlers}. Maybe use \code{with_restarts}?
-}
-}
-\details{
 CODE-BASED:
 \itemize{
-\item make it so that the default catchr plan can work even if you only use a single function of the package
 \item let code use rlang lambda functions for functions
 \item figure out how you can avoid overlap between "warning" and "condition"
-\item determine if the findFirstRestart is best
 \item make the towarning, etc. remove the call
 \item make a 'misc' condition thing which gets everything that isn't already being caught
 \item handle interrupts
 \item make the order matter
 }
-
+}
+\details{
 LESS CODE-BASED:
 \itemize{
+\item add examples
 \item make the spec_terms thing use package defaults somehow
-\item make a way of removing warnings
-\item make a help page for the special reserved terms
+\item make a way of stopping warnings from catchr
 \item standardize terminology
 \item add a page about all the options
-\item add a page about collecting
+\item fill out a page about collecting
 \item the biggest thing preventing me from removing the rlang/purrr dependencies is the splicing operator, it seems
 \item make a help page that describes how things are masked:
 \itemize{

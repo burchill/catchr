@@ -83,7 +83,6 @@ clean_cond_input <- function(..., spec_names) {
   return(list(args = args, kwargs = kwargs))
 }
 
-
 # Turns the unnamed arguments into the defaults
 give_default <- function(args, default_plan = NULL) {
   if (is.null(default_plan))

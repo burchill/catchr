@@ -18,6 +18,9 @@ A named list of lists, with \code{$args} being a list of quosures of the unnamed
 This function will return a named list with two sublists, 'args' and 'kwargs', which contain the unnamed and named arguments as quosures. \cr \cr
 This is useful for when you want these two types of arguments to behave differently. The quosures will also have the attribute \code{'arg_pos'}, which will indicate their position in the original order in which they were supplied.
 }
+\note{
+This function started out in the \code{zplyr} package.
+}
 \examples{
 
 x <- args_and_kwargs(unnamed_1, named_1="ba", "unnamed_2", named_2 = letters)

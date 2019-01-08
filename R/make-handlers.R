@@ -67,6 +67,7 @@ use_special_terms <- function(s, cond_type) {
 #'
 #' @param vals The values of a 'cleaned' `catchr` plan
 #' @param name The type of condition being handled
+#' @export
 make_handler <- function(vals, name) {
   if (!is_vector(vals))
     vals <- list(vals)

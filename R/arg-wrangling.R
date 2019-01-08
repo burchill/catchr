@@ -3,6 +3,10 @@
 #' This function will return a named list with two sublists, 'args' and 'kwargs', which contain the unnamed and named arguments as quosures. \cr \cr
 #' This is useful for when you want these two types of arguments to behave differently. The quosures will also have the attribute `'arg_pos'`, which will indicate their position in the original order in which they were supplied.
 #'
+#' @note
+#'
+#' This function started out in the `zplyr` package.
+#'
 #' @param \dots Any mix of named and unnamed arguments
 #' @param .already_quosure if the arguments are already all quosures (in which case it will just sort them by named vs. unnamed arguments)
 #' @return A named list of lists, with `$args` being a list of quosures of the unnamed arguments and `$kwargs` being a list of quosures of the named arguments.

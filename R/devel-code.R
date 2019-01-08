@@ -1,26 +1,20 @@
 #' To-do:
 #'
-#' PRIORITY:
-#'  - make it so that handlers that catch an error (both 'error', 'condition', and the general thing) can 'muffle' the error by returning NULL.
-#'      Currently, error catching doesn't seem to be able to work with `calling` functions in `with_handlers`. Maybe use `with_restarts`?
-#'
 #' CODE-BASED:
-#'  - make it so that the default catchr plan can work even if you only use a single function of the package
 #'  - let code use rlang lambda functions for functions
 #'  - figure out how you can avoid overlap between "warning" and "condition"
-#'  - determine if the findFirstRestart is best
 #'  - make the towarning, etc. remove the call
 #'  - make a 'misc' condition thing which gets everything that isn't already being caught
 #'  - handle interrupts
 #'  - make the order matter
 #'
 #'  LESS CODE-BASED:
+#'  - add examples
 #'  - make the spec_terms thing use package defaults somehow
-#'  - make a way of removing warnings
-#'  - make a help page for the special reserved terms
+#'  - make a way of stopping warnings from catchr
 #'  - standardize terminology
 #'  - add a page about all the options
-#'  - add a page about collecting
+#'  - fill out a page about collecting
 #'  - the biggest thing preventing me from removing the rlang/purrr dependencies is the splicing operator, it seems
 #'
 #'  - make a help page that describes how things are masked:
@@ -64,7 +58,6 @@ give_newline <- function(s, trim = FALSE) {
 findFirstMuffleRestart <- function(cond) {
   possibleRestarts <- computeRestarts(cond)
   restartNames <- Map(function(x) x$name, possibleRestarts)
-
   # If its an error, look for the `return_error` restart
   if (inherits(cond, "error")) {
     if ("return_error" %in% restartNames)
@@ -83,10 +76,6 @@ findFirstMuffleRestart <- function(cond) {
   }
 }
 
-
-
-
-
 #' Make `catchr` plans
 #'
 #' To-do: add docs
@@ -99,7 +88,7 @@ findFirstMuffleRestart <- function(cond) {
 #'
 #'
 #' @param \dots Named and unnamed arguments for making plans
-#' @param default_plan The default plan. If not supplied, `getOption("default.catchr.plan")` will be used
+#' @param default_plan The default plan. If not supplied, `getOption("default.catchr.plan")` will be used.
 #' @export
 make_plans <- function(..., default_plan = NULL) {
   akw <- clean_cond_input(..., spec_names = special_terms)
@@ -114,6 +103,15 @@ make_plans <- function(..., default_plan = NULL) {
 
 # DEAR GOD I DID IT
 # This function just applies the catchr_behavior to a single expression
+
+#' Catch conditions
+#'
+#' To-do: add docs
+#'
+#' @param expr the expression to be evaluated
+#' @param args probably will remove
+#' @param kwargs probably will remove
+#' @rdname catchers
 catch_expr <- function(expr, args, kwargs) {
   .myConditions <- NULL
   baby_env <- child_env(current_env())
@@ -130,15 +128,9 @@ catch_expr <- function(expr, args, kwargs) {
 
 }
 
-# plans <- clean_cond_input(error = exit,
-#                         warning = c(collect, muffle),
-#                         message = c(collect, towarning),
-#                         spec_names = c("exit", "towarning", "display", "muffle", "collect"))
-# blark({warning("a"); message("ooo"); message("nsass"); "yay"},
-#       plans$args, plans$kwargs)
-
-# This function makes wrapper functions that use the plan
-make_catch_function <- function(args, kwargs) {
+#' @rdname catchers
+#' @export
+make_catch_fn <- function(args, kwargs) {
   function(expr) {
     .myConditions <- NULL
     baby_env <- child_env(current_env())
@@ -154,4 +146,13 @@ make_catch_function <- function(args, kwargs) {
     append(list(value = res), .myConditions)
   }
 }
+
+# plans <- clean_cond_input(error = exit,
+#                         warning = c(collect, muffle),
+#                         message = c(collect, towarning),
+#                         spec_names = c("exit", "towarning", "display", "muffle", "collect"))
+# blark({warning("a"); message("ooo"); message("nsass"); "yay"},
+#       plans$args, plans$kwargs)
+
+
 # make_catch_function(yap$args, yap$kwargs)({warning("a"); message("ooo"); message("nsass"); "yay"})
