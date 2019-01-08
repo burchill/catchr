@@ -109,18 +109,14 @@ make_plans <- function(..., default_plan = NULL) {
 #' To-do: add docs
 #'
 #' @param expr the expression to be evaluated
-#' @param args probably will remove
-#' @param kwargs probably will remove
+#' @param plans the plans from make_plans
 #' @rdname catchers
 #' @export
-catch_expr <- function(expr, args, kwargs) {
+catch_expr <- function(expr, plans) {
   .myConditions <- NULL
   baby_env <- child_env(current_env())
 
-  kwargs <- append(as_list(kwargs),
-                   as_list(give_default(args)))
-  print(kwargs)
-  kwargs <- kwargs %>% imap(make_handler) %>%
+  kwargs <- plans %>%
     map(~`environment<-`(., baby_env))
 
   res <- withRestarts(with_handlers(expr, !!!kwargs),
@@ -131,15 +127,12 @@ catch_expr <- function(expr, args, kwargs) {
 
 #' @rdname catchers
 #' @export
-make_catch_fn <- function(args, kwargs) {
+make_catch_fn <- function(plans) {
   function(expr) {
     .myConditions <- NULL
     baby_env <- child_env(current_env())
 
-    kwargs <- append(as_list(kwargs),
-                     as_list(give_default(args)))
-    print(kwargs)
-    kwargs <- kwargs %>% imap(make_handler) %>%
+    kwargs <- plans %>%
       map(~`environment<-`(., baby_env))
 
     res <- withRestarts(with_handlers(expr, !!!kwargs),
@@ -147,13 +140,13 @@ make_catch_fn <- function(args, kwargs) {
     append(list(value = res), .myConditions)
   }
 }
-
+#
 # plans <- clean_cond_input(error = exit,
 #                         warning = c(collect, muffle),
 #                         message = c(collect, towarning),
 #                         spec_names = c("exit", "towarning", "display", "muffle", "collect"))
-# blark({warning("a"); message("ooo"); message("nsass"); "yay"},
+# catch_expr({warning("a"); message("ooo"); message("nsass"); "yay"},
 #       plans$args, plans$kwargs)
-
-
-# make_catch_function(yap$args, yap$kwargs)({warning("a"); message("ooo"); message("nsass"); "yay"})
+#
+#
+# make_catch_fn(plans$args, plans$kwargs)({warning("a"); message("ooo"); message("nsass"); "yay"})

@@ -5,16 +5,14 @@
 \alias{make_catch_fn}
 \title{Catch conditions}
 \usage{
-catch_expr(expr, args, kwargs)
+catch_expr(expr, plans)
 
-make_catch_fn(args, kwargs)
+make_catch_fn(plans)
 }
 \arguments{
 \item{expr}{the expression to be evaluated}
 
-\item{args}{probably will remove}
-
-\item{kwargs}{probably will remove}
+\item{plans}{the plans from make_plans}
 }
 \description{
 To-do: add docs
