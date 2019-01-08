@@ -1,15 +1,18 @@
 #' To-do:
-#'  -  pretty sure that the checking to see what's evaluated is fucked
+#'
+#'  - make a more centralized way of collecting--figure out how you can avoid overlap between "warning" and "condition"
+#'  - do "muffle"
+#'  - make the spec_terms thing use package defaults somehow
+#'  - make a 'misc' condition thing which gets everything that isn't already being caught
+#'
 #'  - make a help page that describes how things are masked:
-#'      * The only thing that is masked in evaluation is the non-function versions of the special names. The only way to get an error would be to use a function that took in a special name as an argument to make another function?
+#'      * The only thing that is masked in evaluation is the non-function versions of the special names.
 #'      * Egh, just make a help page and connect it to the warning message
 
 
-#' I've decided that any special terms used *inside* functions should not be altered/bound to special terms
-#'
-#' Anything that evaluates to a *function* means that it "didn't" use the
-
-
+# missing: "muffle", "collect"
+special_terms <- c("towarning", "tomessage", "toerror",
+                   "display", "beep", "exit")
 
 # Makes sure a \n is at the end
 give_newline <- function(s, trim = FALSE) {
@@ -20,13 +23,11 @@ give_newline <- function(s, trim = FALSE) {
   else return(s)
 }
 
-# Recursively moves through AST
+# Recursively moves through AST (kinda)
 check_nodes <- function(x, nms) {
   if (is_symbol(x) && deparse(x) %in% nms)
     signal(paste0("Reserved symbol in arguments: ", deparse(x)),
            "passer", val=deparse(x))
-  # cnd_signal(msg=paste0("Reserved symbol in arguments: ", deparse(x)),
-  #            .cnd="passer", val=deparse(x))
   #               e.g. `beepr::beep` shouldn't ruffle feathers
   if (is_call(x) && !(call_name(x) %in% c("::", ":::")))
     call_args(x) %>%
@@ -97,6 +98,12 @@ classify_arg <- function(arg, nono_words) {
   invisible(arg)
 }
 
+# adds back in the argument positions as attribut
+add_back_arg_pos <- function(new_l, old_l) {
+  map2(new_l, old_l, function(k, old) {
+    `attr<-`(k, 'arg_pos', attr(old, 'arg_pos')) })
+}
+
 # Checks to see if input is safe and puts it into right format
 clean_cond_input <- function(..., spec_names) {
   akw <- zplyr::args_and_kwargs(...)
@@ -108,13 +115,15 @@ clean_cond_input <- function(..., spec_names) {
 
   kwargs <- akw$kwargs %>%
     map(~eval_tidy(set_env(., v))) %>%
-    map(~classify_arg(., spec_names))
+    map(~classify_arg(., spec_names)) %>%
+    add_back_arg_pos(akw$kwargs)
 
   args <- akw$args %>%
     map(get_expr) %>%
     walk(~if (!is_string(.) && !is_symbol(.))
       abort("Unnamed args must be unquoted names or strings", arg=.)) %>%
-    as.character()
+    as.character() %>%
+    add_back_arg_pos(akw$args)
 
   # Unbind the special names from v
   env_unbind(v, spec_names)
@@ -136,6 +145,130 @@ combine_functions <- function(...) {
   e <- expr(function(cond) !!e)
   eval_tidy(e)
 }
+
+# sub in special term functions
+use_special_terms <- function(s, cond_type) {
+  switch(
+    s,
+    towarning = function(cond) {
+      class(cond) <- c("warning","condition")
+      warning(cond)
+    },
+    tomessage = function(cond) {
+      class(cond) <- c("message","condition")
+      if (!is.null(cond$message) & cond$message != "")
+        cond$message <- give_newline(cond$message, trim = F)
+      message(cond)
+    },
+    toerror = function(cond) {
+      class(cond) <- c("error","condition")
+      stop(cond)
+    },
+    beep = function(cond) {
+      if (!is_installed("beepr"))
+        abort("Package `beepr` needs to be installed if `beep` is to be used.")
+      else
+        beepr::beep()
+    },
+    display = function(cond) {
+      str(cond, max.level = 1)
+    },
+    collect = function(cond) {
+      .myConditions[[cond_type]] <<- append(.myConditions[[cond_type]],
+                                            list(cond))
+    },
+    stop(paste0("`", s, "` is not a possible choice"))
+  )
+}
+
+# Makes a handler from a kwarg
+make_handler <- function(vals, name) {
+  if (!is_vector(vals))
+    vals <- list(vals)
+  first_exit <- purrr::detect_index(vals, ~is_string(.) && . =="exit")
+  exit_bool = F
+  if (first_exit > 0) {
+    exit_bool = T
+    if (first_exit < length(vals))
+      warning(paste0("'", name, "' set to exit before ",
+                     length(vals)-first_exit,
+                     " other defined functions"))
+    vals <- vals[1:(first_exit-1)]
+    if (first_exit == 1)
+      vals <- function(x) { NULL }
+  }
+  vals <- map(vals, function(x) {
+    if (is_callable(x)) x
+    else use_special_terms(x)
+  })
+  combined_func <- combine_functions(!!!vals)
+
+  if (exit_bool) exiting(combined_func)
+  else calling(combined_func)
+}
+
+# Turns the unnamed arguments into the defaults
+flesh_args_outs <- function(args, default_plan = NULL) {
+  if (is.null(default_plan))
+    default_plan = getOption("default.catchr.plan", default_catchr_plan)
+  map(args, ~default_plan) %>%
+    set_names(args)
+}
+
+with_handlers({message("aaa"); "done"},
+              message = make_handler("message", c("display","towarn")))
+
+make_handler("message", c("display","towarn","exit"))
+
+
+# Ones to use: display, collect, beep, to<blank>, muffle
+# display, exit, muffle, collect, beep, #also: towarn, toerror, tomessage
+
+
+clean_cond_input(error = exit,
+  stop,
+  warning = c(display, muffle),
+  message = c(collect, warning, muffle),
+  spec_names = c("exit", "sup", "display", "muffle", "collect","stop"))$args %>%
+  str()
+
+baba <- function(...) {
+  args_and_kwargs(...)
+}
+baba("error",mex="no","gone","asa")
+
+
+
+
+make_catchr_function <- function(args, kwargs) {
+  myConditions <- NULL
+
+  kwargs <- append(as_list(kwargs),
+                   as_list(flesh_args_outs))
+
+
+}
+
+
+conditionHandler <- function(cond) {
+  .myConditions[[cond_type]] <<- append(.myConditions[[cond_type]], list(cond))
+}
+
+blark <- function(e, f) {
+  .myConditions <- NULL
+
+  new_f <- calling(use_special_terms(f,"warning"))
+  # environment(new_f) <- current_env()
+  new_f("ASASA")
+  print(.myConditions)
+
+  za <- withCallingHandlers(
+    withRestarts(e, return_NULL = function() NULL),
+    warning = new_f)
+  print(.myConditions)
+  za
+}
+blark({warning("a"); warning("b"); "yay"}, "collect")
 
 
 
@@ -188,7 +321,7 @@ combine_functions <- function(...) {
 
 
 
-
+################ TESTING #########################################
 
 test_that("Namespaces and environments", {
   taboo <- "sup"
@@ -202,7 +335,8 @@ test_that("Namespaces and environments", {
 
   # If you define it in the function, it should give a warning
   expect_warning(
-    res1 <- clean_cond_input(d1 = function(x) { return(sup) }, spec_names = taboo)
+    res1 <- clean_cond_input(d1 = function(x) { return(sup) },
+                             spec_names = taboo)
   )
   expect_equal(res1$kwargs$d1(""), sup)
 
@@ -247,78 +381,11 @@ test_that("Function names are not masked", {
 
 })
 
+####################################################
 
 
 
 
-
-use_special_terms <- function(s) {
-  switch(s,
-         towarn = function(cond) {
-           class(cond) <- c("warning","condition")
-           warning(cond)
-         },
-         tomessage = function(cond) {
-           class(cond) <- c("message","condition")
-           if (!is.null(cond$message) & cond$message != "")
-             cond$message <- give_newline(cond$message, trim = F)
-           message(cond)
-         },
-         toerror = function(cond) {
-           class(cond) <- c("error","condition")
-           stop(cond)
-         },
-         beep = function(cond) {
-           if (!is_installed("beepr"))
-             abort("Package `beepr` needs to be installed if `beep` is to be used.")
-           else
-             beepr::beep()
-         },
-         display = function(cond) {
-           str(cond, max.level = 1)
-         },
-         stop(paste0("`", s, "` is not a possible choice"))
-  )
-}
-
-
-
-
-# Makes a handler from a kwarg
-make_handler <- function(vals, name) {
-  if (!is_vector(vals))
-    vals <- list(vals)
-  first_exit <- purrr::detect_index(a, ~is_string(.) && . =="exit")
-  exit_bool = F
-  if (first_exit > 0) {
-    exit_bool = T
-    if (first_exit < length(vals))
-      warning(paste0("'", name, "' set to exit before ",
-                     length(vals)-first_exit,
-                     " other defined functions"))
-    vals <- vals[1:(first_exit-1)]
-    if (first_exit == 1)
-      vals <- function(x) { NULL }
-  }
-  vals <- map(vals, function(x) {
-    if (is_callable(x)) x
-    else use_special_terms(x)
-  })
-  combined_func <- combine_functions(!!!vals)
-
-  if (exit_bool) exiting(combined_func)
-  else calling(combined_func)
-}
-
-with_handlers({message("aaa"); "done"},
-              message = make_handler("message", c("display","towarn")))
-
-make_handler("message", c("display","towarn","exit"))
-
-
-
-# Ones to use: display, collect, beep, to<blank>
-# display, exit, muffle, collect, beep, #also: towarn, toerror, tomessage
 
 
 
