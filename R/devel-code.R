@@ -82,7 +82,7 @@ findFirstMuffleRestart <- function(cond) {
 #'
 #' @section Input:
 #'
-#' Input to `make_plans` is very similar to how one makes handlers for \code{\link[base]{withCallingHandlers}}, \code{\link[base]{tryCatch}} and `rlang`'s \code{\link[rlang]{with_handlers}}, albeit with some important differences.
+#' Input to `make_plans` is very similar to how one makes handlers for \code{\link[base]{conditions}}, \code{\link[base]{conditions}} and `rlang`'s \code{\link[rlang]{with_handlers}}, albeit with some important differences.
 #'
 #' Like the functions above, the name of each argument determines which type of condition it will catch. Hence, `warnings = fn` will apply the `fn` function to the warnings raised in evaluating `expr`. However, *unnamed* arguments are *also* accepted: the value of any unnamed arguments will be treated as the type of condition to catch, and the way it handles the condition will be set by `default_plan` or `getOption("default.catchr.plan")`.
 #'
@@ -112,6 +112,7 @@ make_plans <- function(..., default_plan = NULL) {
 #' @param args probably will remove
 #' @param kwargs probably will remove
 #' @rdname catchers
+#' @export
 catch_expr <- function(expr, args, kwargs) {
   .myConditions <- NULL
   baby_env <- child_env(current_env())
