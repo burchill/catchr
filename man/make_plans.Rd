@@ -10,5 +10,13 @@ make_plans(..., default_plan = NULL)
 \item{\dots}{Named and unnamed arguments for making plans}
 }
 \description{
-Make \code{catchr} plans
+To-do: add docs
 }
+\section{Input}{
+
+
+Input to \code{make_plans} is very similar to how one makes handlers for \code{\link[base]{withCallingHandlers}}, \code{\link[base]{tryCatch}} and \code{rlang}'s \code{\link[rlang]{with_handlers}}, albeit with some important differences.
+
+Like the functions above, the name of each argument determines which type of condition it will catch. Hence, \code{warnings = fn} will apply the \code{fn} function to the warnings raised in evaluating \code{expr}. However, \emph{unnamed} arguments are \emph{also} accepted: the value of any unnamed arguments will be treated as the type of condition to catch, and the way it handles the condition will be set by \code{default_plan} or \code{getOption("default.catchr.plan")}.
+}
+

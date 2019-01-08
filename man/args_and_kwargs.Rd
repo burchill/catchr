@@ -2,7 +2,7 @@
 % Please edit documentation in R/devel-code.R
 \name{args_and_kwargs}
 \alias{args_and_kwargs}
-\title{Separate \dots into Python-esque \code{*args} and \code{**kwargs}}
+\title{Separate dots into Python-esque \code{*args} and \code{**kwargs}}
 \usage{
 args_and_kwargs(..., .already_quosure = FALSE)
 }
@@ -15,7 +15,7 @@ args_and_kwargs(..., .already_quosure = FALSE)
 A named list of lists, with \code{$args} being a list of quosures of the unnamed arguments and \code{$kwargs} being a list of quosures of the named arguments.
 }
 \description{
-This function will return a named list with two sublists, 'args' and 'kwargs', which contain the unnamed and named arguments as quosures. \cr
+This function will return a named list with two sublists, 'args' and 'kwargs', which contain the unnamed and named arguments as quosures. \cr \cr
 This is useful for when you want these two types of arguments to behave differently. The quosures will also have the attribute \code{'arg_pos'}, which will indicate their position in the original order in which they were supplied.
 }
 \examples{
