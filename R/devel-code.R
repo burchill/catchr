@@ -1,20 +1,99 @@
 #' To-do:
 #'
-#'  - make a more centralized way of collecting--figure out how you can avoid overlap between "warning" and "condition"
-#'  - do "muffle"
-#'  - make the spec_terms thing use package defaults somehow
+#' PRIORITY:
+#'  - make it so that handlers that catch an error (both 'error', 'condition', and the general thing) can 'muffle' the error by returning NULL.
+#'      Currently, error catching doesn't seem to be able to work with `calling` functions in `with_handlers`. Maybe use `with_restarts`?
+#'
+#' CODE-BASED:
+#'  - maybe check to see if there's a "muffle" and "exit" for the same thing, which probably shouldn't be
+#'  - make it so that the default catchr plan can work even if you only use a single function of the package
+#'  - let code use rlang lambda functions for functions
+#'  - figure out how you can avoid overlap between "warning" and "condition"
+#'  - determine if the findFirstRestart is best
+#'  - make the towarning, etc. remove the call
 #'  - make a 'misc' condition thing which gets everything that isn't already being caught
+#'  - handle interrupts
+#'  - make the order matter
+#'
+#'  LESS CODE-BASED:
+#'  - make the spec_terms thing use package defaults somehow
+#'  - make a way of removing warnings
+#'  - make a help page for the special reserved terms
+#'  - standardize terminology
+#'  - add a page about all the options
+#'  - add a page about collecting
+#'  - the biggest thing preventing me from removing the rlang/purrr dependencies is the splicing operator, it seems
 #'
 #'  - make a help page that describes how things are masked:
 #'      * The only thing that is masked in evaluation is the non-function versions of the special names.
 #'      * Egh, just make a help page and connect it to the warning message
 
 
-# missing: "muffle", "collect"
 special_terms <- c("towarning", "tomessage", "toerror",
-                   "display", "beep", "exit")
+                   "display", "beep", "exit", "muffle", "collect")
 
-# Makes sure a \n is at the end
+# Finds the first restart with "muffle" in its name
+findFirstMuffleRestart <- function(cond) {
+  possibleRestarts <- computeRestarts(cond)
+  restartNames <- Map(function(x) x$name, possibleRestarts)
+
+  # If its an error, look for the `return_error` restart
+  if (inherits(cond, "error")) {
+    if ("return_error" %in% restartNames)
+      return(possibleRestarts[which(restartNames=="return_error")][[1]])
+    else
+      return(NULL)
+  } else {
+    muffleRestarts <- possibleRestarts[grepl("muffle", restartNames)]
+    if (length(muffleRestarts) > 0)
+      # Picks the first restart with "muffle" in its name (hack-y?)
+      return(muffleRestarts[[1]])
+    # If it doesn't have a muffling restart and isn't an error (ie its a custom condition),
+    #   just continue by returning a null value, but don't stop anything/restart
+    else
+      return(NULL)
+  }
+}
+
+
+#' Special reserved terms
+#'
+#' @description
+#'
+#' `catchr` has a few special "reserved" terms that mean something different than they do in the rest of R. When given as part of the input for a `catchr` plan, these will be substituted for different functions when used to catch conditions.
+#'
+#' These reserved terms can be inputted as strings (e.g., `warning = c('collect', 'muffle')`) or as unquoted terms (e.g., `warning = c(collect, muffle)`)--`catchr` converts the unquoted terms to strings internally regardless, but it can save a few keystrokes. The following are the special terms and what they are used for:
+#'
+#' - `tomessage`, `towarning`, `toerror`: these terms will be substituted for functions that will convert captured conditions into a message, warning, or error, respectively, and raise them. The original class of the condition will be lost.
+#'
+#'  - `beep`: if the \link[beepr:`beepr-package`]{`beepr`} package is installed, this will play a sound via \link[beepr:beepr]{`beepr::beep`}.
+#'
+#'  - `display`: the purpose of this term is to immediately display information about the captured condition on the screen without raising additional conditions (as would be done with `tomessage`). Currently, this term just calls \link[utils]{str} on the condition, but this will probably change in later versions.
+#'
+#' - `exit`: when encountered, this will exit the evaluation of the expression immediately. Any instructions after this in the input will be ignored.
+#'
+#' - `collect`: this term will store the captured conditions and append them to the output of the evaluated expression. See the \link[collecting-conditions]{Collecting Conditions} help topic for a full explanation.
+#'
+#' - `muffle`: this term will be substituted for a function that 'muffles' (i.e., 'suppresses', 'catches', what have you) the captured condition, preventing it from being raised to higher levels. \cr
+#' Currently, it searches for and uses the first available \link[base:conditions]{'restart'} with `"muffle"` in its name (the two typical ones are `"muffleMessage"` and `"muffleWarning"`). If the captured condition is an error, which can't be muffled, it will exit the evaluation and give `NULL` for the returned value.
+#'
+#' @section Masking
+#'
+#' To-do: write this section
+#'
+#' @name spesh_terms
+NULL
+
+# display, exit, muffle, collect, beep, #also: towarn, toerror, tomessage
+
+
+#' Make a string end with a newline character
+#'
+#' `give_newline` will append a line return ('\\n') to the end of a string if
+#' it doesn't already end with one. There is also the option to remove any trailing whitespace before doing so.
+#' @param s A string.
+#' @param trim Indicates whether to remove trailing whitespace before adding newline.
+#' @export
 give_newline <- function(s, trim = FALSE) {
   if (trim == T)
     return(paste0(trimws(s, "right"), "\n"))
@@ -22,6 +101,44 @@ give_newline <- function(s, trim = FALSE) {
     return(paste0(s, "\n"))
   else return(s)
 }
+
+#' Separate \dots into Python-esque \code{*args} and \code{**kwargs}
+#'
+#' This function will return a named list with two sublists, 'args' and 'kwargs', which contain the unnamed and named arguments as quosures. \cr
+#' This is useful for when you want these two types of arguments to behave differently. The quosures will also have the attribute `'arg_pos'`, which will indicate their position in the original order in which they were supplied.
+#'
+#' @param \dots Any mix of named and unnamed arguments
+#' @param .already_quosure if the arguments are already all quosures (in which case it will just sort them by named vs. unnamed arguments)
+#' @return A named list of lists, with `$args` being a list of quosures of the unnamed arguments and `$kwargs` being a list of quosures of the named arguments.
+#' @examples
+#'
+#' x <- args_and_kwargs(unnamed_1, named_1="ba", "unnamed_2", named_2 = letters)
+#' print(x$args)
+#' print(x$kwargs)
+#'
+#' \dontrun{
+#' # Or see the `share_scales` from the `zplyr` package
+#' share_scales <- function(...) {
+#'   akw <- args_and_kwargs(...)
+#'   # Unnamed arguments are ggplot scales
+#'   geom_func_list <- purrr::map(akw$args, rlang::eval_tidy)
+#'   # Named arguments are to be passed into those scales
+#'   geoms <- purrr::map(geom_func_list, ~.(!!!akw$kwargs))
+#'   return(geoms)
+#' }
+#' }
+#' @export
+args_and_kwargs <- function(..., .already_quosure = FALSE) {
+  if (.already_quosure == TRUE) qs <- list(...)
+  else qs <- rlang::enquos(...)
+  qs <- map2(qs, seq_along(qs),
+             ~`attr<-`(.x, "arg_pos", .y))
+
+  l <- list(args =   qs[rlang::names2(qs) == ""],
+            kwargs = qs[rlang::names2(qs) != ""])
+  return(l)
+}
+
 
 # Recursively moves through AST (kinda)
 check_nodes <- function(x, nms) {
@@ -49,7 +166,18 @@ find_used_symbols <- function(x, nms) {
   return(unique(symbol_list))
 }
 
-# checks the kwargs for special symbols defined elsewhere
+
+
+
+
+
+#' Check expressions for special terms
+#'
+#' To-do: write doc
+#'
+#' @param qs A list of quosures.
+#' @param names_to_check A character vector of reserved special terms to check the expressions for.
+#' @export
 warn_of_specials <- function(qs, names_to_check) {
   bad_boys <- qs %>%
     keep(~quo_is_call(.) | quo_is_symbol(.)) %>%
@@ -68,7 +196,13 @@ warn_of_specials <- function(qs, names_to_check) {
   invisible()
 }
 
-# Can't require more than one argument passed into it
+
+#' Make sure a function can be a handler
+#'
+#' This makes sure that a given function doesn't require more than one argument passed into it, and has at least one argument (which is what a \link[base:conditions]{handler} needs).
+#'
+#' @param fn A function
+#' @export
 has_handler_args <- function(fn) {
   args <- fn_fmls(fn) %>%
   {Map(is_missing, .)} # purrr can't iterate over pairlist
@@ -104,9 +238,19 @@ add_back_arg_pos <- function(new_l, old_l) {
     `attr<-`(k, 'arg_pos', attr(old, 'arg_pos')) })
 }
 
+
+order_by_arg_pos <- function(l) {
+  l[order(map_dbl(l, ~attr(., "arg_pos")))]
+}
+
+
+
+
+
 # Checks to see if input is safe and puts it into right format
+# Internal
 clean_cond_input <- function(..., spec_names) {
-  akw <- zplyr::args_and_kwargs(...)
+  akw <- args_and_kwargs(...)
   v <- as_environment(
     set_names(spec_names, spec_names),
     parent = caller_env())
@@ -152,6 +296,7 @@ combine_functions <- function(...) {
 }
 
 # sub in special term functions
+# sub in special term functions
 use_special_terms <- function(s, cond_type) {
   switch(
     s,
@@ -178,12 +323,16 @@ use_special_terms <- function(s, cond_type) {
     display = function(cond) {
       str(cond, max.level = 1)
     },
+    muffle = expr({
+      restart = findFirstMuffleRestart(cond)
+      if (!is.null(restart))
+        on.exit(invokeRestart(restart), add = TRUE)
+      NULL
+    }),
     collect = substitute({
       .myConditions[[cond_type]] <<- append(.myConditions[[cond_type]], list(cond))
+      NULL
     }, list(cond_type=cond_type)),
-    muffle = function(cond) {
-      findFirstMuffleRestart(cond)
-    },
     stop(paste0("`", s, "` is not a possible choice"))
   )
 }
@@ -238,7 +387,8 @@ catch_expr <- function(expr, args, kwargs) {
   kwargs <- kwargs %>% imap(make_handler) %>%
     map(~`environment<-`(., baby_env))
 
-  res <- with_handlers(expr, !!!kwargs)
+  res <- withRestarts(with_handlers(expr, !!!kwargs),
+                      return_error = function() NULL)
   append(list(value = res), .myConditions)
 
 }
@@ -262,61 +412,12 @@ make_catch_function <- function(args, kwargs) {
     kwargs <- kwargs %>% imap(make_handler) %>%
       map(~`environment<-`(., baby_env))
 
-    res <- with_handlers(expr, !!!kwargs)
+    res <- withRestarts(with_handlers(expr, !!!kwargs),
+                        return_error = function() NULL)
     append(list(value = res), .myConditions)
   }
 }
 # make_catch_function(yap$args, yap$kwargs)({warning("a"); message("ooo"); message("nsass"); "yay"})
-
-
-
-
-
-# yowza <- function(s) {
-#   return(function(x) { sup })
-# }
-#
-# # for (i in kwargs) {
-# #   print(env_names(get_env(i)))
-# # }
-#
-# fwah <- function(f, spec_names) {
-#   q
-#   q <- quo()
-#   q <- quo_set_expr(q, enexpr(f))
-#   v <- as_environment(
-#     set_names(spec_names, spec_names),
-#     parent = caller_env())
-#   # q <- set_env(q, v)
-#   mask <- new_data_mask(v)
-#
-#   print(set_env(q, v))
-#   # print()
-#   # print(eval_tidy(expr(print(sup)), env=v))
-#   eval_tidy(q, data = mask)
-# }
-# fwah(f(),"sup")
-#
-#
-# sip <- f
-# environment(sip) <- child_env(asNamespace("base"),
-#                               sup = "JAMMA",
-#                               sip = sip,
-#                               chaos="ba")
-# sip()
-
-
-#
-# # ignore stuff in functions that are defined
-# clean_cond_input(d1 = yowza, spec_names = taboo)
-# clean_cond_input(d1 = function(x) return(sup), spec_names = taboo)
-# clean_cond_input(d1 = list(function(x) { sup <- 3; return(sup) }), spec_names = taboo)
-#
-#
-# res1 <- clean_cond_input(d1 = list(sup, function(x) { return(sup) }), spec_names = taboo)
-# res1$kwargs$d1[[1]]
-# res1$kwargs$d1[[2]]("a")
-# res2 <- clean_cond_input(d1 = list(sup, sup), spec_names = taboo)
 
 
 
@@ -445,30 +546,6 @@ gs <- test_envs(fafa = c(function(x) print(exit), "sup"),
 # mask <- new_data_mask(bottom, top)
 # eval_tidy(quote(xxx), mask)
 
-
-function (cnd)
-{
-  switch(cnd_type(cnd), message = invokeRestart("muffleMessage"),
-         warning = invokeRestart("muffleWarning"), interrupt = invokeRestart("resume"))
-  if (inherits(cnd, "rlang_condition")) {
-    invokeRestart("rlang_muffle")
-  }
-  abort("Can't find a muffling restart")
-}
-
-
-cnd_muffle <- function (cnd) {
-  possibleRestarts <- computeRestarts(cond)
-  muffleRestarts <- possibleRestarts[grepl("muffle", Map(function(x) x$name, possibleRestarts))]
-  resumeRestarts <- possibleRestarts[grepl("resume", Map(function(x) x$name, possibleRestarts))]
-  if (length(muffleRestarts)) {
-    invokeRestart(muffleRestarts[[1]])
-  } else if (length(muffleRestarts)) {
-    invokeRestart(resumeRestarts[[1]])
-  } else {
-    abort("Can't find a muffling restart")
-  }
-}
 
 
 
