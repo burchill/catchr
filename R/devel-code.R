@@ -31,6 +31,7 @@
 
 #' @import rlang
 #' @import purrr
+#' @import testthat
 
 special_terms <- c("towarning", "tomessage", "toerror",
                    "display", "beep", "exit", "muffle", "collect",
@@ -496,11 +497,9 @@ test_that("Namespaces and environments", {
                              spec_names = taboo)
   )
 
-  expect_equal(res$kwargs$d1("."), exit)
-
   expect_equal(sup, "NO")
-  expect_equal(res$kwargs$d2("~"), sup)
-  expect_equal(res$kwargs$d3("~"), "YES")
+  expect_equal(res2$kwargs$d2("~"), sup)
+  expect_equal(res2$kwargs$d3("~"), "YES")
 
 })
 
@@ -511,7 +510,9 @@ test_that("Explictly package-named functions", {
   expect_warning(
     res1 <- clean_cond_input(d1 = acosh, spec_names = "acosh")
   )
-  expect_equal(res1$kwargs$d1, "acosh")
+  # the kwarg has arg_pos attributes
+  expect_failure(expect_equal(res1$kwargs$d1, "acosh"))
+  expect_equivalent(res1$kwargs$d1, "acosh")
 
   expect_silent(
     res2 <- clean_cond_input(d1 = base::acosh, spec_names = "acosh")
