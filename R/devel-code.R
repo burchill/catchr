@@ -163,16 +163,7 @@ make_plans <- function(..., default_plan = NULL) {
 #' @rdname catchers
 #' @export
 catch_expr <- function(expr, plans) {
-  .myConditions <- NULL
-  baby_env <- child_env(current_env())
-
-  kwargs <- plans %>%
-    map(~`environment<-`(., baby_env))
-
-  res <- withRestarts(with_handlers(expr, !!!kwargs),
-                      return_error = function() NULL)
-  append(list(value = res), .myConditions)
-
+  make_catch_fn(plans)(expr)
 }
 
 #' @rdname catchers
