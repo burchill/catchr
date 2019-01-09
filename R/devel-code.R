@@ -27,15 +27,30 @@ notes <- "a"
 
 #' @import rlang purrr testthat
 
+notes <- "a"
 
 
+#' Set default catchr plan
+#'
+#' To-do: add docs
+#' @param x The plan to make default plan. The input follows the same rules as \code{\link{make_plans}}.
+#' @export
+set_default_plan <- function(x) {
+  q <- enquo(x)
+  default_plan <- clean_input(list(default = q))$default
+  options("catchr.default_plan" = default_plan)
+  default_plan
+}
 
-#' Set options
+#' catchr-specific options
 #'
 #' To-do: add docs
 #'
-#' @param default_plan The default
-#'
+#' @param default_plan The default plan
+#' @param warn_about_terms If `FALSE`, will not warn about masking special terms
+#' @param bare_if_possible If `TRUE`, and no conditions are collected, will return the result of the evaluated expression as-is, without encompassing named list.
+#' @param drop_empty_conds If `TRUE`, the sublists for conditions that used `collect` but didn't collect anything will be dropped from the list. Otherwise, they will appear as empty sublists.
+#' @export
 catchr_opts <- function(default_plan = NULL,
   warn_about_terms = NULL,
   bare_if_possible = NULL,
@@ -43,9 +58,14 @@ catchr_opts <- function(default_plan = NULL,
   is_true_or_false <- function(x) {
     !is.null(x) && !is.na(x) && (x == T || x == F)
   }
+  q_plan <- enquo(default_plan)
 
-  if (is.null(default_plan))
+  if (quo_is_null(q_plan))
     default_plan <- getOption("catchr.default_plan", catchr.default_plan)
+  else {
+    default_plan <- clean_input(list(default = q_plan))$default
+  }
+
   if (is.null(warn_about_terms))
     warn_about_terms <- getOption("catchr.warn_about_terms", catchr.warn_about_terms)
   if (is.null(bare_if_possible))
