@@ -8,3 +8,12 @@
   catchr.bare_if_possible <- getOption("catchr.warn_about_terms", catchr.bare_if_possible)
   catchr.drop_empty <- getOption("catchr.warn_about_terms", catchr.drop_empty)
 }
+
+special_terms <- c("towarning", "tomessage", "toerror",
+                   "display", "beep", "exit", "muffle", "collect",
+                   "raise")
+
+catchr.default_plan <- list("collect", "muffle")
+catchr.warn_about_terms <- T
+catchr.bare_if_possible <- F
+catchr.drop_empty <- F
