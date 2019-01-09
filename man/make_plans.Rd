@@ -2,14 +2,14 @@
 % Please edit documentation in R/devel-code.R
 \name{make_plans}
 \alias{make_plans}
-\title{Make \code{catchr} plans}
+\title{Make catchr plans}
 \usage{
-make_plans(..., default_plan = NULL)
+make_plans(..., opts = catchr_opts())
 }
 \arguments{
 \item{\dots}{Named and unnamed arguments for making plans}
 
-\item{default_plan}{The default plan. If not supplied, \code{getOption("default.catchr.plan")} will be used.}
+\item{opts}{The options you want to use for the plan. Generally passed in using \code{\link{catchr_opts}}.}
 }
 \description{
 To-do: add docs
@@ -17,8 +17,10 @@ To-do: add docs
 \section{Input}{
 
 
-Input to \code{make_plans} is very similar to how one makes handlers for \code{\link[base:withCallingHandlers]{withCallingHandlers}}, \code{\link[base:tryCatch]{tryCatch}} and \code{rlang}'s \code{\link[rlang]{with_handlers}}, albeit with some important differences.
+User input to \code{make_plans} is very similar to how one makes handlers for \code{\link[base:withCallingHandlers]{withCallingHandlers}}, \code{\link[base:tryCatch]{tryCatch}} and \code{rlang}'s \code{\link[rlang]{with_handlers}}, albeit with some important differences.
 
-Like the functions above, the name of each argument determines which type of condition it will catch. Hence, \code{warnings = fn} will apply the \code{fn} function to the warnings raised in evaluating \code{expr}. However, \emph{unnamed} arguments are \emph{also} accepted: the value of any unnamed arguments will be treated as the type of condition to catch, and the way it handles the condition will be set by \code{default_plan} or \code{getOption("default.catchr.plan")}.
+Like the functions above, the name of each argument determines which type of condition it will catch. Hence, \code{warnings = fn} will apply the \code{fn} function to the warnings raised in evaluating \code{expr}.
+
+However, \emph{unnamed} arguments are \emph{also} accepted: the value of any unnamed arguments will be treated as the type of condition to catch, and the way it handles the condition will be set by \code{default_plan} or \code{getOption("catchr.default_plan")}.
 }
 

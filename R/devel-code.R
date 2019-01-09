@@ -162,7 +162,7 @@ findFirstMuffleRestart <- function(cond) {
 #'
 #'
 #' @param \dots Named and unnamed arguments for making plans
-#' @param default_plan The default plan. If not supplied, `getOption("catchr.default_plan")` will be used.
+#' @param opts The options you want to use for the plan. Generally passed in using \code{\link{catchr_opts}}.
 #' @export
 make_plans <- function(..., opts = catchr_opts()) {
   akw <- clean_cond_input(..., spec_names = special_terms)
