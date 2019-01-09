@@ -1,6 +1,7 @@
 #' To-do:
 #'
 #' CODE-BASED:
+#'  - make the order of the collected things alphabetical?
 #'  - let code use rlang lambda functions for functions
 #'  - figure out how you can avoid overlap between "warning" and "condition"
 #'  - make the towarning, etc. remove the call
@@ -24,12 +25,59 @@
 
 #' @import rlang purrr testthat
 
-
 special_terms <- c("towarning", "tomessage", "toerror",
                    "display", "beep", "exit", "muffle", "collect",
                    "raise")
 
-default_catchr_plan <- list("collect","muffle")
+catchr.default_plan <- list("collect", "muffle")
+# catchr.warn_about_terms catchr.bare_if_possible catchr.drop_empty
+
+
+
+catchr_opts <- function(default_plan = NULL,
+  warn_about_terms = NULL,
+  bare_if_possible = NULL,
+  drop_empty_conds = NULL) {
+  is_true_or_false <- function(x) {
+    !is.null(x) && !is.na(x) && (x == T || x == F)
+  }
+
+  if (is.null(default_plan))
+    default_plan <- getOption("catchr.default_plan", catchr.default_plan)
+  if (is.null(warn_about_stuff))
+    warn_about_terms <- getOption("catchr.warn_about_terms", catchr.warn_about_terms)
+  if (is.null(bare_if_possible))
+    bare_if_possible <- getOption("catchr.bare_if_possible", catchr.bare_if_possible)
+  if (is.null(drop_empty_conds))
+    drop_empty_conds <- getOption("catchr.drop_empty", catchr.drop_empty)
+
+  vals <- list(
+    default_plan = default_plan,
+    warn_about_terms = warn_about_terms,
+    bare_if_possible = bare_if_possible,
+    drop_empty_conds = drop_empty_conds)
+
+  if (!all(map_lgl(vals, is_true_or_false)))
+    abort("All catchr options must be either TRUE or FALSE")
+
+  vals
+}
+
+
+# What we can do:
+#   Collecting:
+#      - Dropping:
+#         * If no collect options, return bare val
+#         * Drop as much as possible
+#         * Keep all types with collection options
+#      - Overlapping:
+#         * Have a misc condition that picks up everything else
+#         * uhhhh...
+#   Warnings:
+#      - Warn or not about stuff
+#   Default plans
+
+
 
 
 #' Make a string end with a newline character
@@ -76,19 +124,21 @@ findFirstMuffleRestart <- function(cond) {
   }
 }
 
-#' Make `catchr` plans
+#' Make catchr plans
 #'
 #' To-do: add docs
 #'
 #' @section Input:
 #'
-#' Input to `make_plans` is very similar to how one makes handlers for \code{\link[base]{conditions}}, \code{\link[base]{conditions}} and `rlang`'s \code{\link[rlang]{with_handlers}}, albeit with some important differences.
+#' User input to `make_plans` is very similar to how one makes handlers for \code{\link[base:withCallingHandlers]{withCallingHandlers}}, \code{\link[base:tryCatch]{tryCatch}} and `rlang`'s \code{\link[rlang]{with_handlers}}, albeit with some important differences.
 #'
-#' Like the functions above, the name of each argument determines which type of condition it will catch. Hence, `warnings = fn` will apply the `fn` function to the warnings raised in evaluating `expr`. However, *unnamed* arguments are *also* accepted: the value of any unnamed arguments will be treated as the type of condition to catch, and the way it handles the condition will be set by `default_plan` or `getOption("default.catchr.plan")`.
+#' Like the functions above, the name of each argument determines which type of condition it will catch. Hence, `warnings = fn` will apply the `fn` function to the warnings raised in evaluating `expr`.
+#'
+#' However, *unnamed* arguments are *also* accepted: the value of any unnamed arguments will be treated as the type of condition to catch, and the way it handles the condition will be set by `default_plan` or `getOption("catchr.default_plan")`.
 #'
 #'
 #' @param \dots Named and unnamed arguments for making plans
-#' @param default_plan The default plan. If not supplied, `getOption("default.catchr.plan")` will be used.
+#' @param default_plan The default plan. If not supplied, `getOption("catchr.default_plan")` will be used.
 #' @export
 make_plans <- function(..., default_plan = NULL) {
   akw <- clean_cond_input(..., spec_names = special_terms)
