@@ -1,7 +1,9 @@
 #' To-do:
 #'
 #' CODE-BASED:
-#'  - make the order of the collected things alphabetical?
+#'  - consider pryr::unenclose....
+#'     * also pryr::rebind?
+#'     * also pryr::modify_lang
 #'  - let code use rlang lambda functions for functions
 #'  - figure out how you can avoid overlap between "warning" and "condition"
 #'  - make the towarning, etc. remove the call
@@ -21,19 +23,19 @@
 #'  - make a help page that describes how things are masked:
 #'      * The only thing that is masked in evaluation is the non-function versions of the special names.
 #'      * Egh, just make a help page and connect it to the warning message
-
+notes <- "a"
 
 #' @import rlang purrr testthat
 
-special_terms <- c("towarning", "tomessage", "toerror",
-                   "display", "beep", "exit", "muffle", "collect",
-                   "raise")
-
-catchr.default_plan <- list("collect", "muffle")
-# catchr.warn_about_terms catchr.bare_if_possible catchr.drop_empty
 
 
 
+#' Set options
+#'
+#' To-do: add docs
+#'
+#' @param default_plan The default
+#'
 catchr_opts <- function(default_plan = NULL,
   warn_about_terms = NULL,
   bare_if_possible = NULL,
@@ -44,23 +46,22 @@ catchr_opts <- function(default_plan = NULL,
 
   if (is.null(default_plan))
     default_plan <- getOption("catchr.default_plan", catchr.default_plan)
-  if (is.null(warn_about_stuff))
+  if (is.null(warn_about_terms))
     warn_about_terms <- getOption("catchr.warn_about_terms", catchr.warn_about_terms)
   if (is.null(bare_if_possible))
     bare_if_possible <- getOption("catchr.bare_if_possible", catchr.bare_if_possible)
   if (is.null(drop_empty_conds))
     drop_empty_conds <- getOption("catchr.drop_empty", catchr.drop_empty)
 
-  vals <- list(
-    default_plan = default_plan,
+  binary_vals <- list(
     warn_about_terms = warn_about_terms,
     bare_if_possible = bare_if_possible,
     drop_empty_conds = drop_empty_conds)
 
-  if (!all(map_lgl(vals, is_true_or_false)))
-    abort("All catchr options must be either TRUE or FALSE")
+  if (!all(map_lgl(binary_vals, is_true_or_false)))
+    abort("All binary catchr options must be either TRUE or FALSE")
 
-  vals
+  append(list(default_plan = default_plan), binary_vals)
 }
 
 
@@ -118,11 +119,14 @@ findFirstMuffleRestart <- function(cond) {
       # Picks the first restart with "muffle" in its name (hack-y?)
       return(muffleRestarts[[1]])
     # If it doesn't have a muffling restart and isn't an error (ie its a custom condition),
-    #   just continue by returning a null value, but don't stop anything/restart
+    #   just cofntinue by returning a null value, but don't stop anything/restart
     else
       return(NULL)
   }
 }
+
+
+
 
 #' Make catchr plans
 #'
@@ -140,15 +144,67 @@ findFirstMuffleRestart <- function(cond) {
 #' @param \dots Named and unnamed arguments for making plans
 #' @param default_plan The default plan. If not supplied, `getOption("catchr.default_plan")` will be used.
 #' @export
-make_plans <- function(..., default_plan = NULL) {
+make_plans <- function(..., opts = catchr_opts()) {
   akw <- clean_cond_input(..., spec_names = special_terms)
-  args <- as_list(give_default(akw$args, default_plan = default_plan)) %>%
-    add_back_arg_pos(akw$args)
+  args <- give_default(akw$args, default_plan = opts$default_plan) %>%
+    as_list() %>% add_back_arg_pos(akw$args)
+  opts$default_plan <- NULL
 
   kwargs <- append(as_list(akw$kwargs), args) %>%
     order_by_arg_pos()
 
-  kwargs %>% imap(make_handler)
+  opts$collectors <- has_collect(kwargs)
+
+  kwargs %>%
+    imap(make_handler) %>%
+    `attr<-`("catchr_opts", opts)
+}
+
+# Checks if a kwarg has "collect" in it
+has_collect <- function(kwargs) {
+  bools <- map_lgl(kwargs,
+                   function(kwarg) {
+                     reduce(kwarg, ~.x==T || .y=="collect", .init=F)
+                   })
+  names(kwargs[bools])
+}
+
+#' @rdname catchers
+#' @export
+make_catch_fn <- function(plans, opts = NULL) {
+  opts <- decide_opts(plans, opts)
+
+  function(expr) {
+    .myConditions <- NULL
+    baby_env <- child_env(current_env())
+    # If you keep empty conds, make 'em now
+    if (!opts$drop_empty_conds && length(opts$collectors) > 0)
+      for (c_type in sort(opts$collectors))
+        .myConditions[[c_type]] <- list()
+
+    kwargs <- plans %>%
+      map(~`environment<-`(., baby_env))
+
+    res <- withRestarts(with_handlers(expr, !!!kwargs),
+                        return_error = function() NULL)
+
+    if (opts$bare_if_possible && is.null(.myConditions))
+      res
+    else
+      append(list(value = res), .myConditions)
+  }
+}
+
+# decides which opts to use
+decide_opts <- function(plans, opts) {
+  collectors <- attr(plans, "catchr_opts", exact = T)$collectors
+  if (is.null(opts)) {
+    if (!is.null(attr(plans, "catchr_opts")))
+      opts <- attr(plans, "catchr_opts", exact=T)
+    else opts <- catchr_opts()
+  }
+  opts$collectors <- collectors
+  opts
 }
 
 # DEAR GOD I DID IT
@@ -160,27 +216,15 @@ make_plans <- function(..., default_plan = NULL) {
 #'
 #' @param expr the expression to be evaluated
 #' @param plans the plans from make_plans
+#' @param opts opts
 #' @rdname catchers
 #' @export
-catch_expr <- function(expr, plans) {
-  make_catch_fn(plans)(expr)
+catch_expr <- function(expr, plans, opts=NULL) {
+  make_catch_fn(plans, opts)(expr)
 }
 
-#' @rdname catchers
-#' @export
-make_catch_fn <- function(plans) {
-  function(expr) {
-    .myConditions <- NULL
-    baby_env <- child_env(current_env())
 
-    kwargs <- plans %>%
-      map(~`environment<-`(., baby_env))
 
-    res <- withRestarts(with_handlers(expr, !!!kwargs),
-                        return_error = function() NULL)
-    append(list(value = res), .myConditions)
-  }
-}
 #
 # plans <- clean_cond_input(error = exit,
 #                         warning = c(collect, muffle),
