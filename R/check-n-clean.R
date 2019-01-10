@@ -66,12 +66,14 @@ has_handler_args <- function(fn) {
 
 # checks to see if one of the elements in an argument meets criteria
 classify_el <- function(el, nono_words) {
+  el_expr <- expr(!!eval_tidy(el)) %>% expr_name()
   if (is_function(el) && !has_handler_args(el))
-    abort("All functions supplied must take one argument", fn = el)
+    abort(paste0("`", el_expr, "` must take at least one argument to be in a plan"), fn = el)
   else if (is_string(el) && !(el %in% nono_words))
-    abort("All unquoted expressions and strings supplied must be one of the options", string = el)
+    abort("All unquoted expressions and strings supplied must be a reserved term", string = el)
   else if (!is_string(el) && !is_function(el))
-    abort("Arguments supplied must evaluate to strings, unquoted expressions, or functions", arg=el)
+    abort(paste0("`", el_expr, "` is type '", typeof(el),
+                 "': must be a string, unquoted expression, or function"), arg=el)
 }
 
 # checks arguments to see if they meet criteria
