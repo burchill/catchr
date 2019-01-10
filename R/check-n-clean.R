@@ -53,7 +53,7 @@ warn_of_specials <- function(qs, names_to_check) {
 
 #' Make sure a function can be a handler
 #'
-#' This makes sure that a given function doesn't require more than one argument passed into it, and has at least one argument (which is what a \link[base:conditions]{handler} needs).
+#' This makes sure that a given function doesn't *require* more than one argument to be passed into it, and takes in at least one argument (which is what a \link[base:conditions]{handler} needs).
 #'
 #' @param fn A function
 #' @export
