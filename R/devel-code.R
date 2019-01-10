@@ -15,7 +15,7 @@
 #'  - add examples
 #'  - make the spec_terms thing use package defaults somehow
 #'  - make a way of stopping warnings from catchr
-#'  - standardize terminology
+#'  - pick better terminology than "plans"
 #'  - add a page about all the options
 #'  - fill out a page about collecting
 #'  - the biggest thing preventing me from removing the rlang/purrr dependencies is the splicing operator, it seems
@@ -33,11 +33,12 @@ notes <- "a"
 #' Set default catchr plan
 #'
 #' To-do: add docs
+#'
 #' @param x The plan to make default plan. The input follows the same rules as \code{\link{make_plans}}.
 #' @export
 set_default_plan <- function(x) {
   q <- enquo(x)
-  default_plan <- clean_input(list(default = q))$default
+  default_plan <- .clean_input(list(default = q))$default
   options("catchr.default_plan" = default_plan)
   default_plan
 }
@@ -63,7 +64,7 @@ catchr_opts <- function(default_plan = NULL,
   if (quo_is_null(q_plan))
     default_plan <- getOption("catchr.default_plan", catchr.default_plan)
   else {
-    default_plan <- clean_input(list(default = q_plan))$default
+    default_plan <- .clean_input(list(default = q_plan))$default
   }
 
   if (is.null(warn_about_terms))
@@ -148,9 +149,11 @@ findFirstMuffleRestart <- function(cond) {
 
 
 
-#' Make catchr plans
+#' Making catchr plans
 #'
-#' To-do: add docs
+#' @description
+#'
+#' Customizing how conditions are handled in `catchr` is done by giving `catchr` 'plans' for when it encounters particular conditions. These plans are simply lists of functions that take in the particular condition and are called sequentially.
 #'
 #' @section Input:
 #'

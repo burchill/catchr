@@ -76,9 +76,10 @@ classify_el <- function(el, nono_words) {
 
 # checks arguments to see if they meet criteria
 classify_arg <- function(arg, nono_words) {
+  arg_expr <- expr(!!eval_tidy(arg)) %>% expr_name()
   if (length(arg) > 1 || is_list(arg)) {
     if (!is_list(arg) && !is_bare_character(arg))
-      abort(paste0("`", arg, "` has an invalid type: ", typeof(arg)), val=arg)
+      abort(paste0("Input `", arg_expr, "` has an invalid type: '", typeof(arg), "'"), val=arg)
     walk(arg, ~classify_el(., nono_words))
   } else
     classify_el(arg, nono_words)
@@ -92,7 +93,22 @@ make_catchr_mask <- function(nms = special_terms) {
     as_data_mask()
 }
 
-# the problem is whether to make a lot of environments or just one
+
+#' 'Clean' a single catchr plan
+#'
+#' To-do: add docs
+#'
+#' @param plan The input for a single, unnamed plan
+#' @export
+clean_plan <- function(plan) {
+  plan <- enquo(plan)
+  if (is_named(plan))
+    abort("`clean_plan` only accepts a single, unnamed plan")
+  clean_input(list(default = plan))$default
+}
+
+
+# The internal version
 clean_input <- function(qs, spec_names = NULL) {
   if (is.null(spec_names)) {
     mask <- make_catchr_mask()
@@ -113,11 +129,9 @@ clean_input <- function(qs, spec_names = NULL) {
 
 # Checks to see if input is safe and puts it into right format
 # Internal
-clean_cond_input <- function(..., spec_names) {
+check_and_clean_input <- function(..., spec_names) {
   akw <- args_and_kwargs(...)
-
   warn_of_specials(akw$kwargs, spec_names)
-
   kwargs <- clean_input(akw$kwargs, spec_names)
 
   args <- akw$args %>%
@@ -127,11 +141,10 @@ clean_cond_input <- function(..., spec_names) {
     as.character() %>%
     add_back_arg_pos(akw$args)
 
-  # Check args
-  walk(args,
-       function(arg)
-         if (arg %in% names(kwargs))
-           abort(paste0("'", arg, "' is both an unnamed and named argument")))
+  # Check args for duplicated names
+  walk(args, function(arg)
+    if (arg %in% names(kwargs))
+      abort(paste0("'", arg, "' is both an unnamed and named argument")))
   return(list(args = args, kwargs = kwargs))
 }
 
