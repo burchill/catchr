@@ -1,5 +1,9 @@
 #' To-do:
 #'
+#' PRIORITY:
+#'  - mention how you can use quasiquotation to splice in quosures to make_plans
+#'  - add "as strings" to options
+#'
 #' CODE-BASED:
 #'  - consider pryr::unenclose....
 #'     * also pryr::rebind?
@@ -38,7 +42,7 @@ notes <- "a"
 #' @export
 set_default_plan <- function(x) {
   q <- enquo(x)
-  default_plan <- .clean_input(list(default = q))$default
+  default_plan <- clean_input(list(default = q))$default
   options("catchr.default_plan" = default_plan)
   default_plan
 }
@@ -64,7 +68,7 @@ catchr_opts <- function(default_plan = NULL,
   if (quo_is_null(q_plan))
     default_plan <- getOption("catchr.default_plan", catchr.default_plan)
   else {
-    default_plan <- .clean_input(list(default = q_plan))$default
+    default_plan <- clean_input(list(default = q_plan))$default
   }
 
   if (is.null(warn_about_terms))
@@ -153,7 +157,9 @@ findFirstMuffleRestart <- function(cond) {
 #'
 #' @description
 #'
-#' Customizing how conditions are handled in `catchr` is done by giving `catchr` 'plans' for when it encounters particular conditions. These plans are simply lists of functions that take in the particular condition and are called sequentially.
+#' Customizing how conditions are handled in `catchr` is done by giving `catchr` 'plans' for when it encounters particular conditions. These plans are essentially just lists of functions that are called in order, and that take in the particular condition as an argument.
+#'
+#' However, since `catchr` evaluates things \link{catchr_DSL}{slightly differently than base R}, the user input to make these plans has to be passed into `make_plans` or (for a single plan) \code{\link{clean_plan}} first. `make_plans` also lets users specify options for how they want these plans to be evaluated with the `opts` argument (see \code{\link{catchr_opts}} for more details).
 #'
 #' @section Input:
 #'
@@ -163,12 +169,28 @@ findFirstMuffleRestart <- function(cond) {
 #'
 #' However, *unnamed* arguments are *also* accepted: the value of any unnamed arguments will be treated as the type of condition to catch, and the way it handles the condition will be set by `default_plan` or `getOption("catchr.default_plan")`.
 #'
+#' @section Passing input in programmatically:
+#'
+#' `make_plans` supports \code{link{[rlang]{quasiquotation}}}, so if for some reason one wishes to pass input into `make_plans` via a different function, programmatically, etc., one may do so by splicing in quosures. See below for examples.
+#'
+#' @examples
+#'
+#'
+#'
+#' # Quasiquotation and splicing in the arguments
+#'
+#' q <- quo(function(cond) {print(cond)})
+#' name <- "warning"
+#' print_plan <- make_plans(!!name := !!q)
+#' # 'message' will be assigned the default plan
+#' qs <- quos(warning = muffle, error = exit, message)
+#' random_plan <- make_plans(!!!qs)
 #'
 #' @param \dots Named and unnamed arguments for making plans
 #' @param opts The options you want to use for the plan. Generally passed in using \code{\link{catchr_opts}}.
 #' @export
 make_plans <- function(..., opts = catchr_opts()) {
-  akw <- clean_cond_input(..., spec_names = special_terms)
+  akw <- check_and_clean_input(..., spec_names = special_terms)
   args <- give_default(akw$args, default_plan = opts$default_plan) %>%
     as_list() %>% add_back_arg_pos(akw$args)
   opts$default_plan <- NULL
@@ -185,10 +207,12 @@ make_plans <- function(..., opts = catchr_opts()) {
 
 # Checks if a kwarg has "collect" in it
 has_collect <- function(kwargs) {
-  bools <- map_lgl(kwargs,
-                   function(kwarg) {
-                     reduce(kwarg, ~.x==T || .y=="collect", .init=F)
-                   })
+  bools <- map_lgl(
+    kwargs,
+    function(kwarg) {
+      if (is_vector(kwarg))
+        reduce(kwarg, ~.x==T || .y=="collect", .init=F)
+      else FALSE })
   names(kwargs[bools])
 }
 
@@ -249,7 +273,7 @@ catch_expr <- function(expr, plans, opts=NULL) {
 
 
 #
-# plans <- clean_cond_input(error = exit,
+# plans <- check_and_clean_input(error = exit,
 #                         warning = c(collect, muffle),
 #                         message = c(collect, towarning),
 #                         spec_names = c("exit", "towarning", "display", "muffle", "collect"))
