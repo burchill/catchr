@@ -1,7 +1,7 @@
 #' To-do:
 #'
 #' PRIORITY:
-#'  - mention how you can use quasiquotation to splice in quosures to make_plans
+#'  - make it so that unnamed arguments just have to EVALUATE to strings (or be unquoted symbols)
 #'  - add "as strings" to options
 #'
 #' CODE-BASED:
@@ -165,9 +165,9 @@ findFirstMuffleRestart <- function(cond) {
 #'
 #' User input to `make_plans` is very similar to how one makes handlers for \code{\link[base:withCallingHandlers]{withCallingHandlers}}, \code{\link[base:tryCatch]{tryCatch}} and `rlang`'s \code{\link[rlang]{with_handlers}}, albeit with some important differences.
 #'
-#' Like the functions above, the name of each argument determines which type of condition it will catch. Hence, `warnings = fn` will apply the `fn` function to the warnings raised in evaluating `expr`.
+#' Like the functions above, the name of each argument determines which type of condition it will be the plan for. Hence, `warnings = fn` will apply the `fn` function to the warnings raised in evaluating `expr`.
 #'
-#' However, *unnamed* arguments are *also* accepted: the value of any unnamed arguments will be treated as the type of condition to catch, and the way it handles the condition will be set by `default_plan` or `getOption("catchr.default_plan")`.
+#' However, *unnamed* arguments are *also* accepted: the value of any unnamed arguments will be treated as the name of a type of condition, will have the default plan assigned to it, either specified in `opts = catchr_opts(...)` or via `getOption("catchr.default_plan")`. Unnamed arguments must evaluate to strings or be inputted as unquoted names.
 #'
 #' @section Passing input in programmatically:
 #'
@@ -186,8 +186,8 @@ findFirstMuffleRestart <- function(cond) {
 #' qs <- rlang::quos(warning = muffle, error = exit, message)
 #' random_plan <- make_plans(!!!qs)
 #'
-#' @param \dots Named and unnamed arguments for making plans
-#' @param opts The options you want to use for the plan. Generally passed in using \code{\link{catchr_opts}}.
+#' @param \dots Named and unnamed arguments for making plans. See 'Input' for more detail.
+#' @param opts The options to be used for the plan. Generally passed in using \code{\link{catchr_opts}}.
 #' @export
 make_plans <- function(..., opts = catchr_opts()) {
   akw <- check_and_clean_input(..., spec_names = special_terms)
