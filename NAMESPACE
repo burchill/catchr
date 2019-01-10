@@ -3,6 +3,7 @@
 export(args_and_kwargs)
 export(catch_expr)
 export(catchr_opts)
+export(clean_plan)
 export(findFirstMuffleRestart)
 export(give_newline)
 export(has_handler_args)

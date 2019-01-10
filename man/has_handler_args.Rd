@@ -10,5 +10,5 @@ has_handler_args(fn)
 \item{fn}{A function}
 }
 \description{
-This makes sure that a given function doesn't require more than one argument passed into it, and has at least one argument (which is what a \link[base:conditions]{handler} needs).
+This makes sure that a given function doesn't \emph{require} more than one argument to be passed into it, and takes in at least one argument (which is what a \link[base:conditions]{handler} needs).
 }

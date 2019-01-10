@@ -2,7 +2,7 @@
 % Please edit documentation in R/devel-code.R
 \name{make_plans}
 \alias{make_plans}
-\title{Make catchr plans}
+\title{Making catchr plans}
 \usage{
 make_plans(..., opts = catchr_opts())
 }
@@ -12,7 +12,9 @@ make_plans(..., opts = catchr_opts())
 \item{opts}{The options you want to use for the plan. Generally passed in using \code{\link{catchr_opts}}.}
 }
 \description{
-To-do: add docs
+Customizing how conditions are handled in \code{catchr} is done by giving \code{catchr} 'plans' for when it encounters particular conditions. These plans are essentially just lists of functions that are called in order, and that take in the particular condition as an argument.
+
+However, since \code{catchr} evaluates things \link{catchr_DSL}{slightly differently than base R}, the user input to make these plans has to be passed into \code{make_plans} or (for a single plan) \code{\link{clean_plan}} first. \code{make_plans} also lets users specify options for how they want these plans to be evaluated with the \code{opts} argument (see \code{\link{catchr_opts}} for more details).
 }
 \section{Input}{
 
@@ -24,3 +26,23 @@ Like the functions above, the name of each argument determines which type of con
 However, \emph{unnamed} arguments are \emph{also} accepted: the value of any unnamed arguments will be treated as the type of condition to catch, and the way it handles the condition will be set by \code{default_plan} or \code{getOption("catchr.default_plan")}.
 }
 
+\section{Passing input in programmatically}{
+
+
+\code{make_plans} supports \code{link{[rlang]{quasiquotation}}}, so if for some reason one wishes to pass input into \code{make_plans} via a different function, programmatically, etc., one may do so by splicing in quosures. See below for examples.
+}
+
+\examples{
+
+
+
+# Quasiquotation and splicing in the arguments
+
+q <- quo(function(cond) {print(cond)})
+name <- "warning"
+print_plan <- make_plans(!!name := !!q)
+# 'message' will be assigned the default plan
+qs <- quos(warning = muffle, error = exit, message)
+random_plan <- make_plans(!!!qs)
+
+}
