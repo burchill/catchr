@@ -38,11 +38,11 @@ However, \emph{unnamed} arguments are \emph{also} accepted: the value of any unn
 
 # Quasiquotation and splicing in the arguments
 
-q <- quo(function(cond) {print(cond)})
+q <- rlang::quo(function(cond) {print(cond)})
 name <- "warning"
 print_plan <- make_plans(!!name := !!q)
 # 'message' will be assigned the default plan
-qs <- quos(warning = muffle, error = exit, message)
+qs <- rlang::quos(warning = muffle, error = exit, message)
 random_plan <- make_plans(!!!qs)
 
 }
