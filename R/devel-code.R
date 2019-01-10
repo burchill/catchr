@@ -1,7 +1,6 @@
 #' To-do:
 #'
 #' PRIORITY:
-#'  - make it so that unnamed arguments just have to EVALUATE to strings (or be unquoted symbols)
 #'  - add "as strings" to options
 #'
 #' CODE-BASED:
@@ -167,7 +166,7 @@ findFirstMuffleRestart <- function(cond) {
 #'
 #' Like the functions above, the name of each argument determines which type of condition it will be the plan for. Hence, `warnings = fn` will apply the `fn` function to the warnings raised in evaluating `expr`.
 #'
-#' However, *unnamed* arguments are *also* accepted: the value of any unnamed arguments will be treated as the name of a type of condition, will have the default plan assigned to it, either specified in `opts = catchr_opts(...)` or via `getOption("catchr.default_plan")`. Unnamed arguments must evaluate to strings or be inputted as unquoted names.
+#' However, *unnamed* arguments are *also* accepted: the value of any unnamed arguments will be treated as the type of a condition, which will then have the default plan assigned to it, as either specified in `opts = catchr_opts(...)` or via `getOption("catchr.default_plan")`. Unnamed arguments must be either strings or unquoted expressions which will then be converted to strings.
 #'
 #' @section Passing input in programmatically:
 #'
