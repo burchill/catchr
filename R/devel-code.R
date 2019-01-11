@@ -1,7 +1,13 @@
 #' To-do:
 #'
+#' Open questions:
+#'  * what should a "plan" actually be?
+#'    - Currently make_plans outputs the "heavy" plans, while clean_plan basically checks input and subs some stuff
+#'    - I think I should probably keep plans "lite"--the "compiled" plans are much less user-friendly
+#'
 #' PRIORITY:
 #'  - add "as strings" to options
+#'  - ugh, go back and change clean_plan to clean_input and change the descriptions... actually, make a distinction between the 'strings-and-fns' plans and the fleshed out ones...
 #'
 #' CODE-BASED:
 #'  - consider pryr::unenclose....
@@ -166,7 +172,7 @@ findFirstMuffleRestart <- function(cond) {
 #'
 #' Like the functions above, the name of each argument determines which type of condition it will be the plan for. Hence, `warnings = fn` will apply the `fn` function to the warnings raised in evaluating `expr`.
 #'
-#' However, *unnamed* arguments are *also* accepted: the value of any unnamed arguments will be treated as the type of a condition, which will then have the default plan assigned to it, as either specified in `opts = catchr_opts(...)` or via `getOption("catchr.default_plan")`. Unnamed arguments must be either strings or unquoted expressions which will then be converted to strings.
+#' However, *unnamed* arguments are *also* accepted: the value of any unnamed arguments will be treated as the type of a condition, which will then have the default plan assigned to it, as either specified in `opts = catchr_opts(...)` or via `getOption("catchr.default_plan")`. Unnamed arguments must be either strings or unquoted expressions which will then be converted to strings. Currently, unnamed arguments are _never_ evaluated, so cannot be calls that evaluate to strings. **However, this may change in future versions of `catchr`.**
 #'
 #' @section Passing input in programmatically:
 #'
@@ -174,9 +180,39 @@ findFirstMuffleRestart <- function(cond) {
 #'
 #' @examples
 #'
+#' # ### INPUT EXAMPLES ###########################
+#'
+#' # Named arguments --------------------------------------
+#' #   * single functions:
+#' p <- make_plans(warning = str, message = function(x) print(x))
+#' #   * single unquoted expressions and strings
+#' #     (must match catchr's special reserved terms, e.g., 'muffle', 'exit', etc.):
+#' p <- make_plans(message = muffle, condition = "collect")
+#' #   * lists or vectors of any combinatin of the above:
+#' p <- make_plans(error = list(collect, "exit"),
+#'                 message = c(cat, "muffle"))
+#' #   * anything that evaluates to the above:
+#' fn <- function() { list(cat, "muffle") }
+#' p <- make_plans(message = fn() )
+#'
+#' # Unnamed arguments --------------------------------------
+#' #   * single strings:
+#' p <- make_plans("warning","condition")
+#' #   * unquoted expressions:
+#' p <- make_plans(warning,condition)
+#' #   * Currently, does NOT accept anything that evaluates to strings:
+#' #       (However, this may change in the future)
+#' \dontrun{
+#' string_fn <- function() { "condition" }
+#' make_plans(string_fn()) # will currently raise error
+#' }
+#'
+#' # Mixes of both ------------------------------------------
+#' p <- make_plans("warning", message = c(towarning, muffle),
+#'                 condition = print)
 #'
 #'
-#' # Quasiquotation and splicing in the arguments
+#' # Quasiquotation and splicing in the arguments ############
 #'
 #' q <- rlang::quo(function(cond) {print(cond)})
 #' name <- "warning"
@@ -201,7 +237,8 @@ make_plans <- function(..., opts = catchr_opts()) {
 
   kwargs %>%
     imap(make_handler) %>%
-    `attr<-`("catchr_opts", opts)
+    `attr<-`("class", "compiled_plans") %>%
+    `attr<-`("catchr_opts", list(opts))
 }
 
 # Checks if a kwarg has "collect" in it
@@ -210,7 +247,7 @@ has_collect <- function(kwargs) {
     kwargs,
     function(kwarg) {
       if (is_vector(kwarg))
-        reduce(kwarg, ~.x==T || .y=="collect", .init=F)
+        reduce(kwarg, ~.x==T || (is.character(.y) && .y=="collect"), .init=F)
       else FALSE })
   names(kwargs[bools])
 }
