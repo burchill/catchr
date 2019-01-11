@@ -43,18 +43,21 @@ special_terms <- c("towarning", "tomessage", "toerror",
                    "raise")
 
 
-#' Set default catchr plan
+#' Get/set the input for the default catchr plan
 #'
-#' To-do: add docs
+#' These functions allow the user to set and retrieve the input that will be assigned to any conditions passed to \code{\link{make_plans}} without plans (i.e., as unnamed arguments). Using the same inputting style as `make_plans`, the argument `new_plan` will essentially be treated as a single named argument would be in \code{make_plans}, without actually having a name/specific condition.
 #'
-#' @param x The plan to make default plan. The input follows the same rules as \code{\link{make_plans}}.
+#' @param new_plan The input (in the style of named arguments to \code{\link{make_plans}}) that will become the input of default plan.
+#' @return `set_default_plan` will return a "cleaned up" version (i.e., evaluated, and with the unquoted terms replaced with strings) of the input, which is what will also be returned by `get_default_plan` until a new default is set. Note that this "cleaned up version"
+#' @rdname default_plan
 #' @export
-set_default_plan <- function(x) {
-  q <- enquo(x)
+set_default_plan <- function(plan) {
+  q <- enquo(plan)
   default_plan <- clean_input(list(default = q))$default
   options("catchr.default_plan" = default_plan)
-  default_plan
+  invisible(default_plan)
 }
+#' @rdname default_plan
 #' @export
 get_default_plan <- function() {
   getOption("catchr.default_plan")
@@ -75,16 +78,14 @@ catchr_opts <- function(default_plan = NULL,
   warn_about_terms = NULL,
   bare_if_possible = NULL,
   drop_empty_conds = NULL) {
-  is_true_or_false <- function(x) {
-    !is.null(x) && !is.na(x) && (x == T || x == F)
-  }
+  is_true_or_false <- function(x)
+    rlang::is_true(x) || rlang::is_false(x)
   q_plan <- enquo(default_plan)
 
   if (quo_is_null(q_plan))
     default_plan <- getOption("catchr.default_plan")
-  else {
+  else
     default_plan <- clean_input(list(default = q_plan))$default
-  }
 
   if (is.null(warn_about_terms))
     warn_about_terms <- getOption("catchr.warn_about_terms")
@@ -174,7 +175,7 @@ findFirstMuffleRestart <- function(cond) {
 #'
 #' Customizing how conditions are handled in `catchr` is done by giving `catchr` 'plans' for when it encounters particular conditions. These plans are essentially just lists of functions that are called in order, and that take in the particular condition as an argument.
 #'
-#' However, since `catchr` evaluates things \link{catchr_DSL}{slightly differently than base R}, the user input to make these plans has to be passed into `make_plans` or (for a single plan) \code{\link{clean_plan}} first. `make_plans` also lets users specify options for how they want these plans to be evaluated with the `opts` argument (see \code{\link{catchr_opts}} for more details).
+#' However, since `catchr` evaluates things \link{catchr_DSL}{slightly differently than base R}, the user input to make these plans has to be passed first into `make_plans` (or for setting the default plan, \code{\link{set_default_plan}}. `make_plans` also lets users specify options for how they want these plans to be evaluated with the `opts` argument (see \code{\link{catchr_opts}} for more details).
 #'
 #' @section Input:
 #'

@@ -7,9 +7,9 @@
 make_plans(..., opts = catchr_opts())
 }
 \arguments{
-\item{\dots}{Named and unnamed arguments for making plans}
+\item{\dots}{Named and unnamed arguments for making plans. See 'Input' for more detail.}
 
-\item{opts}{The options you want to use for the plan. Generally passed in using \code{\link{catchr_opts}}.}
+\item{opts}{The options to be used for the plan. Generally passed in using \code{\link{catchr_opts}}.}
 }
 \description{
 Customizing how conditions are handled in \code{catchr} is done by giving \code{catchr} 'plans' for when it encounters particular conditions. These plans are essentially just lists of functions that are called in order, and that take in the particular condition as an argument.
@@ -21,9 +21,9 @@ However, since \code{catchr} evaluates things \link{catchr_DSL}{slightly differe
 
 User input to \code{make_plans} is very similar to how one makes handlers for \code{\link[base:withCallingHandlers]{withCallingHandlers}}, \code{\link[base:tryCatch]{tryCatch}} and \code{rlang}'s \code{\link[rlang]{with_handlers}}, albeit with some important differences.
 
-Like the functions above, the name of each argument determines which type of condition it will catch. Hence, \code{warnings = fn} will apply the \code{fn} function to the warnings raised in evaluating \code{expr}.
+Like the functions above, the name of each argument determines which type of condition it will be the plan for. Hence, \code{warnings = fn} will apply the \code{fn} function to the warnings raised in evaluating \code{expr}.
 
-However, \emph{unnamed} arguments are \emph{also} accepted: the value of any unnamed arguments will be treated as the type of condition to catch, and the way it handles the condition will be set by \code{default_plan} or \code{getOption("catchr.default_plan")}.
+However, \emph{unnamed} arguments are \emph{also} accepted: the value of any unnamed arguments will be treated as the type of a condition, which will then have the default plan assigned to it, as either specified in \code{opts = catchr_opts(...)} or via \code{getOption("catchr.default_plan")}. Unnamed arguments must be either strings or unquoted expressions which will then be converted to strings. Currently, unnamed arguments are \emph{never} evaluated, so cannot be calls that evaluate to strings. \strong{However, this may change in future versions of \code{catchr}.}
 }
 
 \section{Passing input in programmatically}{
@@ -34,9 +34,39 @@ However, \emph{unnamed} arguments are \emph{also} accepted: the value of any unn
 
 \examples{
 
+# ### INPUT EXAMPLES ###########################
+
+# Named arguments --------------------------------------
+#   * single functions:
+p <- make_plans(warning = str, message = function(x) print(x))
+#   * single unquoted expressions and strings
+#     (must match catchr's special reserved terms, e.g., 'muffle', 'exit', etc.):
+p <- make_plans(message = muffle, condition = "collect")
+#   * lists or vectors of any combinatin of the above:
+p <- make_plans(error = list(collect, "exit"),
+                message = c(cat, "muffle"))
+#   * anything that evaluates to the above:
+fn <- function() { list(cat, "muffle") }
+p <- make_plans(message = fn() )
+
+# Unnamed arguments --------------------------------------
+#   * single strings:
+p <- make_plans("warning","condition")
+#   * unquoted expressions:
+p <- make_plans(warning,condition)
+#   * Currently, does NOT accept anything that evaluates to strings:
+#       (However, this may change in the future)
+\dontrun{
+string_fn <- function() { "condition" }
+make_plans(string_fn()) # will currently raise error
+}
+
+# Mixes of both ------------------------------------------
+p <- make_plans("warning", message = c(towarning, muffle),
+                condition = print)
 
 
-# Quasiquotation and splicing in the arguments
+# Quasiquotation and splicing in the arguments ############
 
 q <- rlang::quo(function(cond) {print(cond)})
 name <- "warning"

@@ -105,20 +105,6 @@ make_catchr_mask <- function(nms = special_terms) {
 }
 
 
-#' 'Clean' a single catchr plan
-#'
-#' To-do: add docs
-#'
-#' @param plan The input for a single, unnamed plan
-#' @export
-clean_plan <- function(plan) {
-  plan <- enquo(plan)
-  if (is_named(plan))
-    abort("`clean_plan` only accepts a single, unnamed plan")
-  clean_input(list(default = plan))$default
-}
-
-
 # The internal version
 clean_input <- function(qs, spec_names = NULL) {
   if (is.null(spec_names))
