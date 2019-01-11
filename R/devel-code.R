@@ -36,7 +36,24 @@
 #'      * Egh, just make a help page and connect it to the warning message
 notes <- "a"
 
-#' @import rlang purrr testthat
+# Here are our import options, as of now:
+
+# ---Lots of errors -----------------------
+# @import rlang purrr
+
+# ---Fine, but loads purrr ------------------------
+# @importFrom rlang abort as_closure as_data_mask as_list call_args call_name calling cnd_signal current_env enexpr enexprs enquo env_has env_names env_unbind eval_tidy exiting expr expr_deparse fn_fmls fn_fmls_names get_env get_expr is_bare_character is_call is_callable is_function is_installed is_list is_missing is_string is_symbol is_vector quo_is_null set_names signal with_handlers
+# @importFrom rlang child_env quo_is_call quo_is_symbol is_logical as_logical as_double dbl lgl
+# @importFrom purrr imap map map_dbl map_lgl reduce walk
+# @importFrom purrr keep map2 %>%
+
+
+# ----Needs the crappy, off-brand purrr functions ----------------
+# @importFrom magrittr %>%
+# @importFrom rlang abort as_closure as_data_mask as_list call_args call_name calling cnd_signal current_env enexpr enexprs enquo env_has env_names env_unbind eval_tidy exiting expr expr_deparse fn_fmls fn_fmls_names get_env get_expr is_bare_character is_call is_callable is_function is_installed is_list is_missing is_string is_symbol is_vector quo_is_null set_names signal with_handlers
+# @importFrom rlang child_env quo_is_call quo_is_symbol is_logical as_logical as_double dbl lgl
+
+
 
 special_terms <- c("towarning", "tomessage", "toerror",
                    "display", "beep", "exit", "muffle", "collect",
