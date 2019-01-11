@@ -50,6 +50,15 @@ warn_of_specials <- function(qs, names_to_check) {
   invisible()
 }
 
+# used to get some form of "helpful-ish" name for something passed in.
+# need to use splicing to pass stuff in
+approx_arg_name <- function(x, len = 25) {
+  v <- get_expr(enquo(x)) %>% expr_deparse(999) %>% paste(collapse = "")
+  if (nchar(v) > len)
+    paste0(substr(v,1,len), "...")
+  else v
+}
+
 
 #' Make sure a function can be a handler
 #'
@@ -67,19 +76,18 @@ has_handler_args <- function(fn) {
 
 # checks to see if one of the elements in an argument meets criteria
 classify_el <- function(el, nono_words) {
-  el_expr <- expr(!!eval_tidy(el)) %>% expr_name()
+  el_expr <- approx_arg_name(!!el)
   if (is_function(el) && !has_handler_args(el))
-    abort(paste0("`", el_expr, "` must take at least one argument to be in a plan"), fn = el)
+    abort(paste0(el_expr, " must take at least one argument to be in a catchr plan"), fn = el)
   else if (is_string(el) && !(el %in% nono_words))
-    abort("All unquoted expressions and strings supplied must be a reserved term", string = el)
+    abort(paste0(el_expr, " is not one of catchr's special reserved terms"), string = el)
   else if (!is_string(el) && !is_function(el))
-    abort(paste0("`", el_expr, "` is type '", typeof(el),
-                 "': must be a string, unquoted expression, or function"), arg=el)
+    abort(paste0(el_expr, " must be a string, unquoted expression, or function, but is type '", typeof(el), "'"), arg=el)
 }
 
 # checks arguments to see if they meet criteria
 classify_arg <- function(arg, nono_words) {
-  arg_expr <- expr(!!eval_tidy(arg)) %>% expr_name()
+  arg_expr <- approx_arg_name(!!arg)
   if (length(arg) > 1 || is_list(arg)) {
     if (!is_list(arg) && !is_bare_character(arg))
       abort(paste0("Input `", arg_expr, "` has an invalid type: '", typeof(arg), "'"), val=arg)
