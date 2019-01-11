@@ -1,19 +1,18 @@
 .onLoad <- function(libname, pkgname) {
   # Unless already set, the default plan is to collect and muffle
-  catchr.default_plan <- getOption("catchr.default_plan", catchr.default_plan)
-  # Set the default just in case it isn't already
+  catchr.default_plan <- getOption("catchr.default_plan", list("collect", "muffle"))
+  # By default, you'll be warned about catchrs DSL
+  catchr.warn_about_terms <- getOption("catchr.warn_about_terms", TRUE)
+  # By default, you want to always return a list when you can collect
+  catchr.bare_if_possible <- getOption("catchr.bare_if_possible", FALSE)
+  # By default you don't want to drop stuff
+  catchr.drop_empty <- getOption("catchr.drop_empty", FALSE)
+
+
+  # Set the defaults just in case they aren't already
   options("catchr.default_plan" = catchr.default_plan)
+  options("catchr.warn_about_terms" = catchr.warn_about_terms)
+  options("catchr.bare_if_possible" = catchr.bare_if_possible)
+  options("catchr.drop_empty" = catchr.drop_empty)
 
-  catchr.warn_about_terms <- getOption("catchr.warn_about_terms", catchr.warn_about_terms)
-  catchr.bare_if_possible <- getOption("catchr.warn_about_terms", catchr.bare_if_possible)
-  catchr.drop_empty <- getOption("catchr.warn_about_terms", catchr.drop_empty)
 }
-
-special_terms <- c("towarning", "tomessage", "toerror",
-                   "display", "beep", "exit", "muffle", "collect",
-                   "raise")
-
-catchr.default_plan <- list("collect", "muffle")
-catchr.warn_about_terms <- T
-catchr.bare_if_possible <- F
-catchr.drop_empty <- F

@@ -7,7 +7,9 @@
 #'
 #' PRIORITY:
 #'  - add "as strings" to options
+#'  - scratch below, go back and get rid of clean_plan completely
 #'  - ugh, go back and change clean_plan to clean_input and change the descriptions... actually, make a distinction between the 'strings-and-fns' plans and the fleshed out ones...
+#'  - not sure that the collect options are working--ie, should i... hmm...
 #'
 #' CODE-BASED:
 #'  - consider pryr::unenclose....
@@ -36,7 +38,9 @@ notes <- "a"
 
 #' @import rlang purrr testthat
 
-notes <- "a"
+special_terms <- c("towarning", "tomessage", "toerror",
+                   "display", "beep", "exit", "muffle", "collect",
+                   "raise")
 
 
 #' Set default catchr plan
@@ -51,6 +55,12 @@ set_default_plan <- function(x) {
   options("catchr.default_plan" = default_plan)
   default_plan
 }
+#' @export
+get_default_plan <- function() {
+  getOption("catchr.default_plan")
+}
+
+
 
 #' catchr-specific options
 #'
@@ -71,17 +81,17 @@ catchr_opts <- function(default_plan = NULL,
   q_plan <- enquo(default_plan)
 
   if (quo_is_null(q_plan))
-    default_plan <- getOption("catchr.default_plan", catchr.default_plan)
+    default_plan <- getOption("catchr.default_plan")
   else {
     default_plan <- clean_input(list(default = q_plan))$default
   }
 
   if (is.null(warn_about_terms))
-    warn_about_terms <- getOption("catchr.warn_about_terms", catchr.warn_about_terms)
+    warn_about_terms <- getOption("catchr.warn_about_terms")
   if (is.null(bare_if_possible))
-    bare_if_possible <- getOption("catchr.bare_if_possible", catchr.bare_if_possible)
+    bare_if_possible <- getOption("catchr.bare_if_possible")
   if (is.null(drop_empty_conds))
-    drop_empty_conds <- getOption("catchr.drop_empty", catchr.drop_empty)
+    drop_empty_conds <- getOption("catchr.drop_empty")
 
   binary_vals <- list(
     warn_about_terms = warn_about_terms,
@@ -172,7 +182,7 @@ findFirstMuffleRestart <- function(cond) {
 #'
 #' Like the functions above, the name of each argument determines which type of condition it will be the plan for. Hence, `warnings = fn` will apply the `fn` function to the warnings raised in evaluating `expr`.
 #'
-#' However, *unnamed* arguments are *also* accepted: the value of any unnamed arguments will be treated as the type of a condition, which will then have the default plan assigned to it, as either specified in `opts = catchr_opts(...)` or via `getOption("catchr.default_plan")`. Unnamed arguments must be either strings or unquoted expressions which will then be converted to strings. Currently, unnamed arguments are _never_ evaluated, so cannot be calls that evaluate to strings. **However, this may change in future versions of `catchr`.**
+#' However, *unnamed* arguments are *also* accepted: the value of any unnamed arguments will be treated as the type of a condition, which will then have the default plan assigned to it, as specified either in `opts = catchr_opts(...)` or via `getOption("catchr.default_plan")`. Unnamed arguments must be either strings or unquoted expressions which will then be converted to strings. Currently, unnamed arguments are _never_ evaluated, so cannot be calls that evaluate to strings. **However, this may change in future versions of `catchr`.**
 #'
 #' @section Passing input in programmatically:
 #'

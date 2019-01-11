@@ -160,7 +160,7 @@ check_and_clean_input <- function(..., spec_names) {
 # Turns the unnamed arguments into the defaults
 give_default <- function(args, default_plan = NULL) {
   if (is.null(default_plan))
-    default_plan = getOption("catchr.default_plan", catchr.default_plan)
+    default_plan = getOption("catchr.default_plan")
   map(args, ~default_plan) %>%
     set_names(args)
 }
