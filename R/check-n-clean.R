@@ -61,7 +61,8 @@ has_handler_args <- function(fn) {
   args <- Map(is_missing, fn_fmls(fn)) # purrr can't iterate over pairlist
   needed <- args %>% keep(~.) %>% length()
   supplied <- args %>% keep(~!.) %>% length()
-  return(needed == 1 || (needed == 0 && supplied > 0))
+  has_dots <- "..." %in% fn_fmls_names(fn)
+  return(needed == 1 || (needed == 0 && supplied > 0) || has_dots)
 }
 
 # checks to see if one of the elements in an argument meets criteria
