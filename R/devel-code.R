@@ -256,7 +256,7 @@ make_plans <- function(..., opts = catchr_opts()) {
   kwargs %>%
     imap(make_handler) %>%
     `attr<-`("class", "compiled_plans") %>%
-    `attr<-`("catchr_opts", list(opts))
+    `attr<-`("catchr_opts", opts)
 }
 
 # Checks if a kwarg has "collect" in it
