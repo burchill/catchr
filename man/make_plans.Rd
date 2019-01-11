@@ -14,7 +14,7 @@ make_plans(..., opts = catchr_opts())
 \description{
 Customizing how conditions are handled in \code{catchr} is done by giving \code{catchr} 'plans' for when it encounters particular conditions. These plans are essentially just lists of functions that are called in order, and that take in the particular condition as an argument.
 
-However, since \code{catchr} evaluates things \link{catchr_DSL}{slightly differently than base R}, the user input to make these plans has to be passed into \code{make_plans} or (for a single plan) \code{\link{clean_plan}} first. \code{make_plans} also lets users specify options for how they want these plans to be evaluated with the \code{opts} argument (see \code{\link{catchr_opts}} for more details).
+However, since \code{catchr} evaluates things \link{catchr_DSL}{slightly differently than base R}, the user input to make these plans has to be passed first into \code{make_plans} (or for setting the default plan, \code{\link{set_default_plan}}. \code{make_plans} also lets users specify options for how they want these plans to be evaluated with the \code{opts} argument (see \code{\link{catchr_opts}} for more details).
 }
 \section{Input}{
 
@@ -23,7 +23,7 @@ User input to \code{make_plans} is very similar to how one makes handlers for \c
 
 Like the functions above, the name of each argument determines which type of condition it will be the plan for. Hence, \code{warnings = fn} will apply the \code{fn} function to the warnings raised in evaluating \code{expr}.
 
-However, \emph{unnamed} arguments are \emph{also} accepted: the value of any unnamed arguments will be treated as the type of a condition, which will then have the default plan assigned to it, as either specified in \code{opts = catchr_opts(...)} or via \code{getOption("catchr.default_plan")}. Unnamed arguments must be either strings or unquoted expressions which will then be converted to strings. Currently, unnamed arguments are \emph{never} evaluated, so cannot be calls that evaluate to strings. \strong{However, this may change in future versions of \code{catchr}.}
+However, \emph{unnamed} arguments are \emph{also} accepted: the value of any unnamed arguments will be treated as the type of a condition, which will then have the default plan assigned to it, as specified either in \code{opts = catchr_opts(...)} or via \code{getOption("catchr.default_plan")}. Unnamed arguments must be either strings or unquoted expressions which will then be converted to strings. Currently, unnamed arguments are \emph{never} evaluated, so cannot be calls that evaluate to strings. \strong{However, this may change in future versions of \code{catchr}.}
 }
 
 \section{Passing input in programmatically}{
