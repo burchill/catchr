@@ -42,6 +42,13 @@ special_terms <- c("towarning", "tomessage", "toerror",
                    "display", "beep", "exit", "muffle", "collect",
                    "raise")
 
+# source("R/check-n-clean.R")
+# source("R/make-handlers.R")
+# source("R/zzz.R")
+# source("R/devel-code.R")
+# source("R/arg-wrangling.R")
+
+
 
 #' Get/set the input for the default catchr plan
 #'
