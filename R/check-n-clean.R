@@ -121,19 +121,17 @@ clean_plan <- function(plan) {
 
 # The internal version
 clean_input <- function(qs, spec_names = NULL) {
-  if (is.null(spec_names)) {
-    mask <- make_catchr_mask()
+  if (is.null(spec_names))
     spec_names <- special_terms
-  } else {
-    mask <- make_catchr_mask(spec_names)
-  }
 
+  mask <- make_catchr_mask(spec_names)
   res <- qs %>%
     map(~eval_tidy(., data = mask)) %>%
     map(~classify_arg(., spec_names)) %>%
     add_back_arg_pos(qs)
 
   env_unbind(parent.env(mask), env_names(parent.env(mask)))
+
   res
 }
 
