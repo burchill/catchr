@@ -51,8 +51,8 @@ special_terms <- c("towarning", "tomessage", "toerror",
 #' @return `set_default_plan` will return a "cleaned up" version (i.e., evaluated, and with the unquoted terms replaced with strings) of the input, which is what will also be returned by `get_default_plan` until a new default is set. Note that this "cleaned up version"
 #' @rdname default_plan
 #' @export
-set_default_plan <- function(plan) {
-  q <- enquo(plan)
+set_default_plan <- function(new_plan) {
+  q <- enquo(new_plan)
   default_plan <- clean_input(list(default = q))$default
   options("catchr.default_plan" = default_plan)
   invisible(default_plan)
