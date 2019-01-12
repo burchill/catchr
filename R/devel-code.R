@@ -363,8 +363,23 @@ catch_expr <- function(expr, plans, opts=NULL) {
   make_catch_fn(plans, opts)(expr)
 }
 
-better_handling <- function(.expr, ...) {
-  handlers <- purrr::map(list2(...), as_function)
+#' Establish handlers on the stack (IN ORDER)
+#'
+#' `with_ordered_handlers` is inspired by `rlang`'s \code{\link[rlang]{with_handlers}} function, which essentially lets one use calling and exiting handlers in one function. However, `with_handlers` does not check handlers in the order they are inputted (at least, in rlang 0.3.0), as \{code\link[base]{withCallingHandlers}} and \{code\link[base]{tryCatch}} do: all exiting handlers are checked first, then all calling handlers.  This function makes sure all handlers are checked in the order they are raised, regardless of exiting/calling status.
+#' @examples
+#' # Although set first, 'condition' never gets to catch the condition
+#' with_handlers(warning("woops!"),
+#'               condition = calling(function(x) print("CONDITION")),
+#'               warning = exiting(function(x) { print("WARNING")}))
+#'
+#' # Should print for both
+#' with_ordered_handlers(warning("woops!"),
+#'               condition = calling(function(x) print("CONDITION")),
+#'               warning = exiting(function(x) { print("WARNING")}))
+#'
+#' @export
+with_ordered_handlers <- function(.expr, ...) {
+  handlers <- map(list2(...), as_function)
   expr <- quote(.expr)
 
   for (i in 1:length(handlers)) {
