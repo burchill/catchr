@@ -2,34 +2,38 @@
 % Please edit documentation in R/help-docs.R
 \name{catchr_DSL}
 \alias{catchr_DSL}
+\alias{language_of_catchr}
+\alias{reserved_terms}
 \title{The language of catchr}
 \description{
-\code{catchr} implements a small but helpful "domain-specific language" (DSL) to make building condition-handling functions simpler to read and type, somewhat like . Essentially, \code{catchr} reserves special 'terms' that mean something different than they do in the rest of R. When given as part of the input for a \code{catchr} plan, these terms will be substituted for special \code{catchr} functions when used to catch conditions.
+\code{catchr} implements a small but helpful "domain-specific language" (DSL) to make building condition-handling functions simpler to read and type, somewhat like . Essentially, \code{catchr} reserves special 'terms' that mean something different than they do in the rest of R. When given as part of the input for a \code{catchr} plan, these terms will be substituted for special \code{catchr} functions used to handle conditions.
 
-These special terms can be inputted as strings (e.g., \code{warning = list('collect', 'muffle')}) or as unquoted terms (e.g., \code{warning = c(collect, muffle)}) --- \code{catchr} converts the unquoted terms to strings internally regardless, but having them unquoted saves keystrokes and can highlight their special meanings for readability.
+These special terms can be inputted as strings (e.g., \code{warning = list('collect', 'muffle')}) or as unquoted terms (e.g., \code{warning = c(collect, muffle)}); \code{catchr} internally converts the unquoted terms to strings regardless, but being able to input them unquoted saves keystrokes and can highlight their special meanings for code readability.
 }
 \section{Special reserved terms}{
 
 
-The following are the special terms and what they are used for:
+The following are the special terms and what they do:
 \itemize{
-\item \code{tomessage}, \code{towarning}, \code{toerror}: these terms will be substituted for functions that will convert captured conditions into a message, warning, or error, respectively, and raise them. The original class of the condition will be lost.
+\item \code{tomessage}, \code{towarning}, \code{toerror}: these terms will become functions that will convert captured conditions into a message, warning, or error, respectively, and raise them. The original classes of the condition will be lost.
 \item \code{beep}: if the \link[beepr:beepr-package]{beepr} package is installed, this will play a sound via \code{\link[beepr:beepr]{beepr::beep}}.
-\item \code{display}: the purpose of this term is to immediately display information about the captured condition on the screen without raising additional conditions (as would be done with \code{tomessage}). Currently, this term just calls \code{\link[utils]{str}} on the condition, but this will probably change in later versions.
+\item \code{display}: the purpose of this term is to immediately display information about the captured condition on the screen without raising additional conditions (as would be done with \code{tomessage}). Currently, this term just calls \code{\link[utils]{str}} on the condition, \strong{but this will probably change in later versions.}
+\item \code{muffle}: this term will be substituted for a function that 'muffles' (i.e., 'suppresses', 'catches', 'hides'---whatever you want to call it) the captured condition, preventing it from being raised to higher levels or subsequent plans. \cr
+Currently, it searches for and uses the first available \link[base:conditions]{restart} with \code{"muffle"} in its name (the two typical ones are \code{"muffleMessage"} and \code{"muffleWarning"}). If the captured condition is an error, which can't be muffled, it will exit the evaluation and give \code{NULL} for the returned value of the evaluated expression.
 \item \code{exit}: when encountered, this will exit the evaluation of the expression immediately and by default muffle the captured condition. Any instructions after \code{exit} in the input will be ignored.
-\item \code{collect}: this term will store the captured conditions and append them to the output of the evaluated expression. See the \link[=collecting-conditions]{Collecting Conditions} help topic for a full explanation.
-\item \code{muffle}: this term will be substituted for a function that 'muffles' (i.e., 'suppresses', 'catches', what have you) the captured condition, preventing it from being raised to higher levels. \cr
-Currently, it searches for and uses the first available \link[base:conditions]{restart} with \code{"muffle"} in its name (the two typical ones are \code{"muffleMessage"} and \code{"muffleWarning"}). If the captured condition is an error, which can't be muffled, it will exit the evaluation and give \code{NULL} for the returned value.
-\item \code{raise}: a term that will raise the captured condition "as is". The only \emph{real} use for this term is when you want to use \code{exit} to stop the evaluation, but to still raise the condition past that as well. The behavior of this raising might be slightly hard to predict for very odd edge-cases (e.g., if a condition were both a warning \emph{and} an error).
+\item \code{collect}: this term will store the captured conditions and append them to the output of the evaluated expression. See the \link[=collecting-conditions]{Collecting conditions} help topic for a full explanation.
+\item \code{raise}: this term will raise the captured condition "as is". The only \emph{real} use for this term is when you want to use \code{exit} to stop the evaluation, but to still raise the condition past that as well (in which case, put \code{raise} in the plan before \code{exit}). The behavior of this raising might be slightly unpredictable for very odd edge-cases (e.g., if a condition were both a warning \emph{and} an error).
 }
 }
 
 \section{Masking}{
 
 
-\code{catchr} will turn unquoted special terms into functions, but what happens if these unquoted terms are identical to variables previously declared? If \code{muffle} is the name of a user-defined function, e.g., \code{muffle <- function(x) print("Wooo!")}, in normal R we would expect \code{warning = muffle} to make \code{function(x) print("Wooo!")} the warning handler.
+\code{catchr} will turn unquoted special terms into functions, but what happens if these unquoted terms are identical to variables previously declared?
 
-\emph{However}, \code{catchr}'s DSL 'masks' any symbol that matches one of its reserved terms, and when it evaluates these symbols, they are converted into strings. \code{catchr} for the most part will warn you when this happens.
+If \code{muffle} is the name of a user-defined function, e.g., \code{muffle <- function(x) print("Wooo!")}, in normal R we would expect \code{warning = muffle} to make \code{function(x) print("Wooo!")} the warning handler.
+
+\emph{However}, \code{catchr}'s DSL "masks" any symbol that matches one of its reserved terms, and when it evaluates these symbols, they are converted into strings. For the most part, \code{catchr} will warn you when this happens.
 
 \strong{Importantly}, \code{catchr} does \emph{not} mask reserved terms when:
 \itemize{
