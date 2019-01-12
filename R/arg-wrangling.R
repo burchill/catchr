@@ -1,7 +1,7 @@
 #' Separate dots into Python-esque \code{*args} and \code{**kwargs}
 #'
 #' This function will return a named list with two sublists, 'args' and 'kwargs', which contain the unnamed and named arguments as quosures. \cr \cr
-#' This is useful for when you want these two types of arguments to behave differently. The quosures will also have the attribute `'arg_pos'`, which will indicate their position in the original order in which they were supplied.
+#' This is useful for when you want these two types of arguments to behave differently, e.g., as they do in \code{\link{make_plans}}. The quosures will also have the attribute `'arg_pos'`, which will indicate their position in the original order in which they were supplied.
 #'
 #' @note
 #'

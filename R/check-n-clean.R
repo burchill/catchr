@@ -64,7 +64,7 @@ approx_arg_name <- function(x, len = 25) {
 #'
 #' This makes sure that a given function doesn't *require* more than one argument to be passed into it, and takes in at least one argument (which is what a \link[base:conditions]{handler} needs).
 #'
-#' @param fn A function
+#' @param fn A function that is a candidate for being a handler
 #' @export
 has_handler_args <- function(fn) {
   args <- Map(is_missing, fn_fmls(fn)) # purrr can't iterate over pairlist

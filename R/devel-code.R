@@ -1,11 +1,12 @@
 #' To-do:
 #'
-#' Open questions:
-#'  * what should a "plan" actually be?
-#'    - Currently make_plans outputs the "heavy" plans, while clean_plan basically checks input and subs some stuff
-#'    - I think I should probably keep plans "lite"--the "compiled" plans are much less user-friendly
+#' Monster problem:
+#'  - `with_handlers` doesn't respect order with respect to exit and calling....
 #'
 #' PRIORITY:
+#'  - WAAAAIIIIIIIITTT, shouldn't I just be masking the unquoted terms with the FUNCTIONS THAT I WANT THEM TO BECOME!!!!!!!
+#'  !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+#'
 #'  - add "as strings" to options
 #'  - scratch below, go back and get rid of clean_plan completely
 #'  - ugh, go back and change clean_plan to clean_input and change the descriptions... actually, make a distinction between the 'strings-and-fns' plans and the fleshed out ones...
@@ -23,6 +24,8 @@
 #'  - make the order matter
 #'
 #'  LESS CODE-BASED:
+#'  - change "collecting-conditions" to "collecting_conditions"
+#'  - change "findFirstMuffleRestart" to "first_muffle_restart"
 #'  - add examples
 #'  - make the spec_terms thing use package defaults somehow
 #'  - make a way of stopping warnings from catchr
@@ -38,7 +41,13 @@ notes <- "a"
 
 # Here are our import options, as of now:
 
-# ---Lots of errors -----------------------
+# ----- What I'm going with right now
+#' @import rlang
+#' @importFrom purrr %>% imap keep map map2 map_dbl map_lgl reduce walk
+
+
+
+# ---Lots of warnings -----------------------
 # @import rlang purrr
 
 # ---Fine, but loads purrr ------------------------
@@ -46,7 +55,6 @@ notes <- "a"
 # @importFrom rlang child_env quo_is_call quo_is_symbol is_logical as_logical as_double dbl lgl
 # @importFrom purrr imap map map_dbl map_lgl reduce walk
 # @importFrom purrr keep map2 %>%
-
 
 # ----Needs the crappy, off-brand purrr functions ----------------
 # @importFrom magrittr %>%
@@ -69,10 +77,10 @@ special_terms <- c("towarning", "tomessage", "toerror",
 
 #' Get/set the input for the default catchr plan
 #'
-#' These functions allow the user to set and retrieve the input that will be assigned to any conditions passed to \code{\link{make_plans}} without plans (i.e., as unnamed arguments). Using the same inputting style as `make_plans`, the argument `new_plan` will essentially be treated as a single named argument would be in \code{make_plans}, without actually having a name/specific condition.
+#' These functions allow the user to set and retrieve the input that will be assigned to any conditions passed to \code{\link{make_plans}} without plans (i.e., as unnamed arguments). Using the same inputting style as `make_plans`, the argument `new_plan` will essentially be treated the same way a single named argument would be in \code{make_plans}, without actually having a name/specific condition.
 #'
 #' @param new_plan The input (in the style of named arguments to \code{\link{make_plans}}) that will become the input of default plan.
-#' @return `set_default_plan` will return a "cleaned up" version (i.e., evaluated, and with the unquoted terms replaced with strings) of the input, which is what will also be returned by `get_default_plan` until a new default is set. Note that this "cleaned up version"
+#' @return `set_default_plan` will invisibly return a "cleaned up" version of the input (i.e., evaluated, and with the unquoted terms replaced with strings), which is what will also be returned by `get_default_plan` until a new default is set.
 #' @rdname default_plan
 #' @export
 set_default_plan <- function(new_plan) {
@@ -90,6 +98,8 @@ get_default_plan <- function() {
 
 
 #' catchr-specific options
+#'
+#' @description
 #'
 #' To-do: add docs
 #'
@@ -199,7 +209,10 @@ findFirstMuffleRestart <- function(cond) {
 #'
 #' Customizing how conditions are handled in `catchr` is done by giving `catchr` 'plans' for when it encounters particular conditions. These plans are essentially just lists of functions that are called in order, and that take in the particular condition as an argument.
 #'
-#' However, since `catchr` evaluates things \link{catchr_DSL}{slightly differently than base R}, the user input to make these plans has to be passed first into `make_plans` (or for setting the default plan, \code{\link{set_default_plan}}. `make_plans` also lets users specify options for how they want these plans to be evaluated with the `opts` argument (see \code{\link{catchr_opts}} for more details).
+#' However, since `catchr` evaluates things \link[=catchr_DSL]{slightly differently than base R}, the user input to make these plans has to first be passed into `make_plans` (or, for setting the default plan, \code{\link{set_default_plan}}. `make_plans` also lets users specify options for how they want these plans to be evaluated with the `opts` argument (see \code{\link{catchr_opts}} for more details).
+#'
+#' See the 'Input' section below and the examples for how to use `make_plans`.
+#'
 #'
 #' @section Input:
 #'
@@ -207,34 +220,42 @@ findFirstMuffleRestart <- function(cond) {
 #'
 #' Like the functions above, the name of each argument determines which type of condition it will be the plan for. Hence, `warnings = fn` will apply the `fn` function to the warnings raised in evaluating `expr`.
 #'
-#' However, *unnamed* arguments are *also* accepted: the value of any unnamed arguments will be treated as the type of a condition, which will then have the default plan assigned to it, as specified either in `opts = catchr_opts(...)` or via `getOption("catchr.default_plan")`. Unnamed arguments must be either strings or unquoted expressions which will then be converted to strings. Currently, unnamed arguments are _never_ evaluated, so cannot be calls that evaluate to strings. **However, this may change in future versions of `catchr`.**
+#' However, *unnamed* arguments are *also* accepted: the value of any unnamed arguments will be treated as the type of a condition, which will then have the default plan assigned to it, as specified either in `opts = catchr_opts(...)` or via `getOption("catchr.default_plan")`. Unnamed arguments must be either strings or unquoted expressions which will then be converted to strings. Currently, unnamed arguments are _never_ evaluated, so cannot be calls that evaluate to strings.
+#'
+#' **However, this may change in future versions of `catchr`.**
 #'
 #' @section Passing input in programmatically:
 #'
 #' `make_plans` supports \code{link{[rlang]{quasiquotation}}}, so if for some reason one wishes to pass input into `make_plans` via a different function, programmatically, etc., one may do so by splicing in quosures. See below for examples.
 #'
 #' @examples
-#'
 #' # ### INPUT EXAMPLES ###########################
 #'
 #' # Named arguments --------------------------------------
+#'
 #' #   * single functions:
 #' p <- make_plans(warning = str, message = function(x) print(x))
+#'
 #' #   * single unquoted expressions and strings
 #' #     (must match catchr's special reserved terms, e.g., 'muffle', 'exit', etc.):
 #' p <- make_plans(message = muffle, condition = "collect")
+#'
 #' #   * lists or vectors of any combinatin of the above:
 #' p <- make_plans(error = list(collect, "exit"),
 #'                 message = c(cat, "muffle"))
+#'
 #' #   * anything that evaluates to the above:
 #' fn <- function() { list(cat, "muffle") }
 #' p <- make_plans(message = fn() )
 #'
-#' # Unnamed arguments --------------------------------------
+#' # Unnamed arguments ----------------------
+#'
 #' #   * single strings:
 #' p <- make_plans("warning","condition")
+#'
 #' #   * unquoted expressions:
 #' p <- make_plans(warning,condition)
+#'
 #' #   * Currently, does NOT accept anything that evaluates to strings:
 #' #       (However, this may change in the future)
 #' \dontrun{
@@ -242,16 +263,17 @@ findFirstMuffleRestart <- function(cond) {
 #' make_plans(string_fn()) # will currently raise error
 #' }
 #'
-#' # Mixes of both ------------------------------------------
+#' # Mixes of both --------------------------
 #' p <- make_plans("warning", message = c(towarning, muffle),
 #'                 condition = print)
 #'
-#'
-#' # Quasiquotation and splicing in the arguments ############
+#' # ### Quasiquotation and splicing in the arguments ###############
 #'
 #' q <- rlang::quo(function(cond) {print(cond)})
 #' name <- "warning"
+#'
 #' print_plan <- make_plans(!!name := !!q)
+#'
 #' # 'message' will be assigned the default plan
 #' qs <- rlang::quos(warning = muffle, error = exit, message)
 #' random_plan <- make_plans(!!!qs)
