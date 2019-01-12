@@ -50,5 +50,13 @@ order_by_arg_pos <- function(l) {
   l[order(map_dbl(l, ~attr(., "arg_pos")))]
 }
 
+# Turns the unnamed arguments into the defaults
+give_default <- function(args, default_plan = NULL) {
+  if (is.null(default_plan))
+    default_plan = getOption("catchr.default_plan")
+  map(args, ~default_plan) %>%
+    set_names(args)
+}
+
 
 
