@@ -363,6 +363,24 @@ catch_expr <- function(expr, plans, opts=NULL) {
   make_catch_fn(plans, opts)(expr)
 }
 
+better_handling <- function(.expr, ...) {
+  handlers <- purrr::map(list2(...), as_function)
+  expr <- quote(.expr)
+
+  for (i in 1:length(handlers)) {
+    handler <- handlers[i]
+    name <- names(handlers)[[i]]
+    print(names(handler))
+    if (inherits(handler[[1]], "exiting")){
+      expr <- expr(tryCatch(!!expr, !!!handler))
+    } else if (inherits(handler[[1]], "calling")) {
+      expr <- expr(withCallingHandlers(!!expr, !!!handler))
+    } else {
+      abort("All handlers need to be calling or exiting")
+    }
+  }
+  eval_tidy(expr)
+}
 
 
 #
