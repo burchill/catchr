@@ -104,7 +104,6 @@ make_catchr_mask <- function(nms = special_terms) {
     as_data_mask()
 }
 
-
 # The internal version
 clean_input <- function(qs, spec_names = NULL) {
   if (is.null(spec_names))
@@ -121,7 +120,6 @@ clean_input <- function(qs, spec_names = NULL) {
   res
 }
 
-
 # Checks to see if input is safe and puts it into right format
 # Internal
 check_and_clean_input <- function(..., spec_names) {
@@ -136,6 +134,8 @@ check_and_clean_input <- function(..., spec_names) {
     as.character() %>%
     add_back_arg_pos(akw$args)
 
+  check_for_duplicates(args, names(kwargs))
+
   # Check args for duplicated names
   walk(args, function(arg)
     if (arg %in% names(kwargs))
@@ -143,10 +143,13 @@ check_and_clean_input <- function(..., spec_names) {
   return(list(args = args, kwargs = kwargs))
 }
 
-# Turns the unnamed arguments into the defaults
-give_default <- function(args, default_plan = NULL) {
-  if (is.null(default_plan))
-    default_plan = getOption("catchr.default_plan")
-  map(args, ~default_plan) %>%
-    set_names(args)
+# throws error if there are duplicates
+check_for_duplicates <- function(l, ...) {
+  l <- append(l, list(...))
+  dupes <- l[duplicated(l)] %>% unique()
+
+  if (length(dupes) > 0)
+    abort(paste0("Conditions cannot have multiple plans: ",
+                 paste0("'", dupes, "'", collapse = ",")))
+  NULL
 }
