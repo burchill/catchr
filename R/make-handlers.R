@@ -45,7 +45,7 @@ use_special_terms <- function(s, cond_type) {
       utils::str(cond, max.level = 1)
     },
     muffle = substitute({
-      restart = findFirstMuffleRestart(cond)
+      restart = first_muffle_restart(cond)
       if (!is.null(restart))
         on.exit(invokeRestart(restart), add = TRUE)
       NULL

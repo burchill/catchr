@@ -179,7 +179,7 @@ give_newline <- function(s, trim = FALSE) {
 #' @param cond A condition
 #' @return A restart or `NULL` if none can be found.
 #' @export
-findFirstMuffleRestart <- function(cond) {
+first_muffle_restart <- function(cond) {
   possibleRestarts <- computeRestarts(cond)
   restartNames <- Map(function(x) x$name, possibleRestarts)
   # If its an error, look for the `return_error` restart
