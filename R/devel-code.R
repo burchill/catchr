@@ -1,8 +1,5 @@
 #' To-do:
 #'
-#' Monster problem:
-#'  - `with_handlers` doesn't respect order with respect to exit and calling....
-#'
 #' PRIORITY:
 #'  - WAAAAIIIIIIIITTT, shouldn't I just be masking the unquoted terms with the FUNCTIONS THAT I WANT THEM TO BECOME!!!!!!!
 #'  !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -25,7 +22,6 @@
 #'
 #'  LESS CODE-BASED:
 #'  - change "collecting-conditions" to "collecting_conditions"
-#'  - change "findFirstMuffleRestart" to "first_muffle_restart"
 #'  - add examples
 #'  - make the spec_terms thing use package defaults somehow
 #'  - make a way of stopping warnings from catchr
@@ -285,17 +281,12 @@ make_plans <- function(..., opts = catchr_opts()) {
   akw <- check_and_clean_input(..., spec_names = special_terms)
   args <- give_default(akw$args, default_plan = opts$default_plan) %>%
     as_list() %>% add_back_arg_pos(akw$args)
-  opts$default_plan <- NULL
 
   kwargs <- append(as_list(akw$kwargs), args) %>%
     order_by_arg_pos()
 
-  opts$collectors <- has_collect(kwargs)
-
-  kwargs %>%
-    imap(make_handler) %>%
-    `attr<-`("class", "compiled_plans") %>%
-    `attr<-`("catchr_opts", opts)
+  opts$default_plan <- NULL
+  compile_plans(kwargs, opts)
 }
 
 # Checks if a kwarg has "collect" in it
@@ -372,15 +363,16 @@ catch_expr <- function(expr, plans, opts=NULL) {
 #' However, `with_handlers` does not check handlers in the order they are inputted (at least, in rlang 0.3.0), as \{code\link[base]{withCallingHandlers}} and \{code\link[base]{tryCatch}} do: all exiting handlers are checked first, then all calling handlers.  `with_ordered_handlers` makes sure all handlers are checked in the order they are input into the function, regardless of exiting/calling status.
 #' @examples
 #' # Although set first, 'condition' never gets to catch the condition
-#' with_handlers(warning("woops!"),
-#'               condition = calling(function(x) print("CONDITION")),
-#'               warning = exiting(function(x) { print("WARNING")}))
+#' rlang::with_handlers(warning("woops!"),
+#'               condition = rlang::calling(function(x) print("CONDITION")),
+#'               warning = rlang::exiting(function(x) { print("WARNING")}))
 #'
 #' # Should print for both
 #' with_ordered_handlers(warning("woops!"),
-#'               condition = calling(function(x) print("CONDITION")),
-#'               warning = exiting(function(x) { print("WARNING")}))
-#'
+#'               condition = rlang::calling(function(x) print("CONDITION")),
+#'               warning = rlang::exiting(function(x) { print("WARNING")}))
+#' @param .expr An expression to execute in a context where new handlers are established.
+#' @param \dots Named handlers. These should be functions of one argument. These handlers are treated as exiting by default. Use \code{\link[rlang]{calling}()} to specify a calling handler. These dots support \link[rlang:tidy-dots]{tidy dots} features and are passed to  \code{\link[rlang]{as_function}()} to enable the formula shortcut for lambda functions.
 #' @export
 with_ordered_handlers <- function(.expr, ...) {
   handlers <- map(list2(...), as_function)
