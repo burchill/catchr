@@ -42,7 +42,7 @@ NULL
 #'  - `display`: the purpose of this term is to immediately display information about the captured condition on the screen without raising additional conditions (as would be done with `tomessage`). Currently, this term just calls \code{\link[utils]{str}} on the condition, **but this will probably change in later versions.**
 #'
 #' - `muffle`: this term will be substituted for a function that 'muffles' (i.e., 'suppresses', 'catches', 'hides'---whatever you want to call it) the captured condition, preventing it from being raised to higher levels or subsequent plans. \cr
-#' Currently, it searches for and uses the first available \link[base:conditions]{restart} with `"muffle"` in its name (the two typical ones are `"muffleMessage"` and `"muffleWarning"`). If the captured condition is an error, which can't be muffled, it will exit the evaluation and give `NULL` for the returned value of the evaluated expression.
+#' The function it's built on \code{\link{first_muffle_restart}}, searches for the first available \link[base:conditions]{restart} with `"muffle"` in its name (the two typical ones are `"muffleMessage"` and `"muffleWarning"`) and calls `invokeRestart` with it. If the captured condition is an error, which can't be muffled, it will exit the evaluation and give `NULL` for the returned value of the evaluated expression.
 #'
 #' - `exit`: when encountered, this will exit the evaluation of the expression immediately and by default muffle the captured condition. Any instructions after `exit` in the input will be ignored.
 #'
