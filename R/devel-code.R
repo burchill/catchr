@@ -365,7 +365,11 @@ catch_expr <- function(expr, plans, opts=NULL) {
 
 #' Establish handlers on the stack (IN ORDER)
 #'
-#' `with_ordered_handlers` is inspired by `rlang`'s \code{\link[rlang]{with_handlers}} function, which essentially lets one use calling and exiting handlers in one function. However, `with_handlers` does not check handlers in the order they are inputted (at least, in rlang 0.3.0), as \{code\link[base]{withCallingHandlers}} and \{code\link[base]{tryCatch}} do: all exiting handlers are checked first, then all calling handlers.  This function makes sure all handlers are checked in the order they are raised, regardless of exiting/calling status.
+#' @description
+#'
+#' `with_ordered_handlers` is inspired by `rlang`'s \code{\link[rlang]{with_handlers}} function, which essentially lets one use catch conditions in ways that don't stop the evaluation ("calling" handlers) and ways that will immediately break out of the evaluation ("exiting" handlers) in a single function.
+#'
+#' However, `with_handlers` does not check handlers in the order they are inputted (at least, in rlang 0.3.0), as \{code\link[base]{withCallingHandlers}} and \{code\link[base]{tryCatch}} do: all exiting handlers are checked first, then all calling handlers.  `with_ordered_handlers` makes sure all handlers are checked in the order they are input into the function, regardless of exiting/calling status.
 #' @examples
 #' # Although set first, 'condition' never gets to catch the condition
 #' with_handlers(warning("woops!"),
@@ -385,13 +389,12 @@ with_ordered_handlers <- function(.expr, ...) {
   for (i in 1:length(handlers)) {
     handler <- handlers[i]
     name <- names(handlers)[[i]]
-    print(names(handler))
     if (inherits(handler[[1]], "exiting")){
       expr <- expr(tryCatch(!!expr, !!!handler))
     } else if (inherits(handler[[1]], "calling")) {
       expr <- expr(withCallingHandlers(!!expr, !!!handler))
     } else {
-      abort("All handlers need to be calling or exiting")
+      abort("All handlers need to be either calling or exiting functions. See `help(exiting, rlang)`")
     }
   }
   eval_tidy(expr)
@@ -408,3 +411,4 @@ with_ordered_handlers <- function(.expr, ...) {
 #
 #
 # make_catch_fn(plans$args, plans$kwargs)({warning("a"); message("ooo"); message("nsass"); "yay"})
+
