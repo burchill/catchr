@@ -65,34 +65,50 @@ forced_exit_plan <- exiting(function(cond) {
 # Modifies any 'condition' handlers to they don't catch the forced exits
 add_exit_protector <- function(condition_plan, force_exit_plan) {
   if (inherits(condition_plan, "exiting") == T) {
-    new_fn <- exiting(function(cond) {
+    new_body <- substitute(
       if (!inherits(cond, "catchr_force_exit"))
-        condition_plan(cond)
+        condition_plan
       else
         # Maybe a hack that will raise double errors
         # Might want to make all condition handlers "calling" by default
-        force_exit_plan(cond)})
+        force_exit_plan,
+      list(condition_plan = fn_body(condition_plan),
+           force_exit_plan = fn_body(force_exit_plan)))
   } else {
-    new_fn <- calling(function(cond) {
+    new_body <- substitute(
       if (!inherits(cond, "catchr_force_exit"))
-        condition_plan(cond)})
+        condition_plan,
+      list(condition_plan = fn_body(condition_plan)))
   }
+  fn_body(condition_plan) <- new_body
+  condition_plan
 }
 
 # Takes a misc handler and makes it workable
-make_a_misc_handler_fn <- function(.f, names) {
-  names <- names[names != "misc"]
-  if (inherits(.f, "exiting"))
-     calling(function(cond) {
-       if (inherits_any(cond, names))
-         NULL
-       else
-         force_exit(.f(cond))})
-  else
-    calling(function(cond) {
-      if (inherits_any(cond, names))
+make_a_misc_handler_fn <- function(.f, cnames) {
+  cnames <- cnames[!(cnames %in% c("misc", "condition"))]
+  if (is_empty(cnames))
+    return(.f)
+  if (inherits(.f, "exiting")) {
+    # Turn it into a calling function that forces certain exits
+    new_body <- substitute({
+      if (inherits_any(cond, cnames))
         NULL
-      else .f(cond)})
+      else {
+        partial_output <- {.f}
+        force_exit(partial_output)
+      }},
+      list(.f = fn_body(.f), cnames = cnames))
+  } else {
+    new_body <- substitute({
+      if (inherits_any(cond, cnames))
+        NULL
+      else .f},
+      list(.f = fn_body(.f), cnames = cnames))
+  }
+
+  fn_body(.f) <- new_body
+  .f <- calling(.f)
 }
 
 
@@ -121,9 +137,9 @@ compile_plans <- function(kwargs, opts) {
     if ("condition" %in% names)
       abort("Can't have both a 'misc' plan *and* a general 'condition' plan at the same time.")
     # Rename 'misc' to 'condition'
-    new_names <- ifelse(names=="misc", "condition", names)
-    names(handlers) <- new_names
-    handlers$condition <- make_a_misc_handler_fn(handlers$condition)
+    names <- ifelse(names=="misc", "condition", names)
+    names(handlers) <- names
+    handlers$condition <- make_a_misc_handler_fn(handlers$condition, names)
   }
 
   # Takes care of the 'condition' handler
@@ -203,6 +219,7 @@ use_special_terms <- function(s, cond_type) {
       NULL
     }, NULL),
     collect = substitute({
+      # update_collected(linker,cond_type,cond)
       .myConditions[[cond_type]] <<- append(.myConditions[[cond_type]], list(cond))
       NULL
     }, list(cond_type=cond_type)),
@@ -243,3 +260,4 @@ make_handler <- function(vals, name) {
   if (exit_bool) exiting(combined_func)
   else calling(combined_func)
 }
+
