@@ -365,6 +365,34 @@ with_ordered_handlers <- function(.expr, ...) {
   }
   eval_tidy(expr)
 }
+# # The new version:
+# with_ordered_handlers <- function(.expr, ...) {
+#   # Damn, RStudio, stop changing stuff!
+#   raw_handlers <- list2(...)
+#   is_calling <- map_lgl(raw_handlers, inherits, "rlang_box_calling_handler")
+#   handlers <- map_if(raw_handlers, is_calling, unbox)
+#   handlers <- map(handlers, as_function)
+#
+#   expr <- quote(.expr)
+#
+#   for (i in 1:length(handlers)) {
+#     handler <- handlers[i]
+#     name <- names(handlers)[[i]]
+#     if (inherits(raw_handlers[[1]], "rlang_handler_exiting")){
+#       expr <- expr(tryCatch(!!expr, !!!handler))
+#     } else if (inherits(raw_handlers[[1]], "rlang_box_calling_handler")) {
+#       expr <- expr(withCallingHandlers(!!expr, !!!handler))
+#     } else {
+#       abort("All handlers need to be either calling or exiting functions. See `help(exiting, rlang)`")
+#     }
+#   }
+#   eval_tidy(expr)
+# }
+
+
+
+
+
 
 # Just for signalling my own custom conditions
 signal_custom_condition <- function(msg, type="custom") {
