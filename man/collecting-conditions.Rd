@@ -2,6 +2,7 @@
 % Please edit documentation in R/help-docs.R
 \name{collecting-conditions}
 \alias{collecting-conditions}
+\alias{collect}
 \title{Collect conditions, without halting processes}
 \description{
 One of the most useful aspects of \code{catchr} is its ability to catch and 'collect' the conditions (e.g., warnings, errors, messages, etc.) raised by an expression without halting/restarting the evaluation of that expression. This can be particularly useful in a number of scenarios:
@@ -13,9 +14,3 @@ One of the most useful aspects of \code{catchr} is its ability to catch and 'col
 
 Using the \code{collect} term lets you do this. Although the exact details/format of the collection process are still being ironed out across versions, the basic premise will remain the same.  When you use \code{collect}, the captured condition will be added to a list of other conditions of that same type. When the expression is done being evaluated, \code{catchr} will return a named list, where "value" is the output of the expression, and the other named elements are sublists with all their collected conditions.
 }
-\section{Advanced interactions with collected conditions}{
-
-
-To-do: add docs
-}
-
