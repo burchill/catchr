@@ -10,7 +10,7 @@
 # @import rlang purrr
 
 # ---Fine, but loads purrr ------------------------
-# @importFrom rlang abort as_closure as_data_mask as_list call_args call_name calling cnd_signal current_env enexpr enexprs enquo env_has env_names env_unbind eval_tidy exiting expr expr_deparse fn_fmls fn_fmls_names get_env get_expr is_bare_character is_call is_callable is_function is_installed is_list is_missing is_string is_symbol is_vector quo_is_null set_names signal with_handlers
+# @importFrom rlang abort as_closure as_data_mask as_list call_args call_name calling cnd_signal current_env enexpr enexprs enquo env_has env_names env_unbind eval_tidy exiting expr expr_deparse fn_fmls fn_fmls_names get_env get_expr is_bare_character is_call is_callable is_false is_function is_installed is_list is_missing is_null is_string is_symbol is_true is_vector quo_is_null set_names signal with_handlers
 # @importFrom rlang child_env quo_is_call quo_is_symbol is_logical as_logical as_double dbl lgl
 # @importFrom purrr imap map map_dbl map_lgl reduce walk
 # @importFrom purrr keep map2 %>%
@@ -72,7 +72,7 @@ catchr_opts <- function(default_plan = NULL,
   bare_if_possible = NULL,
   drop_empty_conds = NULL) {
   is_true_or_false <- function(x)
-    rlang::is_true(x) || rlang::is_false(x)
+    is_true(x) || is_false(x)
   q_plan <- enquo(default_plan)
 
   if (quo_is_null(q_plan))
