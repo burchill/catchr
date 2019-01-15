@@ -1,40 +1,3 @@
-#' To-do:
-#'
-#' PRIORITY:
-#'  - WAAAAIIIIIIIITTT, shouldn't I just be masking the unquoted terms with the FUNCTIONS THAT I WANT THEM TO BECOME!!!!!!!
-#'  !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-#'
-#'  - add "as strings" to options
-#'  - scratch below, go back and get rid of clean_plan completely
-#'  - ugh, go back and change clean_plan to clean_input and change the descriptions... actually, make a distinction between the 'strings-and-fns' plans and the fleshed out ones...
-#'  - not sure that the collect options are working--ie, should i... hmm...
-#'
-#' CODE-BASED:
-#'  - consider pryr::unenclose....
-#'     * also pryr::rebind?
-#'     * also pryr::modify_lang
-#'  - let code use rlang lambda functions for functions
-#'  - figure out how you can avoid overlap between "warning" and "condition"
-#'  - make the towarning, etc. remove the call
-#'  - make a 'misc' condition thing which gets everything that isn't already being caught
-#'  - handle interrupts
-#'  - make the order matter
-#'
-#'  LESS CODE-BASED:
-#'  - change "collecting-conditions" to "collecting_conditions"
-#'  - add examples
-#'  - make the spec_terms thing use package defaults somehow
-#'  - make a way of stopping warnings from catchr
-#'  - pick better terminology than "plans"
-#'  - add a page about all the options
-#'  - fill out a page about collecting
-#'  - the biggest thing preventing me from removing the rlang/purrr dependencies is the splicing operator, it seems
-#'
-#'  - make a help page that describes how things are masked:
-#'      * The only thing that is masked in evaluation is the non-function versions of the special names.
-#'      * Egh, just make a help page and connect it to the warning message
-notes <- "a"
-
 # Here are our import options, as of now:
 
 # ----- What I'm going with right now
@@ -205,7 +168,7 @@ first_muffle_restart <- function(cond) {
 #'
 #' Customizing how conditions are handled in `catchr` is done by giving `catchr` 'plans' for when it encounters particular conditions. These plans are essentially just lists of functions that are called in order, and that take in the particular condition as an argument.
 #'
-#' However, since `catchr` evaluates things \link[=catchr_DSL]{slightly differently than base R}, the user input to make these plans has to first be passed into `make_plans` (or, for setting the default plan, \code{\link{set_default_plan}}. `make_plans` also lets users specify options for how they want these plans to be evaluated with the `opts` argument (see \code{\link{catchr_opts}} for more details).
+#' However, since `catchr` evaluates things \link[=catchr_DSL]{slightly differently than base R}, the user input to make these plans has to first be passed into `make_plans` (or, for setting the default plan, \code{\link{set_default_plan}}). `make_plans` also lets users specify options for how they want these plans to be evaluated with the `opts` argument (see \code{\link{catchr_opts}} for more details).
 #'
 #' See the 'Input' section below and the examples for how to use `make_plans`.
 #'
@@ -316,7 +279,7 @@ make_catch_fn <- function(plans, opts = NULL) {
     kwargs <- plans %>%
       map(~`environment<-`(., baby_env))
 
-    res <- withRestarts(with_handlers(expr, !!!kwargs),
+    res <- withRestarts(with_ordered_handlers(expr, !!!kwargs),
                         return_error = function() NULL)
 
     if (opts$bare_if_possible && is.null(.myConditions))
@@ -353,6 +316,17 @@ decide_opts <- function(plans, opts) {
 catch_expr <- function(expr, plans, opts=NULL) {
   make_catch_fn(plans, opts)(expr)
 }
+
+
+
+
+
+
+
+
+
+
+
 
 #' Establish handlers on the stack (IN ORDER)
 #'
@@ -392,15 +366,9 @@ with_ordered_handlers <- function(.expr, ...) {
   eval_tidy(expr)
 }
 
-
-#
-# plans <- check_and_clean_input(error = exit,
-#                         warning = c(collect, muffle),
-#                         message = c(collect, towarning),
-#                         spec_names = c("exit", "towarning", "display", "muffle", "collect"))
-# catch_expr({warning("a"); message("ooo"); message("nsass"); "yay"},
-#       plans$args, plans$kwargs)
-#
-#
-# make_catch_fn(plans$args, plans$kwargs)({warning("a"); message("ooo"); message("nsass"); "yay"})
-
+# Just for signalling my own custom conditions
+signal_custom_condition <- function(msg, type="custom") {
+  signalCondition(
+    structure(class = c(type, "condition"),
+              list(message=msg, call=NULL)))
+}
