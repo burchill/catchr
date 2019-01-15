@@ -1,7 +1,7 @@
 Package: catchr
 Type: Package
 Title: Catch, Collect, and Raise Conditions 
-Version: 0.2.0
+Version: 0.2.0.9000
 Authors@R: c(
     person("Zachary", "Burchill", email = "zach.burchill.code@gmail.com", role = c("aut", "cre"))
   )
