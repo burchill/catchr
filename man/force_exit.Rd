@@ -28,8 +28,9 @@ with_ordered_handlers(
     else
       invokeRestart(first_muffle_restart(x))}),
   "catchr_force_exit" = rlang::exiting(function(x) {
+    old_class <- class(rlang::eval_tidy(x$catchr_val))
     print(paste0("Found a 'B' condition with class: ",
-                 paste(x$old_class, collapse=" ")))
+          paste(old_class, collapse=" ")))
     "Failure!" })
 )
 

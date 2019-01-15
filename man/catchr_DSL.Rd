@@ -22,7 +22,7 @@ These special terms can be inputted as strings (e.g., \code{warning = list('coll
 \section{Special reserved terms}{
 
 
-The following are the special terms and what they do. Note that there are also some \link[=reserved_condition]{special condition names}, but those are different from the following.
+The following are the special terms and what they do. Note that there are also some \link[=reserved_conditions]{special condition names}, but those are different from the following.
 \itemize{
 \item \code{tomessage}, \code{towarning}, \code{toerror}: these terms will become functions that will convert captured conditions into a message, warning, or error, respectively, and raise them. The original classes of the condition will be lost.
 \item \code{beep}: if the \link[beepr:beepr-package]{beepr} package is installed, this will play a sound via \code{\link[beepr:beepr]{beepr::beep}}.
