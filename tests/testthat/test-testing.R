@@ -57,3 +57,101 @@ test_that("Function names are not masked", {
   expect_equal(res$kwargs$d1(""), "dummy")
 
 })
+
+####################################
+
+# Internal for testing
+catch_expr_no_plans <- function(expr, ...) {
+  plans <- make_plans(...)
+  catch_expr(expr, plans)
+}
+
+condition_thrower <- function() {
+  warning("1")
+  message("A")
+  warning("2")
+  signal_custom_condition("X","weirdo")
+  stop("collaborate and listen")
+}
+
+
+
+test_that("Testing collections v1", {
+  res <- catch_expr_no_plans(
+    condition_thrower(),
+    error = c(collect, muffle),
+    misc = c(collect, muffle),
+    warning = c(collect, muffle))
+
+  expect_named(res)
+  expect_equal(names(res), c("value", "error","misc","warning"))
+
+  lengths <- map_dbl(res, length)
+  expect_equivalent(lengths, c(0,1,2,2))
+  expect_null(res$value)
+
+  res$value <- NULL
+
+  classes <- map(res, function(x)
+    map(x, ~class(.)[[1]]))  %>% unlist(recursive=T,use.names = F)
+  expect_equal(classes, c("simpleError", "simpleMessage", "weirdo", "simpleWarning", "simpleWarning"))
+})
+
+
+test_that("Testing misc v2", {
+  res <- catch_expr_no_plans(
+    condition_thrower(),
+    misc = c(collect, function(x) "YAY", exit),
+    warning = c(collect, muffle))
+
+  expect_named(res)
+  expect_equal(names(res), c("value", "misc","warning"))
+
+  lengths <- map_dbl(res, length)
+  expect_equivalent(lengths, c(1,1,1))
+  expect_equal(res$value, "YAY")
+})
+
+
+
+
+
+
+test_that("Ordered handlers respect order", {
+  test_val <- NULL
+
+  expect_silent(res <- with_ordered_handlers(
+    warning("woops!"),
+    warning = exiting(function(x) "WARNING"),
+    condition = calling(function(x) test_val <<- "condition")))
+
+  expect_equal(res, "WARNING")
+  expect_equal(test_val, NULL)
+
+})
+
+
+test_that("Ordered handlers respects order when with_handlers doesn't", {
+  test_val <- NULL
+
+  expect_silent(res <- with_handlers(
+    warning("woops!"),
+    condition = calling(function(x) test_val <<- "condition"),
+    warning = exiting(function(x) "WARNING")))
+
+  expect_equal(res, "WARNING")
+  expect_equal(test_val, NULL)
+
+  expect_silent(res <- with_ordered_handlers(
+    warning("woops!"),
+    condition = calling(function(x) test_val <<- "condition"),
+    warning = exiting(function(x) "WARNING")))
+
+  expect_equal(test_val, "condition")
+  expect_equal(res, "WARNING")
+
+
+
+})
+
+
