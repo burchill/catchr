@@ -60,11 +60,6 @@ test_that("Function names are not masked", {
 
 ####################################
 
-# Internal for testing
-catch_expr_no_plans <- function(expr, ...) {
-  plans <- make_plans(...)
-  catch_expr(expr, plans)
-}
 
 condition_thrower <- function() {
   warning("1")
@@ -75,9 +70,18 @@ condition_thrower <- function() {
 }
 
 
+test_that("Equivalences between catching funcs", {
+  p <- make_plans(error = c(collect, muffle),
+                  misc = c(collect, muffle),
+                  warning = c(collect, muffle))
+  res1 <- catch_expr(condition_thrower(), p)
+  res2 <- make_catch_fn(p)(condition_thrower())
+  expect_equal(res1, res2)
+})
+
 
 test_that("Testing collections v1", {
-  res <- catch_expr_no_plans(
+  res <- catch_expr(
     condition_thrower(),
     error = c(collect, muffle),
     misc = c(collect, muffle),
@@ -99,7 +103,7 @@ test_that("Testing collections v1", {
 
 
 test_that("Testing misc v2", {
-  res <- catch_expr_no_plans(
+  res <- catch_expr(
     condition_thrower(),
     misc = c(collect, function(x) "YAY", exit),
     warning = c(collect, muffle))
@@ -111,10 +115,6 @@ test_that("Testing misc v2", {
   expect_equivalent(lengths, c(1,1,1))
   expect_equal(res$value, "YAY")
 })
-
-
-
-
 
 
 test_that("Ordered handlers respect order", {
@@ -149,8 +149,6 @@ test_that("Ordered handlers respects order when with_handlers doesn't", {
 
   expect_equal(test_val, "condition")
   expect_equal(res, "WARNING")
-
-
 
 })
 
