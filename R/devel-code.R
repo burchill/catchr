@@ -242,6 +242,7 @@ first_muffle_restart <- function(cond) {
 #' @aliases catchr_plans plans
 #' @export
 make_plans <- function(..., .opts = catchr_opts()) {
+  if (is.null(.opts)) .opts <- catchr_opts()
   akw <- check_and_clean_input(..., spec_names = special_terms)
   args <- give_default(akw$args, default_plan = .opts$default_plan) %>%
     as_list() %>% add_back_arg_pos(akw$args)
@@ -266,7 +267,11 @@ has_collect <- function(kwargs) {
 
 #' @rdname catchers
 #' @export
-make_catch_fn <- function(plans, .opts = NULL) {
+make_catch_fn <- function(..., .opts = NULL) {
+  if (check_if_args_compiled(...))
+    plans <- eval_tidy(enquos(...)[[1]])
+  else plans <- make_plans(..., .opts = .opts)
+
   .opts <- decide_opts(plans, .opts)
 
   function(expr) {
@@ -294,8 +299,10 @@ make_catch_fn <- function(plans, .opts = NULL) {
 decide_opts <- function(plans, .opts) {
   collectors <- attr(plans, "catchr_opts", exact = T)$collectors
   if (is.null(.opts)) {
+    # If there are no opts specified, but the plans have them, use them
     if (!is.null(attr(plans, "catchr_opts")))
       .opts <- attr(plans, "catchr_opts", exact=T)
+    # If the are no options anywhere, get the defaults
     else .opts <- catchr_opts()
   }
   .opts$collectors <- collectors
@@ -310,18 +317,21 @@ decide_opts <- function(plans, .opts) {
 #' To-do: add docs
 #'
 #' @param expr the expression to be evaluated
-#' @param plans the plans from make_plans
+#' @param \dots Plans from [make_plans] or input in the same format as input to to `make_plans`
 #' @param .opts .opts
 #' @rdname catchers
 #' @export
-catch_expr <- function(expr, plans, .opts=NULL) {
-  make_catch_fn(plans, .opts)(expr)
+catch_expr <- function(expr, ..., .opts=NULL) {
+  make_catch_fn(..., .opts)(expr)
 }
 
 
-
-
-
+check_if_args_compiled <- function(...) {
+  qs <- enquos(...)
+  if (length(qs) > 0) return(FALSE)
+  tryCatch(is_compiled_plan(eval_tidy(qs[[1]])),
+           error = function(x) return(FALSE))
+}
 
 
 
