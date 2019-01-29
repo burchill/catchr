@@ -115,8 +115,8 @@ make_a_misc_handler_fn <- function(.f, cnames) {
 
 
 # Gets cleaned plans, turns them into handlers with all their glorious shit
-compile_plans <- function(kwargs, opts) {
-  opts$collectors <- has_collect(kwargs)
+compile_plans <- function(kwargs, .opts) {
+  .opts$collectors <- has_collect(kwargs)
   names <- names(kwargs)
 
   handlers <- kwargs %>%
@@ -151,7 +151,7 @@ compile_plans <- function(kwargs, opts) {
   }
   handlers %>%
     `attr<-`("class", "compiled_plans") %>%
-    `attr<-`("catchr_opts", opts)
+    `attr<-`("catchr_opts", .opts)
 }
 
 

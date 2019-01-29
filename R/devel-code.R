@@ -168,7 +168,7 @@ first_muffle_restart <- function(cond) {
 #'
 #' Customizing how conditions are handled in `catchr` is done by giving `catchr` 'plans' for when it encounters particular conditions. These plans are essentially just lists of functions that are called in order, and that take in the particular condition as an argument.
 #'
-#' However, since `catchr` evaluates things \link[=catchr_DSL]{slightly differently than base R}, the user input to make these plans has to first be passed into `make_plans` (or, for setting the default plan, \code{\link{set_default_plan}}). `make_plans` also lets users specify options for how they want these plans to be evaluated with the `opts` argument (see \code{\link{catchr_opts}} for more details).
+#' However, since `catchr` evaluates things \link[=catchr_DSL]{slightly differently than base R}, the user input to make these plans has to first be passed into `make_plans` (or, for setting the default plan, \code{\link{set_default_plan}}). `make_plans` also lets users specify options for how they want these plans to be evaluated with the `.opts` argument (see \code{\link{catchr_opts}} for more details).
 #'
 #' See the 'Input' section below and the examples for how to use `make_plans`.
 #'
@@ -179,13 +179,13 @@ first_muffle_restart <- function(cond) {
 #'
 #' Like the functions above, the name of each argument determines which type of condition it will be the plan for. Hence, `warnings = fn` will apply the `fn` function to the warnings raised in evaluating `expr`.
 #'
-#' However, *unnamed* arguments are *also* accepted: the value of any unnamed arguments will be treated as the type of a condition, which will then have the default plan assigned to it, as specified either in `opts = catchr_opts(...)` or via `getOption("catchr.default_plan")`. Unnamed arguments must be either strings or unquoted expressions which will then be converted to strings. Currently, unnamed arguments are _never_ evaluated, so cannot be calls that evaluate to strings.
+#' However, *unnamed* arguments are *also* accepted: the value of any unnamed arguments will be treated as the type of a condition, which will then have the default plan assigned to it, as specified either in `.opts = catchr_opts(...)` or via `getOption("catchr.default_plan")`. Unnamed arguments must be either strings or unquoted expressions which will then be converted to strings. Currently, unnamed arguments are _never_ evaluated, so cannot be calls that evaluate to strings.
 #'
 #' **However, this may change in future versions of `catchr`.**
 #'
 #' @section Passing input in programmatically:
 #'
-#' `make_plans` supports \code{link{[rlang]{quasiquotation}}}, so if for some reason one wishes to pass input into `make_plans` via a different function, programmatically, etc., one may do so by splicing in quosures. See below for examples.
+#' `make_plans` supports \code{\link{[rlang]{quasiquotation}}}, so if for some reason one wishes to pass input into `make_plans` via a different function, programmatically, etc., one may do so by splicing in quosures. See below for examples.
 #'
 #' @examples
 #' # ### INPUT EXAMPLES ###########################
@@ -238,18 +238,19 @@ first_muffle_restart <- function(cond) {
 #' random_plan <- make_plans(!!!qs)
 #'
 #' @param \dots Named and unnamed arguments for making plans. See 'Input' for more detail.
-#' @param opts The options to be used for the plan. Generally passed in using \code{\link{catchr_opts}}.
+#' @param .opts The options to be used for the plan. Generally passed in using \code{\link{catchr_opts}}.
+#' @aliases catchr_plans plans
 #' @export
-make_plans <- function(..., opts = catchr_opts()) {
+make_plans <- function(..., .opts = catchr_opts()) {
   akw <- check_and_clean_input(..., spec_names = special_terms)
-  args <- give_default(akw$args, default_plan = opts$default_plan) %>%
+  args <- give_default(akw$args, default_plan = .opts$default_plan) %>%
     as_list() %>% add_back_arg_pos(akw$args)
 
   kwargs <- append(as_list(akw$kwargs), args) %>%
     order_by_arg_pos()
 
-  opts$default_plan <- NULL
-  compile_plans(kwargs, opts)
+  .opts$default_plan <- NULL
+  compile_plans(kwargs, .opts)
 }
 
 # Checks if a kwarg has "collect" in it
@@ -265,15 +266,15 @@ has_collect <- function(kwargs) {
 
 #' @rdname catchers
 #' @export
-make_catch_fn <- function(plans, opts = NULL) {
-  opts <- decide_opts(plans, opts)
+make_catch_fn <- function(plans, .opts = NULL) {
+  .opts <- decide_opts(plans, .opts)
 
   function(expr) {
     .myConditions <- NULL
     baby_env <- child_env(current_env())
     # If you keep empty conds, make 'em now
-    if (!opts$drop_empty_conds && length(opts$collectors) > 0)
-      for (c_type in sort(opts$collectors))
+    if (!.opts$drop_empty_conds && length(.opts$collectors) > 0)
+      for (c_type in sort(.opts$collectors))
         .myConditions[[c_type]] <- list()
 
     kwargs <- plans %>%
@@ -282,7 +283,7 @@ make_catch_fn <- function(plans, opts = NULL) {
     res <- withRestarts(with_ordered_handlers(expr, !!!kwargs),
                         return_error = function() NULL)
 
-    if (opts$bare_if_possible && is.null(.myConditions))
+    if (.opts$bare_if_possible && is.null(.myConditions))
       res
     else
       append(list(value = res), .myConditions)
@@ -290,15 +291,15 @@ make_catch_fn <- function(plans, opts = NULL) {
 }
 
 # decides which opts to use
-decide_opts <- function(plans, opts) {
+decide_opts <- function(plans, .opts) {
   collectors <- attr(plans, "catchr_opts", exact = T)$collectors
-  if (is.null(opts)) {
+  if (is.null(.opts)) {
     if (!is.null(attr(plans, "catchr_opts")))
-      opts <- attr(plans, "catchr_opts", exact=T)
-    else opts <- catchr_opts()
+      .opts <- attr(plans, "catchr_opts", exact=T)
+    else .opts <- catchr_opts()
   }
-  opts$collectors <- collectors
-  opts
+  .opts$collectors <- collectors
+  .opts
 }
 
 # DEAR GOD I DID IT
@@ -310,11 +311,11 @@ decide_opts <- function(plans, opts) {
 #'
 #' @param expr the expression to be evaluated
 #' @param plans the plans from make_plans
-#' @param opts opts
+#' @param .opts .opts
 #' @rdname catchers
 #' @export
-catch_expr <- function(expr, plans, opts=NULL) {
-  make_catch_fn(plans, opts)(expr)
+catch_expr <- function(expr, plans, .opts=NULL) {
+  make_catch_fn(plans, .opts)(expr)
 }
 
 
