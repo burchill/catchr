@@ -185,7 +185,7 @@ first_muffle_restart <- function(cond) {
 #'
 #' @section Passing input in programmatically:
 #'
-#' `make_plans` supports \code{\link{[rlang]{quasiquotation}}}, so if for some reason one wishes to pass input into `make_plans` via a different function, programmatically, etc., one may do so by splicing in quosures. See below for examples.
+#' `make_plans` supports \code{\link[rlang]{quasiquotation}}, so if for some reason one wishes to pass input into `make_plans` via a different function, programmatically, etc., one may do so by splicing in quosures. See below for examples.
 #'
 #' @examples
 #' # ### INPUT EXAMPLES ###########################
@@ -268,8 +268,7 @@ has_collect <- function(kwargs) {
 #' @rdname catchers
 #' @export
 make_catch_fn <- function(..., .opts = NULL) {
-  if (check_if_args_compiled(...))
-    plans <- eval_tidy(enquos(...)[[1]])
+  if (check_if_args_compiled(...)) plans <- eval_tidy(enquos(...)[[1]])
   else plans <- make_plans(..., .opts = .opts)
 
   .opts <- decide_opts(plans, .opts)
@@ -322,13 +321,13 @@ decide_opts <- function(plans, .opts) {
 #' @rdname catchers
 #' @export
 catch_expr <- function(expr, ..., .opts=NULL) {
-  make_catch_fn(..., .opts)(expr)
+  make_catch_fn(..., .opts=.opts)(expr)
 }
 
 
 check_if_args_compiled <- function(...) {
   qs <- enquos(...)
-  if (length(qs) > 0) return(FALSE)
+  if (length(qs) > 1) return(FALSE)
   tryCatch(is_compiled_plan(eval_tidy(qs[[1]])),
            error = function(x) return(FALSE))
 }
