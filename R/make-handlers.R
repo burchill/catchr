@@ -150,10 +150,18 @@ compile_plans <- function(kwargs, .opts) {
     handlers$condition <- add_exit_protector(handlers$condition, handlers$catchr_force_exit)
   }
   handlers %>%
-    `attr<-`("class", "compiled_plans") %>%
+    make_compiled_qual() %>%
+    # `attr<-`("class", "catchr_compiled_plans") %>%
     `attr<-`("catchr_opts", .opts)
 }
 
+# Internal
+make_compiled_qual <- function(x) {
+  `attr<-`(x, "class", "catchr_compiled_plans")
+}
+is_compiled_plan <- function(x) {
+  inherits(x, "catchr_compiled_plans")
+}
 
 # with_ordered_handlers(
 #   { warning("a"); print("YO")},
