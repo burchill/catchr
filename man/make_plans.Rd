@@ -2,19 +2,21 @@
 % Please edit documentation in R/devel-code.R
 \name{make_plans}
 \alias{make_plans}
+\alias{catchr_plans}
+\alias{plans}
 \title{Making catchr plans}
 \usage{
-make_plans(..., opts = catchr_opts())
+make_plans(..., .opts = catchr_opts())
 }
 \arguments{
 \item{\dots}{Named and unnamed arguments for making plans. See 'Input' for more detail.}
 
-\item{opts}{The options to be used for the plan. Generally passed in using \code{\link{catchr_opts}}.}
+\item{.opts}{The options to be used for the plan. Generally passed in using \code{\link{catchr_opts}}.}
 }
 \description{
 Customizing how conditions are handled in \code{catchr} is done by giving \code{catchr} 'plans' for when it encounters particular conditions. These plans are essentially just lists of functions that are called in order, and that take in the particular condition as an argument.
 
-However, since \code{catchr} evaluates things \link[=catchr_DSL]{slightly differently than base R}, the user input to make these plans has to first be passed into \code{make_plans} (or, for setting the default plan, \code{\link{set_default_plan}}). \code{make_plans} also lets users specify options for how they want these plans to be evaluated with the \code{opts} argument (see \code{\link{catchr_opts}} for more details).
+However, since \code{catchr} evaluates things \link[=catchr_DSL]{slightly differently than base R}, the user input to make these plans has to first be passed into \code{make_plans} (or, for setting the default plan, \code{\link{set_default_plan}}). \code{make_plans} also lets users specify options for how they want these plans to be evaluated with the \code{.opts} argument (see \code{\link{catchr_opts}} for more details).
 
 See the 'Input' section below and the examples for how to use \code{make_plans}.
 }
@@ -25,7 +27,7 @@ User input to \code{make_plans} is very similar to how one makes handlers for \c
 
 Like the functions above, the name of each argument determines which type of condition it will be the plan for. Hence, \code{warnings = fn} will apply the \code{fn} function to the warnings raised in evaluating \code{expr}.
 
-However, \emph{unnamed} arguments are \emph{also} accepted: the value of any unnamed arguments will be treated as the type of a condition, which will then have the default plan assigned to it, as specified either in \code{opts = catchr_opts(...)} or via \code{getOption("catchr.default_plan")}. Unnamed arguments must be either strings or unquoted expressions which will then be converted to strings. Currently, unnamed arguments are \emph{never} evaluated, so cannot be calls that evaluate to strings.
+However, \emph{unnamed} arguments are \emph{also} accepted: the value of any unnamed arguments will be treated as the type of a condition, which will then have the default plan assigned to it, as specified either in \code{.opts = catchr_opts(...)} or via \code{getOption("catchr.default_plan")}. Unnamed arguments must be either strings or unquoted expressions which will then be converted to strings. Currently, unnamed arguments are \emph{never} evaluated, so cannot be calls that evaluate to strings.
 
 \strong{However, this may change in future versions of \code{catchr}.}
 }
@@ -33,7 +35,7 @@ However, \emph{unnamed} arguments are \emph{also} accepted: the value of any unn
 \section{Passing input in programmatically}{
 
 
-\code{make_plans} supports \code{link{[rlang]{quasiquotation}}}, so if for some reason one wishes to pass input into \code{make_plans} via a different function, programmatically, etc., one may do so by splicing in quosures. See below for examples.
+\code{make_plans} supports \code{\link[rlang]{quasiquotation}}, so if for some reason one wishes to pass input into \code{make_plans} via a different function, programmatically, etc., one may do so by splicing in quosures. See below for examples.
 }
 
 \examples{

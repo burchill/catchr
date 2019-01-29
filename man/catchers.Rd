@@ -5,14 +5,14 @@
 \alias{catch_expr}
 \title{Catch conditions}
 \usage{
-make_catch_fn(plans, opts = NULL)
+make_catch_fn(..., .opts = NULL)
 
-catch_expr(expr, plans, opts = NULL)
+catch_expr(expr, ..., .opts = NULL)
 }
 \arguments{
-\item{plans}{the plans from make_plans}
+\item{\dots}{Plans from \link{make_plans} or input in the same format as input to to \code{make_plans}}
 
-\item{opts}{opts}
+\item{.opts}{.opts}
 
 \item{expr}{the expression to be evaluated}
 }

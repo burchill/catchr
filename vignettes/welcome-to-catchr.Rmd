@@ -12,9 +12,10 @@ vignette: >
 ```{r setup, include = FALSE}
 knitr::opts_chunk$set(
   collapse = TRUE,
+  eval = FALSE,
   comment = "#>"
 )
-
+# library(catchr)
 
 # To-do: change %\VignetteIndexEntry{Vignette Title}
 
@@ -23,89 +24,86 @@ knitr::opts_chunk$set(
 
 ```
 
-Compared to many other programming languages, the way `R` handles 'conditions' --- errors, warnings, messages, and most things referred to as 'exceptions' in other languages --- is pretty unintuitive.
-
-Its help file on the subject^[Accessible via `help(conditions)`.]  is basically impenetrable, and even though Hadley Wickham has stepped in and produced [a very helpful guide on conditions](http://adv-r.had.co.nz/Exceptions-Debugging.html), understanding what's going on is still pretty hard, and actually _handling_ conditions is even harder.
+Compared to many other programming languages, the way `R` handles 'conditions'---errors, warnings, messages, and most things referred to as 'exceptions' in other languages---is pretty unintuitive.^[At least, I *thought* it was. Now I understand that it's everything *else* that doesn't make sense.] R's help file on the subject is basically impenetrable,^[Accessible via `help(conditions)`.] and even though Hadley Wickham has stepped in and produced [a very helpful guide on conditions](http://adv-r.had.co.nz/beyond-exception-handling.html), understanding what's going on is still pretty hard, and actually _handling_ conditions is even harder.
 
 At its heart, `catchr` is designed to ~~make it so that you never have to read any of that stuff~~ make dealing with conditions easy from the get-go. 
 
-## Make your own catching functions
+## The ol' razzle-dazzle
 
-Suppose I want to run some code, and I want it to catch any warnings it produces, "hide" them so they don't appear, and instead just store them so I can do something else with them later.  All without making my code halt or restart.
+Let's hit you with some imaginary scenarios here. Suppose I want to run some code, and I want to catch any warnings it produces, "hide" them so they don't appear, and instead just store them so I can do something else with them later on.  All without making my code halt or restart.
 
 ```{r, eval=FALSE}
 library(catchr)
-results <- catch_expr(abitrary_code, warning = c(collect, muffle))
+results <- catch_expr(abitrary_code(), warning = c(collect, muffle))
 ```
 
 Boom, done.
 
-But let's say I want to be a good programmer and not retype the same code over and over again---let's say I want to make a _function_ that will always do that for me.
+But if I'm going to need to do that a lot, and I'm good programmer who doesn't want to retype the same code over and over again, I can make a _function_ that can catch conditions the same way for any expression.
 
 ```{r, eval=FALSE}
-collect_warnings_fn <- make_catch_fun(warning = c(collect, muffle))
+collect_warnings <- make_catch_fn(warning = c(collect, muffle))
 ```
 
-One line.
-
-But let's say ~~I'm a _naaaaasty_ boy~~^[Ed.: you can't say that in a CRAN package] I have a complex situation which necessitates printing "oops" when the code raises a message and immediately exiting it, turning any raised warnings into messages, and muffling any errors.
+One line. Look at my nice, portable function:
 
 ```{r, eval=FALSE}
-weirdo_catcher <- make_catch_fun(
+same_results <- collect_warnings(abitrary_code())
+```
+
+But let's say ~~I'm a _naaaaasty_ boy~~^[Ed.: you can't say that in a CRAN package] I have a complex situation which necessitates printing something when the code raises a message and immediately exiting it, but also turning any warnings into messages, and prevent any errors from crashing everything else.
+
+```{r, eval=FALSE}
+weirdo_catcher <- make_catch_fn(
   message = c(function(x) print("oops"), exit),
   warning = c(tomessage, muffle),
   error = muffle
 )
 ```
 
-\*Shiver\*. I can do that too.
+\*Shiver\*. I can do that too, and that's only _beginning_ to scratch the surface of `catchr`. Although most of the detailed information can be found in the help files, let's take a look at the basics.
 
+## Catching conditions with "plans"
 
+Let's take a look at some of the code we saw before:
 
-Vignettes are long form documentation commonly included in packages. Because they are part of the distribution of the package, they need to be as compact as possible. The `html_vignette` output type provides a custom style sheet (and tweaks some options) to ensure that the resulting html is as small as possible. The `html_vignette` format:
-
-- Never uses retina figures
-- Has a smaller default figure size
-- Uses a custom CSS stylesheet instead of the default Twitter Bootstrap style
-
-## Vignette Info
-
-Note the various macros within the `vignette` section of the metadata block above. These are required in order to instruct R how to build the vignette. Note that you should change the `title` field and the `\VignetteIndexEntry` to match the title of your vignette.
-
-## Styles
-
-The `html_vignette` template includes a basic CSS theme. To override this theme you can specify your own CSS in the document metadata as follows:
-
-    output: 
-      rmarkdown::html_vignette:
-        css: mystyles.css
-
-## Figures
-
-The figure sizes have been customised so that you can easily put two images side-by-side. 
-
-```{r, fig.show='hold'}
-plot(1:10)
-plot(10:1)
+```{r, eval=FALSE}
+results <- catch_expr(abitrary_code(), warning = c(collect, muffle))
 ```
 
-You can enable figure captions by `fig_caption: yes` in YAML:
+This is pretty quintessential of the `catchr` system. You have the expression you want to evaluate and catch conditions for (here, `abitrary_code()`), followed by the names of the types of conditions you want to catch and the plans you have for them when they're caught (`warning = c(collect, muffle)`).
 
-    output:
-      rmarkdown::html_vignette:
-        fig_caption: yes
+A "catchr plan" starts off as a named argument, where its name is the type of condition it will apply to (e.g., "message", "warning", "error", etc.), and its value will eventually become a function that will take in the condition and do stuff with it. `catchr`'s "secret sauce" lets you pass in each plan as a list of functions that will be applied to the condition in order.^[See `help(catchr_plans, "catchr")`.] 
 
-Then you can use the chunk option `fig.cap = "Your figure caption."` in **knitr**.
+But `catchr` also comes full of stock functions that make condition handling simple---these special functions can be inputted as strings, but `catchr` promotes more-readable code and saves you extra typing by letting you enter them unquoted special terms, like `collect` and `muffle` in the example above.^[See `help(catchr_DSL, "catchr")`.]
 
-## More Examples
+## Even _less_ typing
 
-You can write math expressions, e.g. $Y = X\beta + \epsilon$, footnotes^[A footnote here.], and tables, e.g. using `knitr::kable()`.
+Is typing out plans multiple times _still_ too much typing?  Well, `catchr` lets you save even _more_ space by giving you the option of passing in _unnamed_ arguments into plans!
 
-```{r, echo=FALSE, results='asis'}
-knitr::kable(head(mtcars, 10))
+```{r}
+print(get_default_plan())
+
+my_plans <- make_plans(warning, message, error)
 ```
 
-Also a quote using `>`:
+These unnamed arguments can be entered as either strings or unquoted terms, and should correspond to the name of a condition you want to catch. They will automatically be given whatever `catchr`'s default plan is, which can be get/set via `get_default_plan()` and `set_default_plan`, respectively. Named and unnamed arguments can be mixed freely.
 
-> "He who gives up [code] safety for [code] speed deserves neither."
-([via](https://twitter.com/hadleywickham/status/504368538874703872))
+## "Collecting" conditions
+
+As you might have noticed, many of the previous examples use a special term, `collect`. Having the ability to "collect" conditions is one of the most useful features in `catchr`.
+
+
+```{r}
+throw_a_fit <- function() {
+  message("This is message #1!")
+  rlang::warn("This is warning #1!", opt_val = "conditions can hold more data")
+  message("This is message #2")
+  stop("rlang's `abort` makes better errors!")
+  warning("This warning won't be reached")
+}
+collected_results <- catchr::catch_expr(throw_a_fit, message, warning, error)
+print(collected_results)
+
+
+```
