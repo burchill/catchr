@@ -5,7 +5,7 @@ sudo: false
 cache: packages
 
 install:
-  Rscript -e 'devtools::install_github(c("r-lib/rlang@v0.3.0"), build_vignettes = FALSE, force = TRUE)
+  Rscript -e 'devtools::install_github(c("r-lib/rlang@v0.3.0"), build_vignettes = FALSE, force = TRUE)'
 
 matrix:
   include:
