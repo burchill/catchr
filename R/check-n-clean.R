@@ -127,12 +127,7 @@ check_and_clean_input <- function(..., spec_names) {
   warn_of_specials(akw$kwargs, spec_names)
   kwargs <- clean_input(akw$kwargs, spec_names)
 
-  args <- akw$args %>%
-    map(get_expr) %>%
-    walk(~if (!is_string(.) && !is_symbol(.))
-      abort("Unnamed args must be unquoted names or strings", arg=.)) %>%
-    as.character() %>%
-    add_back_arg_pos(akw$args)
+  args <- unnamed_args_to_strings(akw$args)
 
   check_for_duplicates(args, names(kwargs))
 
@@ -152,4 +147,13 @@ check_for_duplicates <- function(l, ...) {
     abort(paste0("Conditions cannot have multiple plans: ",
                  paste0("'", dupes, "'", collapse = ",")))
   NULL
+}
+
+unnamed_args_to_strings <- function(x) {
+  x %>%
+    map(get_expr) %>%
+    walk(~if (!is_string(.) && !is_symbol(.))
+      abort("Unnamed args must be unquoted names or strings", arg=.)) %>%
+    as.character() %>%
+    add_back_arg_pos(x)
 }
