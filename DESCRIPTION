@@ -14,7 +14,6 @@ RoxygenNote: 6.1.0
 Roxygen: list(markdown = TRUE, roclets = c("rd", "namespace", "collate"))
 Remotes: r-lib/rlang@v0.3.0
 Imports:
-    rlang    (== 0.3.0),
     purrr    (>= 0.2.0),
     testthat
 Suggests:
