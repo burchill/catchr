@@ -70,6 +70,19 @@ condition_thrower <- function() {
 }
 
 
+test_that("No collection = no sublists when bare_if_possible", {
+  warner <- function() {
+    warn("Suppress this!")
+    "done!"
+  }
+  plans <- make_plans(warning = muffle, .opts=catchr_opts(bare_if_possible=TRUE))
+
+  expect_silent(results <- catch_expr(warner(), plans))
+  expect_named(results, expected = NULL)
+
+})
+
+
 test_that("Equivalences between catching funcs", {
   p <- make_plans(error = c(collect, muffle),
                   misc = c(collect, muffle),
@@ -150,6 +163,163 @@ test_that("Ordered handlers respects order when with_handlers doesn't", {
   expect_equal(test_val, "condition")
   expect_equal(res, "WARNING")
 
+})
+
+#############################
+
+test_that("Testing getting and setting default options", {
+
+  current_default_plan <-     getOption("catchr.default_plan")
+  current_warn_about_terms <- getOption("catchr.warn_about_terms")
+  current_bare_if_possible <- getOption("catchr.bare_if_possible")
+  current_drop_empty_conds <- getOption("catchr.drop_empty_conds")
+
+  on.exit(options(
+    "catchr.default_plan" = current_default_plan,
+    "catchr.warn_about_terms" = current_warn_about_terms,
+    "catchr.bare_if_possible" = current_bare_if_possible,
+    "catchr.drop_empty_conds" = current_drop_empty_conds
+  ))
+
+  expect_null(catchr_default_opts())
+  expect_silent(catchr_default_opts(warn_about_terms = TRUE))
+  expect_silent(catchr_default_opts(default_plan = muffle,
+                                    drop_empty_conds = FALSE,
+                                    bare_if_possible = T))
+
+  what_im_testing <- catchr_default_opts(warn_about_terms, catchr.drop_empty_conds,
+                                         default_plan, "catchr.bare_if_possible")
+  expect_equal(sort(add_catchr_prefix(what_im_testing)),
+               sort(names(catchr_original_default_values)))
+
+  expect_equivalent(
+    what_im_testing,
+    list(getOption("catchr.warn_about_terms"),
+                   getOption("catchr.drop_empty_conds"),
+                   getOption("catchr.default_plan"),
+                   getOption("catchr.bare_if_possible"))
+  )
+
+  # Should all be the same
+  expect_identical(get_default_plan(), "muffle")
+  expect_identical(catchr_default_opts(default_plan), "muffle")
+  expect_identical(catchr_default_opts("default_plan"), "muffle")
+
+  expect_identical(catchr_default_opts(default_plan, "warn_about_terms"),
+                   list("default_plan" = "muffle", "warn_about_terms" = TRUE))
+  expect_identical(catchr_default_opts(catchr.default_plan, "warn_about_terms"),
+                   list("catchr.default_plan" = "muffle", "warn_about_terms" = TRUE))
+
+  expect_identical(catchr_default_opts("bare_if_possible", default_plan),
+                   list("bare_if_possible" = TRUE, "default_plan" = "muffle"))
+
+  expect_identical(catchr_default_opts("bare_if_possible"), TRUE)
+  expect_identical(catchr_default_opts(default_plan,  bare_if_possible, warn_about_terms = FALSE),
+                   list("default_plan" = "muffle", "bare_if_possible" = TRUE))
+  expect_identical(catchr_default_opts("warn_about_terms"), FALSE)
+
+})
+
+
+test_that("Testing warnings and errors for getting and setting default options", {
+
+  current_default_plan <-     getOption("catchr.default_plan")
+  current_warn_about_terms <- getOption("catchr.warn_about_terms")
+  current_bare_if_possible <- getOption("catchr.bare_if_possible")
+  current_drop_empty_conds <- getOption("catchr.drop_empty_conds")
+
+  on.exit(options(
+    "catchr.default_plan" = current_default_plan,
+    "catchr.warn_about_terms" = current_warn_about_terms,
+    "catchr.bare_if_possible" = current_bare_if_possible,
+    "catchr.drop_empty_conds" = current_drop_empty_conds
+  ))
+
+  expect_error(catchr_default_opts("BABA"))
+  expect_error(catchr_default_opts(list()))
+  f <- function(x) x
+  expect_error(catchr_default_opts(f("warn_about_terms")))
+  expect_silent(catchr_default_opts(warn_about_terms = f(FALSE)))
+  expect_identical(catchr_default_opts("warn_about_terms"), FALSE)
+  expect_error(catchr_default_opts(bare_if_possible = 2))
+
+  expect_error(set_default_plan(~a))
+  expect_error(set_default_plan(1))
+  expect_error(set_default_plan(TRUE))
+  expect_error(catchr_default_opts(default_plan = ~a))
+  expect_error(catchr_default_opts(default_plan = TRUE))
+
+  catchr_default_opts(catchr.default_plan = display)
+  expect_error(catchr_default_opts(default_plan = raise, mojo = TRUE))
+  expect_identical(catchr_default_opts(default_plan), "display")
+  expect_identical(catchr_default_opts(catchr.default_plan), "display")
+
+  catchr_default_opts(drop_empty_conds = T)
+  expect_error(catchr_default_opts(drop_empty_conds = F,
+                                   warn_about_terms,
+                                   catchr.drop_empty_conds = F))
+  expect_identical(catchr_default_opts(drop_empty_conds), TRUE)
+
+  expect_error(catchr_default_opts(default_plan = muffle,
+                                   warn_about_terms,
+                                   default_plan = collect))
+
+  expect_error(catchr_default_opts(default_plan = collect,
+                                   default_plan = TRUE))
+  expect_error(catchr_default_opts(default_plan = collect,
+                                   catchr.default_plan = TRUE))
+  expect_error(catchr_default_opts(catchr.default_plan = collect,
+                                   default_plan = TRUE))
+})
+
+
+test_that("Testing restoring default options", {
+  current_default_plan <-     getOption("catchr.default_plan")
+  current_warn_about_terms <- getOption("catchr.warn_about_terms")
+  current_bare_if_possible <- getOption("catchr.bare_if_possible")
+  current_drop_empty_conds <- getOption("catchr.drop_empty_conds")
+
+  on.exit(options(
+    "catchr.default_plan" = current_default_plan,
+    "catchr.warn_about_terms" = current_warn_about_terms,
+    "catchr.bare_if_possible" = current_bare_if_possible,
+    "catchr.drop_empty_conds" = current_drop_empty_conds
+  ))
+
+  go_back <- function(x) catchr_default_opts(default_plan = beep,
+                                             warn_about_terms = F,
+                                             drop_empty_conds = T,
+                                             bare_if_possible = F)
+  expect_silent(go_back())
+  expect_failure(expect_identical(
+    catchr_original_default_values[sort(names(catchr_original_default_values))],
+    catchr_default_opts(!!!sort(names(catchr_original_default_values)))))
+
+  expect_silent(res <- restore_catchr_defaults())
+  expect_null(res)
+  expect_identical(catchr_original_default_values[sort(names(catchr_original_default_values))],
+                   catchr_default_opts(!!!sort(names(catchr_original_default_values))))
+
+  expect_error(restore_catchr_defaults(default_plan=muffle))
+  expect_error(restore_catchr_defaults(default_planzzzz))
+
+  expect_silent(go_back())
+  expect_silent(restore_catchr_defaults(warn_about_terms, catchr.drop_empty_conds))
+  expect_failure(expect_identical(
+    catchr_original_default_values[sort(names(catchr_original_default_values))],
+    catchr_default_opts(!!!sort(names(catchr_original_default_values)))))
+  expect_identical(
+    catchr_original_default_values[c("catchr.warn_about_terms", "catchr.drop_empty_conds")],
+    catchr_default_opts("catchr.warn_about_terms", "catchr.drop_empty_conds"))
+
+  expect_silent(go_back())
+  expect_failure(expect_identical(
+    catchr_original_default_values[c("catchr.warn_about_terms", "catchr.drop_empty_conds")],
+    catchr_default_opts("catchr.warn_about_terms", "catchr.drop_empty_conds")))
+  expect_silent(restore_catchr_defaults("catchr.drop_empty_conds", warn_about_terms))
+  expect_identical(
+    catchr_original_default_values[c("catchr.warn_about_terms", "catchr.drop_empty_conds")],
+    catchr_default_opts("catchr.warn_about_terms", "catchr.drop_empty_conds"))
 })
 
 
