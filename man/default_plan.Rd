@@ -13,8 +13,11 @@ get_default_plan()
 \item{new_plan}{The input (in the style of named arguments to \code{\link{make_plans}}) that will become the input of default plan.}
 }
 \value{
-\code{set_default_plan} will invisibly return a "cleaned up" version of the input (i.e., evaluated, and with the unquoted terms replaced with strings), which is what will also be returned by \code{get_default_plan} until a new default is set.
+\code{set_default_plan()} will invisibly return a "cleaned up" version of the input (i.e., evaluated, and with the unquoted terms replaced with strings), which is what will also be returned by \code{get_default_plan()} until a new default is set.
 }
 \description{
-These functions allow the user to set and retrieve the input that will be assigned to any conditions passed to \code{\link{make_plans}} without plans (i.e., as unnamed arguments). Using the same inputting style as \code{make_plans}, the argument \code{new_plan} will essentially be treated the same way a single named argument would be in \code{make_plans}, without actually having a name/specific condition.
+These functions allow the user to set and retrieve the input that will be assigned to any conditions passed to \code{\link[=make_plans]{make_plans()}} without plans (i.e., as unnamed arguments). Using the same inputting style as \code{make_plans}, the argument \code{new_plan} will essentially be treated the same way a single named argument would be in \code{make_plans()}, without actually having a name/specific condition.
+}
+\seealso{
+\link[=default-catchr-options]{default catchr options}
 }

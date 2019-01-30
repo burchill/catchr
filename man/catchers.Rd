@@ -10,12 +10,31 @@ make_catch_fn(..., .opts = NULL)
 catch_expr(expr, ..., .opts = NULL)
 }
 \arguments{
-\item{\dots}{Plans from \link{make_plans} or input in the same format as input to to \code{make_plans}}
+\item{\dots}{a catchr plan as made by \code{\link[=make_plans]{make_plans()}} or input for plans that follows the same format as input to \code{make_plans()}}
 
-\item{.opts}{.opts}
+\item{.opts}{The options to be used for the plans (generally passed in using \code{\link[=catchr_opts]{catchr_opts()}}). If the input plans were already made by \code{make_plans()}, setting this will override whatever options were specified earlier.}
 
 \item{expr}{the expression to be evaluated}
 }
+\value{
+The value of the evaluated expression if there isn't an error and if the plans don't force an exit. If \code{getOption("catchr.bare_if_possible")} is \code{FALSE} (or if any conditions have been collect), it will return a named list, with the "value" element containing the value of the evaluated expression and sublists containing any collected conditions.
+}
 \description{
-To-do: add docs
+\code{catch_expr} evaluates an expression, catching and handling the conditions it raises according to whatever \link[=make_plans]{catchr plans} are specified.  Plans can be passed in as output from \code{make_plans} or as input that follows the same format as the input to \code{make_plans}.
+}
+\examples{
+warner <- function() {
+  warning("Suppress this!")
+  "done!"
+}
+
+compiled_warning_plans <- make_plans(warning = muffle)
+warning_catcher <- make_catch_fn(warning = muffle)
+warning_catcher2 <- make_catch_fn(compiled_warning_plans)
+
+# `results` 1-4 are equivalent
+results1 <- catch_expr(warner(), warning = muffle)
+results2 <- warning_catcher(warner())
+results3 <- catch_expr(warner(), compiled_warning_plans)
+results4 <- warning_catcher2(warner())
 }
