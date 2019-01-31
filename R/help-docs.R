@@ -70,7 +70,7 @@ NULL
 #'
 #' @description
 #'
-#' In addition to having \link[=reserved_terms]{reserved terms} for use in making condition-handling plans, `catchr` also places special meaning on two types of conditions, `misc` and `catchr_force_exit`. The `misc` is very useful, `catchr_force_exit` is something most users should probably stay away from.
+#' In addition to having \link[=reserved_terms]{reserved terms} for use in making condition-handling plans, `catchr` also places special meaning on two types of conditions, `misc` and `last_stop`. The `misc` is very useful, `last_stop` is something most users should probably stay away from.
 #'
 #'
 #' @section The `misc` condition:
@@ -85,10 +85,10 @@ NULL
 #'
 #' Since ~99\% of all conditions encountered in the wild will be errors, warnings, and messages, `misc` is just a short, handy way of making sure you catch anything more "exotic". If you're dealing with conditions that have `"misc"` as a _class_, you're probably at an advanced enough stage where you shouldn't be using `catchr`. But if you are in this circumstance and feel strongly otherwise, feel free to make a feature request on the [Github repo](https://github.com/burchill/catchr).
 #'
-#' @section The `catchr_force_exit` condition:
+#' @section The `last_stop` condition:
 #'
-#' This condition name is reserved for \code{\link{force_exit}}. There's basically zero chance any code other than `catchr` will ever raise a condition of `"catchr_force_exit"`, so this shouldn't be a problem, but until `catchr` becomes more mature, do not use this name for any condition or plan.
+#' This condition name is reserved for \code{\link{force_exit}} and \code{\link{exit_with}}. There's basically zero chance any code other than `catchr` will ever raise a condition of `"last_stop"`, so this shouldn't be a problem, but until `catchr` becomes more mature, do not use this name for any condition or plan.
 #'
 #' @name reserved_conditions
-#' @aliases misc catchr_force_exit
+#' @aliases misc last_stop
 NULL
