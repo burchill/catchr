@@ -1,25 +1,33 @@
 
 # Recursively moves through AST (kinda)
-check_nodes <- function(x, nms) {
+check_nodes <- function(x, nms, depth = NA) {
+  depth = depth - 1
+  if (!is.na(depth) && depth < 0)
+    return(NULL)
+
   if (is_symbol(x) && deparse(x) %in% nms)
-    signal(paste0("Reserved symbol in arguments: ", deparse(x)),
-           "passer", val=deparse(x))
-  #               e.g. `beepr::beep` shouldn't ruffle feathers
+    withRestarts(
+      signal("Reserved symbol found", .subclass="passer", val=deparse(x)),
+      get_back_to_work = function() NULL)
+
+  # e.g. `beepr::beep` shouldn't ruffle feathers
   if (is_call(x) && !(call_name(x) %in% c("::", ":::")))
     call_args(x) %>%
-    map(~check_nodes(., nms))
+    map(~check_nodes(., nms, check_calls, depth))
 }
 
 # Checks all the symbols in the AST
-find_used_symbols <- function(x, nms) {
+find_used_symbols <- function(x, nms, depth = NA) {
   expr <- enexpr(x)
   symbol_list <- NULL
 
-  handler <- function(cond)
+  handler <- function(cond) {
     symbol_list <<- append(symbol_list, cond$val)
+    invokeRestart("get_back_to_work")
+  }
 
   withCallingHandlers(
-    check_nodes(expr, nms),
+    check_nodes(expr, nms, depth),
     passer = handler
   )
   return(unique(symbol_list))
