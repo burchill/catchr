@@ -55,32 +55,17 @@ force_exit <- function(expr = NULL) {
 }
 
 # The default "catchr_force_exit" plan
-forced_exit_plan <- exiting(function(cond) {
-  if (!is.null(cond$catchr_val)) {
-    eval_tidy(cond$catchr_val)
-  } else {
-    NULL
-  }
-})
+forced_exit_plan <- function(cond) {
+  if (!is.null(cond$catchr_val)) eval_tidy(cond$catchr_val)
+  else NULL
+}
 
 # Modifies any 'condition' handlers to they don't catch the forced exits
-add_exit_protector <- function(condition_plan, force_exit_plan) {
-  if (inherits(condition_plan, "exiting") == T) {
-    new_body <- substitute(
-      if (!inherits(cond, "catchr_force_exit"))
-        condition_plan
-      else
-        # Maybe a hack that will raise double errors
-        # Might want to make all condition handlers "calling" by default
-        force_exit_plan,
-      list(condition_plan = fn_body(condition_plan),
-           force_exit_plan = fn_body(force_exit_plan)))
-  } else {
-    new_body <- substitute(
-      if (!inherits(cond, "catchr_force_exit"))
-        condition_plan,
-      list(condition_plan = fn_body(condition_plan)))
-  }
+add_exit_protector <- function(condition_plan) {
+  new_body <- substitute(
+    {if (!inherits(cond, "catchr_force_exit")) {condition_plan} },
+    list(condition_plan = fn_body(condition_plan)))
+
   fn_body(condition_plan) <- new_body
   condition_plan
 }
@@ -90,26 +75,27 @@ make_a_misc_handler_fn <- function(.f, cnames) {
   cnames <- cnames[!(cnames %in% c("misc", "condition"))]
   if (is_empty(cnames))
     return(.f)
-  if (inherits(.f, "exiting")) {
-    # Turn it into a calling function that forces certain exits
-    new_body <- substitute({
-      if (inherits_any(cond, cnames))
-        NULL
-      else {
-        partial_output <- {.f}
-        force_exit(partial_output)
-      }},
-      list(.f = fn_body(.f), cnames = cnames))
-  } else {
-    new_body <- substitute({
-      if (inherits_any(cond, cnames))
-        NULL
-      else .f},
-      list(.f = fn_body(.f), cnames = cnames))
-  }
+
+  new_body <- substitute({
+    if (inherits_any(cond, cnames))
+      NULL
+    else .f
+  },
+  list(.f = fn_body(.f), cnames = cnames))
 
   fn_body(.f) <- new_body
-  .f <- calling(.f)
+  .f
+}
+
+# Checks if a kwarg has "collect" in it
+has_collect <- function(kwargs) {
+  bools <- map_lgl(
+    kwargs,
+    function(kwarg) {
+      if (is_vector(kwarg))
+        reduce(kwarg, ~.x==T || (is.character(.y) && .y=="collect"), .init=F)
+      else FALSE })
+  names(kwargs[bools])
 }
 
 
@@ -124,10 +110,10 @@ compile_plans <- function(kwargs, .opts) {
 
   # Takes care of the 'catchr_force_exit' handler
   if ("catchr_force_exit" %in% names) {
-    if (inherits(handlers$catchr_force_exit, "calling"))
-      abort("The 'catchr_force_exit' plan, if specified, must have an 'exit' in the plan.")
-    if (utils::tail(names,1) != "catchr_force_exit")
-      abort("The 'catchr_force_exit' plan, if specified, must be the last plan.")
+    # Right now, I'm not letting the user specify this type of plan
+    stop("'catchr_force_exit' is a reserved condition name in catchr!")
+    # if (utils::tail(names, 1) != "catchr_force_exit")
+    #   abort("The 'catchr_force_exit' plan, if specified, must be the last plan.")
   } else {
     handlers <- append(handlers, list(catchr_force_exit = forced_exit_plan))
     names <- names(handlers)
@@ -136,9 +122,9 @@ compile_plans <- function(kwargs, .opts) {
   # Takes care of the 'misc' handler
   if ("misc" %in% names) {
     if ("condition" %in% names)
-      abort("Can't have both a 'misc' plan *and* a general 'condition' plan at the same time.")
+      abort("Can't have both a 'misc' plan AND a general 'condition' plan at the same time.")
     # Rename 'misc' to 'condition'
-    names <- ifelse(names=="misc", "condition", names)
+    names <- ifelse(names == "misc", "condition", names)
     names(handlers) <- names
     handlers$condition <- make_a_misc_handler_fn(handlers$condition, names)
   }
@@ -147,11 +133,10 @@ compile_plans <- function(kwargs, .opts) {
   if ("condition" %in% names) {
     if ("misc" %in% names)
       abort("Can't have both a 'misc' plan *and* a general 'condition' plan")
-    handlers$condition <- add_exit_protector(handlers$condition, handlers$catchr_force_exit)
+    handlers$condition <- add_exit_protector(handlers$condition)
   }
   handlers %>%
     make_compiled_qual() %>%
-    # `attr<-`("class", "catchr_compiled_plans") %>%
     `attr<-`("catchr_opts", .opts)
 }
 
@@ -188,13 +173,13 @@ is_compiled_plan <- function(x) {
 # )
 
 
-
-
-
 # sub in special term functions
 use_special_terms <- function(s, cond_type) {
   switch(
     s,
+    exit = function(cond) {
+      force_exit()
+    },
     towarning = function(cond) {
       class(cond) <- c("warning","condition")
       warning(cond)
@@ -249,24 +234,17 @@ use_special_terms <- function(s, cond_type) {
 make_handler <- function(vals, name) {
   if (!is_vector(vals))
     vals <- list(vals)
-  first_exit <- purrr::detect_index(vals, ~is_string(.) && . =="exit")
-  exit_bool = F
-  if (first_exit > 0) {
-    exit_bool = T
-    if (first_exit < length(vals))
-      warning("'", name, "' set to exit before ",
-              length(vals)-first_exit, " other defined functions", call.=F)
-    vals <- vals[1:(first_exit-1)]
-    if (first_exit == 1)
-      vals <- list(function(x) NULL)
-  }
+
+  first_exit <- detect_index(vals, ~is_string(.) && . =="exit")
+  if (0 < first_exit && first_exit < length(vals))
+    warning("'", name, "' set to exit before ",
+            length(vals) - first_exit, " other defined functions", call.=F)
+  vals <- vals[1:(first_exit)]
+
   vals <- map(vals, function(x) {
     if (is_callable(x)) x
     else use_special_terms(x, name)
   })
   combined_func <- combine_functions(!!!vals)
-
-  if (exit_bool) exiting(combined_func)
-  else calling(combined_func)
 }
 
