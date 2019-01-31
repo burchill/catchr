@@ -32,8 +32,8 @@ find_used_symbols <- function(x, nms) {
 #' @param qs A list of quosures.
 #' @param names_to_check A character vector of reserved special terms to check the expressions for.
 #' @export
-warn_of_specials <- function(qs, names_to_check) {
-  bad_boys <- qs %>%
+get_used_specials <- function(qs, names_to_check) {
+  qs %>%
     keep(~quo_is_call(.) | quo_is_symbol(.)) %>%
     map(function(q) {
       l <- find_used_symbols(!!get_expr(q), names_to_check)
@@ -43,12 +43,16 @@ warn_of_specials <- function(qs, names_to_check) {
     }) %>%
     unlist() %>%
     unique()
-  if (length(bad_boys) > 0)
-    warning("`", paste(bad_boys,collapse = "`, `"),
+}
+
+# The warning was bulky so I moved it here
+warn_of_specials <- function(x) {
+  if (length(x) > 0)
+    warning("`", paste(x, collapse = "`, `"),
             "` have special meaning in these arguments, but seem to already be defined elsewhere.  These previous definitions may be masked when determining condition behavior.",
             immediate. = TRUE, call. = FALSE)
-  invisible()
 }
+
 
 # used to get some form of "helpful-ish" name for something passed in.
 # need to use splicing to pass stuff in
@@ -124,7 +128,12 @@ clean_input <- function(qs, spec_names = NULL) {
 # Internal
 check_and_clean_input <- function(..., spec_names) {
   akw <- args_and_kwargs(...)
-  warn_of_specials(akw$kwargs, spec_names)
+  if (getOption("catchr.warn_about_terms", FALSE))
+    warn_of_specials(get_used_specials(akw$kwargs, spec_names))
+  #
+  # if (length(get_used_specials(akw$kwargs, "forced_exit")))
+  #   warn("It seems like you're using `forced_exit")
+
   kwargs <- clean_input(akw$kwargs, spec_names)
 
   args <- unnamed_args_to_strings(akw$args)
