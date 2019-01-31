@@ -414,7 +414,7 @@ make_catch_fn <- function(..., .opts = NULL) {
     kwargs <- plans %>%
       map(~`environment<-`(., baby_env))
 
-    res <- withRestarts(with_ordered_handlers(expr, !!!kwargs),
+    res <- withRestarts(with_only_calling_handlers(expr, !!!kwargs),
                         return_error = function() NULL)
 
     if (.opts$bare_if_possible && is.null(.myConditions))
@@ -536,6 +536,43 @@ with_ordered_handlers <- function(.expr, ...) {
 #   }
 #   eval_tidy(expr)
 # }
+
+final_handler_check <- function(...) {
+  handlers <- list2(...)
+  last_stop <- handlers[["last_stop"]]
+  if (!is_function(last_stop))
+    abort("Plans should have a 'last_stop' handler at this stage")
+  handlers[["last_stop"]] <- NULL
+
+  bad_handlers <- handlers %>%
+    keep(~!is_function(.)) %>%
+    map(typeof) %>% unlist()
+  if (length(bad_handlers) > 0)
+    stop("'", paste0(names(bad_handlers), collapse="', "), "' handlers are not functions. (",
+         paste0(bad_handlers, collapse=", "), ", respectively)")
+
+  if (any(map_lgl(handlers, function(x) inherits_any(x, c("exiting", "rlang_handler_exiting", "calling", "rlang_box_calling_handler", "rlang_handler")))))
+    warning("All rlang handler types (e.g., 'calling', 'exiting') are being ignored.")
+
+  return(list(last_stop=last_stop, handlers = handlers))
+
+}
+# Internal
+with_only_calling_handlers <- function(.expr, ...) {
+  all_handlers <- final_handler_check(...)
+  last_stop <- all_handlers["last_stop"]
+  handlers <- all_handlers$handlers
+  expr <- quote(.expr)
+
+  expr <- expr(withCallingHandlers(!!expr, !!!handlers))
+  expr <- expr(tryCatch(!!expr, !!!last_stop))
+
+  eval_tidy(expr)
+}
+
+
+
+
 
 
 # Just for signalling my own custom conditions
