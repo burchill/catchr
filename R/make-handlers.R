@@ -23,7 +23,7 @@ combine_functions <- function(...) {
 #'
 #' @examples
 #' # Below is a little like what happens under the hood in catchr INTERNALLY:
-#' #   `force_exit` throws a "catchr_force_exit" condition (usually made internally),
+#' #   `force_exit` throws a "last_stop" condition (usually made internally),
 #' #   which has a handler that always exits.
 #'
 #' with_ordered_handlers(
@@ -33,7 +33,7 @@ combine_functions <- function(...) {
 #'       force_exit(x)
 #'     else
 #'       invokeRestart(first_muffle_restart(x))}),
-#'   "catchr_force_exit" = rlang::exiting(function(x) {
+#'   "last_stop" = rlang::exiting(function(x) {
 #'     old_class <- class(rlang::eval_tidy(x$catchr_val))
 #'     print(paste0("Found a 'B' condition with class: ",
 #'           paste(old_class, collapse=" ")))
@@ -47,14 +47,14 @@ force_exit <- function(expr = NULL) {
   if (quo_is_null(q))
     q <- NULL
   new_cond <- structure(
-    class = c("catchr_force_exit", "condition"),
+    class = c("last_stop", "condition"),
     list(message="Internal `catchr` use only", call=NULL,
          catchr_val = q))
   cnd_signal(new_cond)
   # invokeRestart(first_muffle_restart(cond))
 }
 
-# The default "catchr_force_exit" plan
+# The default "last_stop" plan
 forced_exit_plan <- function(cond) {
   if (!is.null(cond$catchr_val)) eval_tidy(cond$catchr_val)
   else NULL
@@ -63,7 +63,7 @@ forced_exit_plan <- function(cond) {
 # Modifies any 'condition' handlers to they don't catch the forced exits
 add_exit_protector <- function(condition_plan) {
   new_body <- substitute(
-    {if (!inherits(cond, "catchr_force_exit")) {condition_plan} },
+    {if (!inherits(cond, "last_stop")) {condition_plan} },
     list(condition_plan = fn_body(condition_plan)))
 
   fn_body(condition_plan) <- new_body
@@ -108,14 +108,14 @@ compile_plans <- function(kwargs, .opts) {
   handlers <- kwargs %>%
     imap(make_handler)
 
-  # Takes care of the 'catchr_force_exit' handler
-  if ("catchr_force_exit" %in% names) {
+  # Takes care of the 'last_stop' handler
+  if ("last_stop" %in% names) {
     # Right now, I'm not letting the user specify this type of plan
-    stop("'catchr_force_exit' is a reserved condition name in catchr!")
-    # if (utils::tail(names, 1) != "catchr_force_exit")
-    #   abort("The 'catchr_force_exit' plan, if specified, must be the last plan.")
+    stop("'last_stop' is a reserved condition name in catchr!")
+    # if (utils::tail(names, 1) != "last_stop")
+    #   abort("The 'last_stop' plan, if specified, must be the last plan.")
   } else {
-    handlers <- append(handlers, list(catchr_force_exit = forced_exit_plan))
+    handlers <- append(handlers, list(last_stop = forced_exit_plan))
     names <- names(handlers)
   }
 
@@ -157,7 +157,7 @@ is_compiled_plan <- function(x) {
 #     print("nasssty")
 #   }),
 #   condition = exiting(function(x) {
-#     if ("catchr_force_exit" %in% class(x)) {
+#     if ("last_stop" %in% class(x)) {
 #       print("gotcha")
 #     } else {
 #       print("why hello")
@@ -165,7 +165,7 @@ is_compiled_plan <- function(x) {
 #       invokeRestart(first_muffle_restart(x))
 #     }
 #   }),
-#   "catchr_force_exit" = exiting(function(x) {
+#   "last_stop" = exiting(function(x) {
 #     print(paste0("Found a B condition with class: ",
 #                  paste(x$old_class, collapse=" ")))
 #     "Failure"}
@@ -236,10 +236,11 @@ make_handler <- function(vals, name) {
     vals <- list(vals)
 
   first_exit <- detect_index(vals, ~is_string(.) && . =="exit")
-  if (0 < first_exit && first_exit < length(vals))
+  if (0 < first_exit && first_exit < length(vals)) {
     warning("'", name, "' set to exit before ",
             length(vals) - first_exit, " other defined functions", call.=F)
-  vals <- vals[1:(first_exit)]
+    # vals <- vals[1:(first_exit)]
+  }
 
   vals <- map(vals, function(x) {
     if (is_callable(x)) x
