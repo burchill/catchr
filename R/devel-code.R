@@ -2,7 +2,7 @@
 
 # ----- What I'm going with right now
 #' @import rlang
-#' @importFrom purrr %>% imap keep map map2 map_dbl map_lgl reduce walk
+#' @importFrom purrr %>% detect_index imap keep map map2 map_dbl map_lgl reduce walk
 
 
 
@@ -382,17 +382,6 @@ make_plans <- function(..., .opts = catchr_opts()) {
 
   .opts$default_plan <- NULL
   compile_plans(kwargs, .opts)
-}
-
-# Checks if a kwarg has "collect" in it
-has_collect <- function(kwargs) {
-  bools <- map_lgl(
-    kwargs,
-    function(kwarg) {
-      if (is_vector(kwarg))
-        reduce(kwarg, ~.x==T || (is.character(.y) && .y=="collect"), .init=F)
-      else FALSE })
-  names(kwargs[bools])
 }
 
 #' @rdname catchers
