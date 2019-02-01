@@ -2,7 +2,7 @@
 
 # ----- What I'm going with right now
 #' @import rlang
-#' @importFrom purrr %>% detect_index imap keep map map2 map_dbl map_lgl reduce walk
+#' @importFrom purrr %>% detect_index imap keep map map2 map_dbl map_if map_lgl reduce walk
 
 
 # ---Lots of warnings -----------------------
