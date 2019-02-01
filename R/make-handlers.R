@@ -52,6 +52,7 @@
 #' @param expr An optional expression which if specified, will be evaluated after `force_exit` exits the evaluation.
 #' @param as_fn A logical; if `TRUE`, `catchr` will try to conver `expr` into a function via [rlang::as_function()] which will be applied to the condition. It will fall back to normal behavior if this coercion raises an error.
 #' @rdname forcing_exits
+#' @seealso the [exit] special term, which essentially becomes `exit_with(NULL)`.
 #' @export
 force_exit <- function(expr = NULL) {
   q <- enquo(expr)
@@ -192,12 +193,79 @@ is_compiled_plan <- function(x) {
   inherits(x, "catchr_compiled_plans")
 }
 
+#' Make a string to display from a condition
+#'
+#' Turn a condition into a string comprised of its message, name, and call, in a variety of configurations.
+#'
+#' @param cond A condition to display or turn into a string
+#' @param cond_name Either the name of the condition you want to display, `NA` if you want the condition name to be assigned by default (the first class of the condition), or `NULL` if you don't want the condition type displayed at all.
+#' @param include_call A logical; if `FALSE` the call won't be included in the string even if present in the condition.
+#' @return A string
+#' @export
+extract_display_string <- function(cond, cond_name = NA, include_call = T) {
+  msg <- cond$message
+  call <- cond$call
+
+  if (!is.null(call) && include_call)
+    call <- paste0("in ", approx_arg_name(!!call), ": ")
+  else call <- NULL
+
+  if (!is.null(cond_name) && is.na(cond_name))
+    cond_name <- class(cond)[[1]]
+
+  if (is.null(call) && !is.null(cond_name))
+    cond_name <- paste0(cond_name, ": ")
+
+  paste0(c(cond_name, call), collapse=" ") %>%
+    paste0(msg)
+}
+
+#' Display conditions in output terminal
+#'
+#' @description
+#'
+#' These functions make a `catchr` plan immediately print the "caught" condition to the output terminal, similar to how \code{\link[=catchr_DSL]{display}} works. But unlike `display` and most `catchr` functions or special reserved terms, these functions are meant to be used in user-defined functions of a plan.
+#'
+#' `user_display()` immediately displays a condition n the output terminal, and if [crayon][crayon::crayon] is installed, will style the text with whatever `crayon` styling is supplied (either as a `crayon` function or string for [crayon::make_style()]). This function should be used _within_ a custom function, i.e., `function(x) {user_display(x, "pink")}`, and not called by itself, since when it is called, it doesn't evaluate to a function, string or unquoted term, which are required input types to a \link[=make_plans]{catchr plan}.
+#'
+#' `display_with` can be used at the "top" level of a plan, since it returns a _function_ that calls `user_display()`. Thus `user_display("pink")` is equivalent to the example above.
+#'
+#' @param cond A condition one wishes to display
+#' @param crayon_style If \pkg{crayon} is installed, this can be either a \code{\link[crayon:crayon]{crayon style}} (e.g., [crayon::green()], `blue$bold`, etc.) or a string for [crayon::make_style()]. These styles will be applied to the output.
+#' @param \dots Parameters to pass into [extract_display_string()]; namely `cond_name` (which controls how the conditin is introduced) and `include_call`, which determines whether the call is included.
+#' @rdname user_displays
+#' @seealso the [display] special term, which essentially uses a version of `user_display`.
+#' @export
+user_display <- function(cond, crayon_style, ...) {
+  string <- extract_display_string(cond, ...)
+
+  if (is_installed("crayon") && !is.null(crayon_style)) {
+    if (is_string(crayon_style))
+      crayon_style <- crayon::make_style(crayon_style)
+    else if (!inherits(crayon_style, "crayon"))
+      abort("The crayon style must be a crayon style function or a string!")
+    string <- crayon_style(string)
+  }
+
+  cat(string)
+  invisible(NULL)
+}
+
+#' @rdname user_displays
+#' @export
+display_with <- function(crayon_style, ...) {
+  function(cond) user_display(cond, crayon_style, ...)
+}
+
+
+
+
 # sub in special term functions
 use_special_terms <- function(s, cond_type) {
   switch(
     s,
     exit = function(cond) {
-      force_exit()
+      force_exit(NULL)
     },
     towarning = function(cond) {
       class(cond) <- c("warning","condition")

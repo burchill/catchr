@@ -18,6 +18,7 @@ Imports:
     testthat
 Suggests:
     beepr,
+    crayon,
     covr,
     knitr,
     rmarkdown
