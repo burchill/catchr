@@ -28,7 +28,7 @@ combine_functions <- function(...) {
 #' yay <- catch_expr({warning("oops"); "done!"},
 #'                   warning = exit_with("YAY"))
 #'
-#' # This won't work
+#' # This won't work, since `force_exit("YAY")` doesn't evaluate to a function/string
 #' \dontrun{
 #' yay <- catch_expr({warning("oops"); "done!"},
 #'                   warning = force_exit("YAY"))
@@ -42,35 +42,28 @@ combine_functions <- function(...) {
 #'   NULL
 #' }
 #'
-#' rlang::catch_cnd(
-#'   result <- catch_expr({
-#'     rlang::warn("This will be muffled")
-#'     warning("This won't be muffled")
-#'   },
+#' result <- catch_expr(
+#'   { rlang::warn("This will be muffled")
+#'     warning("This won't be muffled") },
 #'   warning = check)
-#' )
 #' # Notice that `result` takes whatever the last (invisibly)
 #' #   returned value is. Here, that's the message from the warning
 #' result
 #'
 #' # If you don't want to accidentally assign what is returned by `force_exit`,
 #' #   either add `NULL` to the end of the expresion:
-#' rlang::catch_cnd(
-#'   result2 <- catch_expr({
-#'     rlang::warn("This will be muffled")
-#'     warning("This won't be muffled")
-#'   }, warning = exit_with(~{ warning("This won't be assigned"); "this will be assigned"}, as_fn = T))
-#' )
+#' result2 <- catch_expr(
+#'   { rlang::warn("This will be muffled")
+#'     warning("This won't be muffled")},
+#'   warning = function(x) { force_exit({ warning("This won't be assigned"); NULL})})
 #' result2
+#'
 #' # Or you can just do the assignment _within_ the expression being evaluated:
 #' result3 <- NULL
-#' rlang::catch_cnd(
-#'   catch_expr(result3 <- {
+#' catch_expr({result3 <- {
 #'     rlang::warn("This will be muffled")
-#'     warning("This won't be muffled")
-#'   },
+#'     warning("This won't be muffled")}},
 #'   warning = check)
-#' )
 #' result3
 #' @param expr An optional expression which if specified, will be evaluated after `force_exit` exits the evaluation.
 #' @param as_fn A logical; if `TRUE`, `catchr` will try to conver `expr` into a function via [rlang::as_function()] which will be applied to the condition. It will fall back to normal behavior if this coercion raises an error.
@@ -275,16 +268,10 @@ use_special_terms <- function(s, cond_type) {
   )
 }
 
-# Makes a handler from a kwarg
 
-#' Make catchr handler
-#'
-#' To-do: add docs. This won't work for `collect` and `muffle` for random user-defined stuff. Not really meant for users, but I exported it anyway.
-#'
-#'
-#' @param vals The values of a 'cleaned' `catchr` plan
-#' @param name The type of condition being handled
-#' @export
+# Makes a handler from a kwarg
+# vals = The values of a 'cleaned' `catchr` plan
+# name = The type of condition being handled
 make_handler <- function(vals, name) {
   if (!is_vector(vals))
     vals <- list(vals)
