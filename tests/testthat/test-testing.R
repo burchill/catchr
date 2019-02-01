@@ -93,6 +93,55 @@ test_that("Equivalences between catching funcs", {
 })
 
 
+test_that("Beeping breaks when not installed", {
+  if (!is_installed("beepr")) {
+    expect_error(make_plans(warning = beep))
+    expect_error(make_plans(message = muffle, misc = c(beep)))
+    expect_error(make_plans(misc = c(beep_with(1))))
+  } else {
+    expect_silent(make_plans(warning = beep))
+    expect_silent(make_plans(message = muffle, misc = c(beep)))
+    expect_silent(make_plans(misc = c(beep_with(1))))
+  }
+})
+
+test_that("Basic display testing", {
+  make_warnings <- function() {
+    warning("A")
+    warning("B", call.=FALSE)
+    NULL
+  }
+  expect_output(catch_expr(make_warnings(), make_plans(warning = c(display, muffle))))
+
+  expect_warning(output1 <- capture.output(
+    catch_expr(make_warnings(),
+               warning = display)
+    ))
+  expect_silent(output1 <- capture.output(
+    catch_expr(make_warnings(),
+               warning = c(display, muffle))
+  ))
+  expect_length(output1, 3)
+  expect_identical(grepl("make_warnings", output1), c(TRUE, FALSE, FALSE))
+
+  expect_silent(output2 <- capture.output(
+    catch_expr(make_warnings(),
+               warning = c(display_with("red", cond_name="OOO", include_call = FALSE), muffle))
+  ))
+  expect_identical(grepl("OOO",output2), c(TRUE, TRUE, FALSE))
+  expect_identical(grepl("make_warnings",output2), c(FALSE, FALSE, FALSE))
+
+  expect_silent(output3 <- capture.output(
+    catch_expr(make_warnings(),
+               warning = c(display_with(NULL, cond_name=NULL, include_call = FALSE), muffle))
+  ))
+  expect_identical(nchar(output3[[1]]), 1L)
+  expect_identical(nchar(output3[[2]]), 1L)
+
+})
+
+
+
 test_that("Testing collections v1", {
   res <- catch_expr(
     condition_thrower(),
@@ -129,19 +178,36 @@ test_that("Testing misc v2", {
   expect_equal(res$value, "YAY")
 })
 
-test_that("user_exit needs to be IN a function", {
+test_that("user_exit/user_display need to be IN a function", {
+  cond <- catch_cnd(warning("internal"))
+
   expect_warning(make_plans(
     misc = c(collect, user_exit("YAY"), muffle),
     warning =  muffle))
   expect_warning(expect_error(make_plans(
     warning =  muffle,
     error = user_exit("YAY"))))
+
+  expect_warning(make_plans(
+    misc = c(collect, user_display(cond, "red"), muffle),
+    warning =  muffle))
+  expect_warning(expect_error(make_plans(
+    warning =  muffle,
+    error = user_display(cond, "red"))))
+
   expect_silent(make_plans(
     warning =  muffle,
     error = user_exit))
   expect_silent(make_plans(
     warning =  list(muffle, user_exit),
     error = user_exit))
+
+  expect_silent(make_plans(
+    warning =  muffle,
+    error = user_display))
+  expect_silent(make_plans(
+    warning =  list(muffle, user_display),
+    error = user_display))
 })
 
 

@@ -46,5 +46,5 @@ if (requireNamespace("crayon", quietly = TRUE) == TRUE) {
 }
 }
 \seealso{
-the \link{display} special term, which essentially uses a version of \code{user_display}; \code{\link[=user_exit]{user_exit()}} and \code{\link[=exit_with]{exit_with()}} for parallel functions for the \link{exit} term.
+the \link{display} special term, which essentially uses a version of \code{user_display}; \code{\link[=user_exit]{user_exit()}} and \code{\link[=exit_with]{exit_with()}} for parallel functions for the \link{exit} special term, and \code{\link[=beep_with]{beep_with()}} for a parallel function for the \link{beep} special term.
 }

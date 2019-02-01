@@ -52,7 +52,7 @@
 #' @param expr An optional expression which if specified, will be evaluated after `user_exit` exits the evaluation.
 #' @param as_fn A logical; if `TRUE`, `catchr` will try to conver `expr` into a function via [rlang::as_function()] which will be applied to the condition. It will fall back to normal behavior if this coercion raises an error.
 #' @rdname user_exits
-#' @seealso the [exit] special term, which essentially becomes `exit_with(NULL)`; [user_display()] and [display_with()] for parallel functions for the [display] term.
+#' @seealso the [exit] special term, which essentially becomes `exit_with(NULL)`; [user_display()] and [display_with()] for parallel functions for the [display] special term, and [beep_with()] for a parallel function for the [beep] special term..
 #' @export
 user_exit <- function(expr = NULL) {
   q <- enquo(expr)
@@ -220,6 +220,40 @@ extract_display_string <- function(cond, cond_name = NA, include_call = T) {
     paste0(msg)
 }
 
+#' Play short sounds
+#'
+#' @description
+#'
+#' If you have the `[beepr][beepr::beep()]` package installed, `catchr` can use it to play sounds when certain conditions are being handled with `beep_with`, similar to how \code{\link[=catchr_DSL]{beep}} works. But unlike `beep` and most `catchr` functions or special reserved terms, `beepr` is meant to be used as a user-defined function in a plan. It is particularly useful for when you're working with `futures` and busy doing something else while code is running in the background, or when you're working in a different window and want something to grab your attention.
+#'
+#' `beep_with` can be used at the "top" level of a plan, since it returns a _function_ (which is required custom input for a `catchr` plan) that will play the beeping sound you've specified.
+#'
+#' @param beepr_sound A character string or number specifying the sound to be played. See the `sound` argument in \pkg{beepr}::[beepr::beep()] documentation.
+#' @examples
+#' warning_in_middle <- function() {
+#'   Sys.sleep(5)
+#'   message("It's time!")
+#'   Sys.sleep(5)
+#'   invisible("done")
+#' }
+#'
+#' if (requireNamespace("beepr", quietly = TRUE) == TRUE) {
+#'   catch_expr(warning_in_middle(),
+#'              message = c(beep_with(2), display, muffle))
+#'   # Or you can just use the default sound with "beep":
+#'   catch_expr(warning_in_middle(), message = c(beep, display, muffle))
+#' }
+#' @seealso the [beep] special term, which will play the default beep; [user_exit()] and [exit_with()] for parallel functions for the [exit] special term, and [user_display()] and [display_with()] for parallel functions for the [display] special term.
+#' @export
+beep_with <- function(beepr_sound) {
+  if (!is_installed("beepr"))
+    abort("Package `beepr` needs to be installed if `beep` is to be used.")
+  else
+    function(cond) beepr::beep(beepr_sound)
+}
+
+
+
 #' Display conditions in output terminal
 #'
 #' @description
@@ -255,7 +289,7 @@ extract_display_string <- function(cond, cond_name = NA, include_call = T) {
 #'              warning = c(function(x) user_display(x, freaky_colors), muffle))
 #' }
 #' @rdname user_displays
-#' @seealso the [display] special term, which essentially uses a version of `user_display`; [user_exit()] and [exit_with()] for parallel functions for the [exit] term.
+#' @seealso the [display] special term, which essentially uses a version of `user_display`; [user_exit()] and [exit_with()] for parallel functions for the [exit] special term, and [beep_with()] for a parallel function for the [beep] special term.
 #' @export
 user_display <- function(cond, crayon_style, ...) {
   string <- extract_display_string(cond, ...)

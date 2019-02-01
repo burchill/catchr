@@ -64,5 +64,5 @@ catch_expr({result3 <- {
 result3
 }
 \seealso{
-the \link{exit} special term, which essentially becomes \code{exit_with(NULL)}; \code{\link[=user_display]{user_display()}} and \code{\link[=display_with]{display_with()}} for parallel functions for the \link{display} term.
+the \link{exit} special term, which essentially becomes \code{exit_with(NULL)}; \code{\link[=user_display]{user_display()}} and \code{\link[=display_with]{display_with()}} for parallel functions for the \link{display} special term, and \code{\link[=beep_with]{beep_with()}} for a parallel function for the \link{beep} special term..
 }

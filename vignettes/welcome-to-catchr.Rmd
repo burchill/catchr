@@ -189,7 +189,7 @@ basic_collector <- make_catch_fn(
                       drop_empty_conds = T))
 ```
 
-### Display conditions with pretty styles
+### Display conditions _in style_
 
 If you have the `crayon` package installed, you can display messages without raising them in whatever `crayon` stylings you want: 
 
@@ -205,6 +205,29 @@ catch_expr(make_warnings(), warning = c(display, muffle))
 catch_expr(make_warnings(), warning = c(display_with(c("pink","underline","bold")), muffle))
 ```
 
+### Play sounds when conditions are raised
+
+Particularly useful for when you're working in a different window and waiting for a job to finish / do something unexpected, `catchr` lets you play short sounds whenever conditions are raised.  This functionality requires the [`beepr`](https://cran.r-project.org/web/packages/beepr/index.html) package, which I've found absolutely worth downloading.
+
+For example, you can have it alert you when a condition is raised via sound, display it, and keep going:
+
+```{r, eval=FALSE}
+warning_in_middle <- function() {
+  Sys.sleep(5)
+  message("It's time!")
+  Sys.sleep(5)
+  invisible("done")
+}
+
+res <- catch_expr(warning_in_middle(), condition = c(beep, display, muffle))
+```
+
+Or you could imagine making a wrapper that screams and stop evaluation whenever it encounters _any_ unexpected condition:
+
+```{r eval=FALSE}
+tell_you_when_it_blows_up <- make_catch_fn(condition = c(display, beep_with(9), exit))
+tell_you_when_it_blows_up(message("Oopsies!"))
+```
 
 
 
