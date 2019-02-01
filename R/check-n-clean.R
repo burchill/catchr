@@ -1,14 +1,21 @@
 
 # Recursively moves through AST (kinda)
-check_nodes <- function(x, nms, depth = NA) {
+check_nodes <- function(x, nms, check_calls = F, depth = NA) {
   depth = depth - 1
   if (!is.na(depth) && depth < 0)
     return(NULL)
 
-  if (is_symbol(x) && deparse(x) %in% nms)
-    withRestarts(
-      signal("Reserved symbol found", .subclass="passer", val=deparse(x)),
-      get_back_to_work = function() NULL)
+  if (check_calls) {
+    if (is_call(x) && call_name(x) %in% nms)
+      withRestarts(
+        signal("Reserved symbol found", .subclass="passer", val=deparse(x)),
+        get_back_to_work = function() NULL)
+  } else {
+    if (is_symbol(x) && deparse(x) %in% nms)
+      withRestarts(
+        signal("Reserved symbol found", .subclass="passer", val=deparse(x)),
+        get_back_to_work = function() NULL)
+  }
 
   # e.g. `beepr::beep` shouldn't ruffle feathers
   if (is_call(x) && !(call_name(x) %in% c("::", ":::")))
@@ -17,7 +24,7 @@ check_nodes <- function(x, nms, depth = NA) {
 }
 
 # Checks all the symbols in the AST
-find_used_symbols <- function(x, nms, depth = NA) {
+find_used_symbols <- function(x, nms, check_calls = F, depth = NA) {
   expr <- enexpr(x)
   symbol_list <- NULL
 
@@ -27,31 +34,43 @@ find_used_symbols <- function(x, nms, depth = NA) {
   }
 
   withCallingHandlers(
-    check_nodes(expr, nms, depth),
+    check_nodes(expr, nms, check_calls, depth),
     passer = handler
   )
   return(unique(symbol_list))
 }
 
-#' Check expressions for special terms
-#'
-#' To-do: write doc
-#'
-#' @param qs A list of quosures.
-#' @param names_to_check A character vector of reserved special terms to check the expressions for.
-#' @export
-get_used_specials <- function(qs, names_to_check) {
+# Gets the specials. qs is a list of quosures
+get_used_specials <- function(qs, names_to_check, ...) {
   qs %>%
     keep(~quo_is_call(.) | quo_is_symbol(.)) %>%
     map(function(q) {
-      l <- find_used_symbols(!!get_expr(q), names_to_check)
+      l <- find_used_symbols(!!get_expr(q), names_to_check, ...)
       if (!is.null(l))
-        env_has(env=get_env(q), nms=l, inherit = T) %>%
+        env_has(env = get_env(q), nms=l, inherit = T) %>%
         keep(~.==T) %>% names()
     }) %>%
     unlist() %>%
     unique()
 }
+
+# Basically to check for `force_exit`
+check_for_calls <- function(qs, names_to_check, message, ...) {
+  l <- qs %>%
+    keep(~quo_is_call(.) | quo_is_symbol(.)) %>%
+    map(function(q)
+      find_used_symbols(!!get_expr(q), names_to_check, check_calls = T, ...)) %>%
+    unlist()
+
+  if (length(l) > 0) warning(paste0(message, "`", l[[1]], "`"),
+                             immediate. = TRUE, call. = FALSE)
+  invisible(NULL)
+}
+
+
+
+
+
 
 # The warning was bulky so I moved it here
 warn_of_specials <- function(x) {
@@ -138,9 +157,8 @@ check_and_clean_input <- function(..., spec_names) {
   akw <- args_and_kwargs(...)
   if (getOption("catchr.warn_about_terms", FALSE))
     warn_of_specials(get_used_specials(akw$kwargs, spec_names))
-  #
-  # if (length(get_used_specials(akw$kwargs, "forced_exit")))
-  #   warn("It seems like you're using `forced_exit")
+
+  check_for_calls(akw$kwargs, "force_exit", "`force_exit` is being called in the input to a plan at a very shallow level, possibly meaning that it is not in a function. Remember that `force_exit` needs to be IN a function or passed in AS a function, not a call. The call in question: ", depth=2)
 
   kwargs <- clean_input(akw$kwargs, spec_names)
 
