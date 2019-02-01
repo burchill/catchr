@@ -52,7 +52,7 @@
 #' @param expr An optional expression which if specified, will be evaluated after `user_exit` exits the evaluation.
 #' @param as_fn A logical; if `TRUE`, `catchr` will try to conver `expr` into a function via [rlang::as_function()] which will be applied to the condition. It will fall back to normal behavior if this coercion raises an error.
 #' @rdname user_exits
-#' @seealso the [exit] special term, which essentially becomes `exit_with(NULL)`.
+#' @seealso the [exit] special term, which essentially becomes `exit_with(NULL)`; [user_display()] and [display_with()] for parallel functions for the [display] term.
 #' @export
 user_exit <- function(expr = NULL) {
   q <- enquo(expr)
@@ -207,7 +207,7 @@ extract_display_string <- function(cond, cond_name = NA, include_call = T) {
   call <- cond$call
 
   if (!is.null(call) && include_call)
-    call <- paste0("in ", approx_arg_name(!!call), ": ")
+    call <- paste0("in `", approx_arg_name(!!call), "`: ")
   else call <- NULL
 
   if (!is.null(cond_name) && is.na(cond_name))
@@ -226,22 +226,44 @@ extract_display_string <- function(cond, cond_name = NA, include_call = T) {
 #'
 #' These functions make a `catchr` plan immediately print the "caught" condition to the output terminal, similar to how \code{\link[=catchr_DSL]{display}} works. But unlike `display` and most `catchr` functions or special reserved terms, these functions are meant to be used in user-defined functions of a plan.
 #'
-#' `user_display()` immediately displays a condition n the output terminal, and if [crayon][crayon::crayon] is installed, will style the text with whatever `crayon` styling is supplied (either as a `crayon` function or string for [crayon::make_style()]). This function should be used _within_ a custom function, i.e., `function(x) {user_display(x, "pink")}`, and not called by itself, since when it is called, it doesn't evaluate to a function, string or unquoted term, which are required input types to a \link[=make_plans]{catchr plan}.
+#' `user_display()` immediately displays a condition n the output terminal, and if [crayon][crayon::crayon] is installed, will style the text with whatever `crayon` styling is supplied (either as a `crayon` function or a character vector for [crayon::combine_styles()]). This function should be used _within_ a custom function, i.e., `function(x) {user_display(x, "pink")}`, and not called by itself, since when it is called, it doesn't evaluate to a function, string or unquoted term, which are required input types to a \link[=make_plans]{catchr plan}.
 #'
 #' `display_with` can be used at the "top" level of a plan, since it returns a _function_ that calls `user_display()`. Thus `user_display("pink")` is equivalent to the example above.
 #'
 #' @param cond A condition one wishes to display
-#' @param crayon_style If \pkg{crayon} is installed, this can be either a \code{\link[crayon:crayon]{crayon style}} (e.g., [crayon::green()], `blue$bold`, etc.) or a string for [crayon::make_style()]. These styles will be applied to the output.
+#' @param crayon_style If \pkg{crayon} is installed, this can be either a \code{\link[crayon:crayon]{crayon style}} (e.g., [crayon::green()], `blue$bold`, etc.) or a character vector for [crayon::combine_styles()]. These styles will be applied to the output.
 #' @param \dots Parameters to pass into [extract_display_string()]; namely `cond_name` (which controls how the conditin is introduced) and `include_call`, which determines whether the call is included.
+#' @examples
+#' make_warnings <- function() {
+#'   warning("This warning has a call")
+#'   warning("This warning does not", call. = FALSE)
+#'   invisible("done")
+#' }
+#'
+#' # The crayon stylings won't work if `crayon` isn't installed.
+#' catch_expr(make_warnings(), warning = c(display_with("pink"), muffle))
+#' catch_expr(make_warnings(),
+#'            warning = c(display_with(c("pink","bold"), include_call = FALSE), muffle))
+#' catch_expr(make_warnings(), warning = c(display_with("inverse", cond_name=NULL), muffle))
+#' # If you don't want to use crayon styles, just use `NULL`
+#' catch_expr(make_warnings(), warning = c(display_with(NULL, cond_name="Warning"), muffle))
+#'
+#' # You can get a lot of weird crayon styles
+#' if (requireNamespace("crayon", quietly = TRUE) == TRUE) {
+#'   freaky_colors <- crayon::strikethrough$yellow$bgBlue$bold$blurred
+#'   catch_expr(make_warnings(),
+#'              warning = c(function(x) user_display(x, freaky_colors), muffle))
+#' }
 #' @rdname user_displays
-#' @seealso the [display] special term, which essentially uses a version of `user_display`.
+#' @seealso the [display] special term, which essentially uses a version of `user_display`; [user_exit()] and [exit_with()] for parallel functions for the [exit] term.
 #' @export
 user_display <- function(cond, crayon_style, ...) {
   string <- extract_display_string(cond, ...)
+  string <- give_newline(string)
 
   if (is_installed("crayon") && !is.null(crayon_style)) {
-    if (is_string(crayon_style))
-      crayon_style <- crayon::make_style(crayon_style)
+    if (is_character(crayon_style))
+      crayon_style <- lift_dl(crayon::combine_styles)(crayon_style)
     else if (!inherits(crayon_style, "crayon"))
       abort("The crayon style must be a crayon style function or a string!")
     string <- crayon_style(string)
@@ -274,7 +296,7 @@ use_special_terms <- function(s, cond_type) {
     tomessage = function(cond) {
       class(cond) <- c("message","condition")
       if (!is.null(cond$message) & cond$message != "")
-        cond$message <- give_newline(cond$message, trim = F)
+        cond$message <- give_newline(cond$message, trim = FALSE)
       message(cond)
     },
     toerror = function(cond) {
@@ -291,7 +313,7 @@ use_special_terms <- function(s, cond_type) {
         beepr::beep()
     },
     display = function(cond) {
-      utils::str(cond, max.level = 1)
+      user_display(cond, c("blue", "bold"), cond_name = cond_type)
     },
     muffle = substitute({
       restart = first_muffle_restart(cond)

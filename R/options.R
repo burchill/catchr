@@ -170,11 +170,11 @@ catchr_original_default_values <- list(
   # Unless already set, the default plan is to collect and muffle
   catchr.default_plan = list("collect", "muffle"),
   # By default, you'll be warned about catchrs DSL
-  catchr.warn_about_terms = T,
+  catchr.warn_about_terms =TRUE,
   # By default, you wont always return a list when you can collect
-  catchr.bare_if_possible = T,
+  catchr.bare_if_possible =TRUE,
   # By default you don't want to drop stuff
-  catchr.drop_empty_conds = F
+  catchr.drop_empty_conds = FALSE
 )
 
 is_true_or_false <- function(x) is_true(x) || is_false(x)

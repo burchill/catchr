@@ -39,7 +39,7 @@ At its heart, `catchr` is designed to ~~make it so that you never have to read a
 
 ## The ol' razzle-dazzle
 
-Let's hit you with some imaginary scenarios here. Suppose I want to run some code, and I want to catch any warnings it produces, "hide" them so they don't appear, and instead just store them so I can do something else with them later on.  All without making my code halt or restart.
+Let's hit you with some imaginary scenarios here. Suppose I want to run some code, and I want to catch any warnings it produces, "hide" them so they don't appear, and instead just store them so I can do something else with them later on.  All without making my code halt or start over.
 
 ```{r, eval=FALSE}
 library(catchr)
@@ -189,7 +189,24 @@ basic_collector <- make_catch_fn(
                       drop_empty_conds = T))
 ```
 
-###
+### Display conditions with pretty styles
+
+If you have the `crayon` package installed, you can display messages without raising them in whatever `crayon` stylings you want: 
+
+```{r}
+make_warnings <- function() {
+  warning("This warning has a call")
+  warning("This warning does not", call. = FALSE)
+  invisible("done")
+}
+
+catch_expr(make_warnings(), warning = c(display, muffle))
+
+catch_expr(make_warnings(), warning = c(display_with(c("pink","underline","bold")), muffle))
+```
+
+
+
 
 ```{r, echo=FALSE}
 catchr_default_opts(!!!current_options)
