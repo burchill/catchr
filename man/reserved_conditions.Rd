@@ -25,6 +25,6 @@ Since ~99\% of all conditions encountered in the wild will be errors, warnings, 
 \section{The \code{last_stop} condition}{
 
 
-This condition name is reserved for \code{\link{force_exit}} and \code{\link{exit_with}}. There's basically zero chance any code other than \code{catchr} will ever raise a condition of \code{"last_stop"}, so this shouldn't be a problem, but until \code{catchr} becomes more mature, do not use this name for any condition or plan.
+This condition name is reserved for \code{\link{user_exit}} and \code{\link{exit_with}}. There's basically zero chance any code other than \code{catchr} will ever raise a condition of \code{"last_stop"}, so this shouldn't be a problem, but until \code{catchr} becomes more mature, do not use this name for any condition or plan.
 }
 

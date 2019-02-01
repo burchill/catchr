@@ -54,7 +54,7 @@ get_used_specials <- function(qs, names_to_check, ...) {
     unique()
 }
 
-# Basically to check for `force_exit`
+# Basically to check for `user_exit`
 check_for_calls <- function(qs, names_to_check, message, ...) {
   l <- qs %>%
     keep(~quo_is_call(.) | quo_is_symbol(.)) %>%
@@ -153,7 +153,7 @@ check_and_clean_input <- function(..., spec_names) {
   if (getOption("catchr.warn_about_terms", FALSE))
     warn_of_specials(get_used_specials(akw$kwargs, spec_names))
 
-  check_for_calls(akw$kwargs, "force_exit", "`force_exit` is being called in the input to a plan at a very shallow level, possibly meaning that it is not in a function. Remember that `force_exit` needs to be IN a function or passed in AS a function, not a call. The call in question: ", depth=2)
+  check_for_calls(akw$kwargs, "user_exit", "`user_exit` is being called in the input to a plan at a very shallow level, possibly meaning that it is not in a function. Remember that `user_exit` needs to be IN a function or passed in AS a function, not a call. The call in question: ", depth=2)
 
   kwargs <- clean_input(akw$kwargs, spec_names)
 

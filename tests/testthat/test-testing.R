@@ -129,19 +129,19 @@ test_that("Testing misc v2", {
   expect_equal(res$value, "YAY")
 })
 
-test_that("force_exit needs to be IN a function", {
+test_that("user_exit needs to be IN a function", {
   expect_warning(make_plans(
-    misc = c(collect, force_exit("YAY"), muffle),
+    misc = c(collect, user_exit("YAY"), muffle),
     warning =  muffle))
   expect_warning(expect_error(make_plans(
     warning =  muffle,
-    error = force_exit("YAY"))))
+    error = user_exit("YAY"))))
   expect_silent(make_plans(
     warning =  muffle,
-    error = force_exit))
+    error = user_exit))
   expect_silent(make_plans(
-    warning =  list(muffle, force_exit),
-    error = force_exit))
+    warning =  list(muffle, user_exit),
+    error = user_exit))
 })
 
 

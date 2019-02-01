@@ -5,22 +5,22 @@
 #'
 #' These functions force a `catchr` plan to immediately exit the evaluation of an expression (and the rest of the plan), similar to how \code{\link[=catchr_DSL]{exit}} works. But unlike `exit` and most `catchr` functions or special reserved terms, these functions are meant to be used in the user-defined functions of a plan.
 #'
-#' `force_exit()` forces the code to exit, and after exiting, evaluate whatever expression was supplied. This function should be used _within_ a custom function, i.e., `function(x) {force_exit(print("DONE!"))}`.
+#' `user_exit()` forces the code to exit, and after exiting, evaluate whatever expression was supplied. This function should be used _within_ a custom function, i.e., `function(x) {user_exit(print("DONE!"))}`.
 #'
-#' `exit_with()` can be used at the "top" level of a plan, since it returns a _function_ that calls `force_exit()`. Thus `exit_with(print("DONE!"))` is equivalent to the example above. Additionally, if `as_fn` is set to `TRUE`, it will attempt to coerce `expr` into a function via `rlang`'s [rlang::as_function()]. If `expr` can be converted, `exit_with()` will return a function that takes in a condition, modifies it via `expr`, and then supplies this to `force_exit`.  E.g., `exit_with(~.$message)` is equivalent to `function(cond) {force_exit(cond$message)}`
+#' `exit_with()` can be used at the "top" level of a plan, since it returns a _function_ that calls `user_exit()`. Thus `exit_with(print("DONE!"))` is equivalent to the example above. Additionally, if `as_fn` is set to `TRUE`, it will attempt to coerce `expr` into a function via `rlang`'s [rlang::as_function()]. If `expr` can be converted, `exit_with()` will return a function that takes in a condition, modifies it via `expr`, and then supplies this to `user_exit`.  E.g., `exit_with(~.$message)` is equivalent to `function(cond) {user_exit(cond$message)}`
 #' @examples
 #' yay <- catch_expr({warning("oops"); "done!"},
 #'                   warning = exit_with("YAY"))
 #'
-#' # This won't work, since `force_exit("YAY")` doesn't evaluate to a function/string
+#' # This won't work, since `user_exit("YAY")` doesn't evaluate to a function/string
 #' \dontrun{
 #' yay <- catch_expr({warning("oops"); "done!"},
-#'                   warning = force_exit("YAY"))
+#'                   warning = user_exit("YAY"))
 #' }
 #'
 #' check <- function(cond) {
 #'   if (inherits(cond, "simpleWarning"))
-#'     force_exit(rlang::warn(paste0("Check it: ", cond$message)))
+#'     user_exit(rlang::warn(paste0("Check it: ", cond$message)))
 #'   else
 #'     invokeRestart(first_muffle_restart(cond))
 #'   NULL
@@ -34,12 +34,12 @@
 #' #   returned value is. Here, that's the message from the warning
 #' result
 #'
-#' # If you don't want to accidentally assign what is returned by `force_exit`,
+#' # If you don't want to accidentally assign what is returned by `user_exit`,
 #' #   either add `NULL` to the end of the expresion:
 #' result2 <- catch_expr(
 #'   { rlang::warn("This will be muffled")
 #'     warning("This won't be muffled")},
-#'   warning = function(x) { force_exit({ warning("This won't be assigned"); NULL})})
+#'   warning = function(x) { user_exit({ warning("This won't be assigned"); NULL})})
 #' result2
 #'
 #' # Or you can just do the assignment _within_ the expression being evaluated:
@@ -49,12 +49,12 @@
 #'     warning("This won't be muffled")}},
 #'   warning = check)
 #' result3
-#' @param expr An optional expression which if specified, will be evaluated after `force_exit` exits the evaluation.
+#' @param expr An optional expression which if specified, will be evaluated after `user_exit` exits the evaluation.
 #' @param as_fn A logical; if `TRUE`, `catchr` will try to conver `expr` into a function via [rlang::as_function()] which will be applied to the condition. It will fall back to normal behavior if this coercion raises an error.
-#' @rdname forcing_exits
+#' @rdname user_exits
 #' @seealso the [exit] special term, which essentially becomes `exit_with(NULL)`.
 #' @export
-force_exit <- function(expr = NULL) {
+user_exit <- function(expr = NULL) {
   q <- enquo(expr)
   if (quo_is_null(q))
     q <- NULL
@@ -66,21 +66,21 @@ force_exit <- function(expr = NULL) {
   # invokeRestart(first_muffle_restart(cond))
 }
 
-#' @rdname forcing_exits
+#' @rdname user_exits
 #' @export
 exit_with <- function(expr, as_fn = FALSE) {
   q <- enquo(expr)
   if (as_fn)
     tryCatch({
       fn <- as_function(eval_tidy(q))
-      function(cond) force_exit(fn(cond))
+      function(cond) user_exit(fn(cond))
       },
       error = function(z) {
         warn("`exit_with` can't convert `expr` to function; will return it as instead", error_message = z$message)
-        function(cond) force_exit(!! q)
+        function(cond) user_exit(!! q)
       })
   else
-    function(cond) force_exit(!! q)
+    function(cond) user_exit(!! q)
 }
 
 
@@ -265,7 +265,7 @@ use_special_terms <- function(s, cond_type) {
   switch(
     s,
     exit = function(cond) {
-      force_exit(NULL)
+      user_exit(NULL)
     },
     towarning = function(cond) {
       class(cond) <- c("warning","condition")

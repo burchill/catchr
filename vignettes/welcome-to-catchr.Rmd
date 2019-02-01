@@ -108,15 +108,88 @@ throw_a_fit <- function() {
   message("This is message #1!")
   rlang::warn("This is warning #1!", opt_val = "conditions can hold more data")
   message("This is message #2")
-  stop("rlang's `abort` makes better errors!")
+  stop("Code exits after this!")
   warning("This warning won't be reached")
 }
+
 collected_results <- catch_expr(throw_a_fit(), message, warning, error)
 print(collected_results)
+```
+
+This is particularly useful if you want to catch warnings and messages, etc. from code that takes a long time to run, where having to restart the whole process from square one would be too costly. 
+
+Or if you want to collect warnings, messages, and errors from code that is running remotely, where these conditions would not be returned with the rest of the results, such as with the [`future` package](https://github.com/HenrikBengtsson/future/). The following isn't a very... *natural* example, but the things I use it for would be too involved to use here:
+
+```{r, eval=FALSE}
+library(future)
+future::plan(multiprocess)
+
+possible_scenarios <- list(
+  quote(warning("Model failed to converge!")),
+  quote(message("Singular fit!")),
+  quote(stop("You couldn't something wrong")),
+  quote("Everything is good!")
+)
+
+collector <- make_catch_fn(message, warning, error,
+                           .opts = catchr_opts(default_plan = c(collect, muffle)))
+
+l %<-% {
+  # You should use `purrr::map` instead, it's much better
+  Map(function(x) collector(eval(x)), possible_scenarios)
+}
+
+# Eh, let's get rid of anything that had an error?
+Filter(function(e) length(e$error) == 0, l)
+```
+
+_OR_, if you're running a lot of code in parallel and want to log all of the conditions within R (where it's easiest to manipulate), such as in a large-scale power simulation, or with packages such [`purrr`](https://github.com/tidyverse/purrr).
+
+```{r, eval=FALSE}
+# Let's combine both `future` and `purrr` with Davis Vaughan's `furrr` package instead
+library(furrr)
+future::plan(tweak(multiprocess, workers = 5L))
+
+# Sexy data frame format for easy analysis!
+df <- future_imap_dfr(
+  possible_scenarios,
+  function(x, i) {
+    res <- collector(eval(x))
+    data.frame(k = i,
+               messages = paste(res$message, collapse=" "),
+               warnings = paste(res$warning, collapse=" "),
+               errors =   paste(res$error, collapse=" "),
+               stringsAsFactors = FALSE) 
+  })
 
 ```
 
+## Other goodies
 
+`catchr` offers many other benefits, to the point where trying to document them all in a single vignette doesn't make sense. I'll point out some of the more unique ones here.
+
+### Catching "misc" conditions
+
+Sometimes we don't want to have to specify every alternative condition out there, and we might just want to divide conditions into one type and "everything else".
+
+You can do this by making plans for the "misc" condition, a term `catchr` reserves for any condition(s) that you haven't already specified. Thus:
+
+```{r}
+messages_or_bust <- make_catch_fn(messages = collect, misc = exit_with("Sorry, busted"))
+```
+
+will collect messages (without muffling them) but will exit the evaluation and return a conciliatory if any other types of conditions are raised. Note that using the all-purpose "condition" plan (i.e., `condition = exit_with("Sorry, busted")`) would exit when a message is raised, since it isn't muffled and qualifies as having the type "condition". Using "misc" makes sure you don't "double-dip" conditions.  
+
+The "misc" condition is particularly useful when collecting conditions---it lets you lump all the miscellaneous conditions collected into a single "misc" sublist. Since anything other than the "big three" conditions (errors, messages, and warnings) are so rare, the following makes a nice little collector that lumps anything "exotic" into the "misc" sublist and drops any condition sublist when that condition isn't raised:
+
+```{r}
+basic_collector <- make_catch_fn(
+  message, warning, error, misc,
+  .opts = catchr_opts(default_plan = c(collect, muffle),
+                      drop_empty_conds = T))
+```
+
+###
 
 ```{r, echo=FALSE}
 catchr_default_opts(!!!current_options)
