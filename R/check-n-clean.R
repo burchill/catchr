@@ -67,11 +67,6 @@ check_for_calls <- function(qs, names_to_check, message, ...) {
   invisible(NULL)
 }
 
-
-
-
-
-
 # The warning was bulky so I moved it here
 warn_of_specials <- function(x) {
   if (length(x) > 0)

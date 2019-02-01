@@ -1,20 +1,4 @@
 
-# Not sure if this is that good!!!! Might run into environment issues
-# Combines functions and expressions into a single big function
-combine_functions <- function(...) {
-  l <- enexprs(...) %>%
-    map(function(el) {
-      if (is_function(el))
-        substitute(zzzz(cond), c(zzzz = el))
-      else
-        substitute(zzzz, c(zzzz = el))
-    })
-  e <- expr({!!!l})
-  e <- expr(function(cond) !!e)
-  eval_tidy(e)
-}
-
-
 #' Force an exit
 #'
 #' @description
@@ -146,6 +130,19 @@ has_collect <- function(kwargs) {
 }
 
 
+# Combines functions and expressions into a single big function
+combine_functions <- function(...) {
+  l <- enexprs(...) %>%
+    map(function(el) {
+      if (is_function(el))
+        substitute(zzzz(cond), c(zzzz = el))
+      else
+        substitute(zzzz, c(zzzz = el))
+    })
+  e <- expr({!!!l})
+  e <- expr(function(cond) !!e)
+  eval_tidy(e)
+}
 
 # Gets cleaned plans, turns them into handlers with all their glorious shit
 compile_plans <- function(kwargs, .opts) {
@@ -194,31 +191,6 @@ make_compiled_qual <- function(x) {
 is_compiled_plan <- function(x) {
   inherits(x, "catchr_compiled_plans")
 }
-
-# with_ordered_handlers(
-#   { warning("a"); print("YO")},
-#   warning = calling(function(x) {
-#     # print(str(x))
-#     force_exit(x)
-#     invokeRestart("muffleWarning")
-#     print("nasssty")
-#   }),
-#   condition = exiting(function(x) {
-#     if ("last_stop" %in% class(x)) {
-#       print("gotcha")
-#     } else {
-#       print("why hello")
-#
-#       invokeRestart(first_muffle_restart(x))
-#     }
-#   }),
-#   "last_stop" = exiting(function(x) {
-#     print(paste0("Found a B condition with class: ",
-#                  paste(x$old_class, collapse=" ")))
-#     "Failure"}
-#   )
-# )
-
 
 # sub in special term functions
 use_special_terms <- function(s, cond_type) {
