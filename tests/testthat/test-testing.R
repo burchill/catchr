@@ -118,15 +118,30 @@ test_that("Testing collections v1", {
 test_that("Testing misc v2", {
   res <- catch_expr(
     condition_thrower(),
-    misc = c(collect, function(x) "YAY", exit),
+    misc = c(collect, exit_with("YAY"), exit),
     warning = c(collect, muffle))
 
   expect_named(res)
-  expect_equal(names(res), c("value", "misc","warning"))
+  expect_equal(names(res), c("value", "misc", "warning"))
 
   lengths <- map_dbl(res, length)
   expect_equivalent(lengths, c(1,1,1))
   expect_equal(res$value, "YAY")
+})
+
+test_that("force_exit needs to be IN a function", {
+  expect_warning(make_plans(
+    misc = c(collect, force_exit("YAY"), muffle),
+    warning =  muffle))
+  expect_warning(expect_error(make_plans(
+    warning =  muffle,
+    error = force_exit("YAY"))))
+  expect_silent(make_plans(
+    warning =  muffle,
+    error = force_exit))
+  expect_silent(make_plans(
+    warning =  list(muffle, force_exit),
+    error = force_exit))
 })
 
 
