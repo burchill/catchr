@@ -83,7 +83,7 @@ NULL
 #'
 #' These plans will collect every non-error condition into three sublists, one for warnings, one for messages, and one for everything else---"misc". If one used `condition = collect` instead of `misc`, warnings and messages would be collected twice: once in each of their respective sublists, and another time in "condition", since each type also has that class. `misc` will _not_ catch warnings or messages in the scenario above.
 #'
-#' Since ~99\% of all conditions encountered in the wild will be errors, warnings, and messages, `misc` is just a short, handy way of making sure you catch anything more "exotic". If you're dealing with conditions that have `"misc"` as a _class_, you're probably at an advanced enough stage where you shouldn't be using `catchr`. But if you are in this circumstance and feel strongly otherwise, feel free to make a feature request on the [Github repo](https://github.com/burchill/catchr).
+#' Since ~99\% of all conditions encountered in the wild will be errors, warnings, and messages, `misc` is just a short, handy way of making sure you catch anything more "exotic". If you're dealing with conditions that have `"misc"` as a _class_, you're probably at an advanced enough stage where you shouldn't be using `catchr`. But if you are in this circumstance and feel strongly otherwise, feel free to make a feature request on the [GitHub repo](https://github.com/burchill/catchr).
 #'
 #' @section The `last_stop` condition:
 #'

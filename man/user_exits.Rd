@@ -12,7 +12,7 @@ exit_with(expr, as_fn = FALSE)
 \arguments{
 \item{expr}{An optional expression which if specified, will be evaluated after \code{user_exit} exits the evaluation.}
 
-\item{as_fn}{A logical; if \code{TRUE}, \code{catchr} will try to conver \code{expr} into a function via \code{\link[rlang:as_function]{rlang::as_function()}} which will be applied to the condition. It will fall back to normal behavior if this coercion raises an error.}
+\item{as_fn}{A logical; if \code{TRUE}, \code{catchr} will try to convert \code{expr} into a function via \code{\link[rlang:as_function]{rlang::as_function()}} which will be applied to the condition. It will fall back to normal behavior if this coercion raises an error.}
 }
 \description{
 These functions force a \code{catchr} plan to immediately exit the evaluation of an expression (and the rest of the plan), similar to how \code{\link[=catchr_DSL]{exit}} works. But unlike \code{exit} and most \code{catchr} functions or special reserved terms, these functions are meant to be used in the user-defined functions of a plan.

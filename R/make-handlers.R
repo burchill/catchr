@@ -50,7 +50,7 @@
 #'   warning = check)
 #' result3
 #' @param expr An optional expression which if specified, will be evaluated after `user_exit` exits the evaluation.
-#' @param as_fn A logical; if `TRUE`, `catchr` will try to conver `expr` into a function via [rlang::as_function()] which will be applied to the condition. It will fall back to normal behavior if this coercion raises an error.
+#' @param as_fn A logical; if `TRUE`, `catchr` will try to convert `expr` into a function via [rlang::as_function()] which will be applied to the condition. It will fall back to normal behavior if this coercion raises an error.
 #' @rdname user_exits
 #' @seealso the [exit] special term, which essentially becomes `exit_with(NULL)`; [user_display()] and [display_with()] for parallel functions for the [display] special term, and [beep_with()] for a parallel function for the [beep] special term..
 #' @export
@@ -266,7 +266,7 @@ beep_with <- function(beepr_sound) {
 #'
 #' @param cond A condition one wishes to display
 #' @param crayon_style If \pkg{crayon} is installed, this can be either a \code{\link[crayon:crayon]{crayon style}} (e.g., [crayon::green()], `blue$bold`, etc.) or a character vector for [crayon::combine_styles()]. These styles will be applied to the output.
-#' @param \dots Parameters to pass into [extract_display_string()]; namely `cond_name` (which controls how the conditin is introduced) and `include_call`, which determines whether the call is included.
+#' @param \dots Parameters to pass into [extract_display_string()]; namely `cond_name` (which controls how the condition is introduced) and `include_call`, which determines whether the call is included.
 #' @examples
 #' make_warnings <- function() {
 #'   warning("This warning has a call")
