@@ -1,12 +1,23 @@
 Package: catchr
 Type: Package
-Title: Catch, Collect, and Raise Conditions 
+Title: Taking the Pain out of Catching and Handling Conditions
 Version: 0.2.0.9000
 Authors@R: c(
-    person("Zachary", "Burchill", email = "zach.burchill.code@gmail.com", role = c("aut", "cre"))
+    person("Zachary", "Burchill", email = "zach.burchill.code@gmail.com", 
+                                  role = c("aut", "cre"))
   )
 Maintainer: Zachary Burchill <zach.burchill.code@gmail.com>
-Description: Simple code to catch, collect, and raise conditions (errors, warnings, messages, etc.) without halting/restarting processes.
+Description: R has a unique way of dealing with warnings, errors, messages, 
+    and other conditions, but it can often be troublesome to users coming 
+    from different programming backgrounds. The purpose of this package is 
+    to provide flexible and useful tools for handling R conditions with 
+    less hassle. In order to lower the barrier of entry, keep code clean 
+    and readable, and reduce the amount of typing required, `catchr` uses 
+    a very simple domain-specific language that simplifies things on the 
+    front-end. 
+    This package aims to maintain a continuous learning curve that lets new 
+    users jump straight in to condition-handling, while simultaneously 
+    offering depth and complexity for more advanced users.
 License: MIT + file LICENSE
 Encoding: UTF-8
 LazyData: true
