@@ -12,12 +12,10 @@ vignette: >
 ```{r setup, include = FALSE}
 knitr::opts_chunk$set(
   collapse = TRUE,
-  eval = FALSE,
+  eval = TRUE,
   comment = "#>"
 )
-# library(catchr)
-
-# To-do: change %\VignetteIndexEntry{Vignette Title}
+library(catchr)
 
 ```
 
@@ -166,7 +164,7 @@ df <- future_imap_dfr(
 
 ## Other goodies
 
-`catchr` offers many other benefits, to the point where trying to document them all in a single vignette doesn't make sense. I'll point out some of the more unique ones here.
+`catchr` offers many other benefits, to the point where trying to document them all in a single vignette doesn't make sense. I'll point out some of the more unique ones here, but the help docs are very extensive, so give them a try!
 
 ### Catching "misc" conditions
 
@@ -191,7 +189,7 @@ basic_collector <- make_catch_fn(
 
 ### Display conditions _in style_
 
-If you have the `crayon` package installed, you can display messages without raising them in whatever `crayon` stylings you want: 
+If you have the `crayon` package installed, you can display messages without raising them in whatever `crayon` stylings you want (though you won't see the styles in this vignette document): 
 
 ```{r}
 make_warnings <- function() {
@@ -229,6 +227,13 @@ tell_you_when_it_blows_up <- make_catch_fn(condition = c(display, beep_with(9), 
 tell_you_when_it_blows_up(message("Oopsies!"))
 ```
 
+### All plans are "calling handlers"
+
+This is definitely more of a technical point, but all the plans in `catchr` are technically evaluated in order.  Currently (`rlang 0.3.1`) `rlang`'s condition-handling function, `with_handlers`, has the relatively unintuitive property of not checking its handlers in the order they are defined, but first checking all the "exiting" handlers, and then checking all the "calling" handlers.  `catchr` actually offers a modified version of `with_handlers` that checks these strictly in order and uses `rlang`'s schema (`with_ordered_handlers`), but `catchr`'s main condition handling does one better: it gets rid of "exiting" handlers all together.
+
+Ok, this is beginning to get _much_ more technical, but there are many other benefits to making all the plans (and therefore, handlers) "calling" handlers. For one, any plan has the option of restarting the code (via `muffle`, or invoking user-created restarts). 
+
+But each plan can also act as an "exiting" handler with the use of the `exit` term, or the `user_exit()` and `exit_with()` functions. In essence, `catchr` gives you the best of both worlds!
 
 
 ```{r, echo=FALSE}
