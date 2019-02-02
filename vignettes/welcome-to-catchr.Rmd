@@ -82,7 +82,7 @@ This is pretty quintessential of the `catchr` system. You have the expression yo
 
 A "catchr plan" starts off as a named argument, where its name is the type of condition it will apply to (e.g., "message", "warning", "error", etc.), and its value will eventually become a function that will take in the condition and do stuff with it. `catchr`'s "secret sauce" lets you pass in each plan as a list of functions that will be applied to the condition in order.^[See `help(catchr_plans, "catchr")`.] 
 
-But `catchr` also comes full of stock functions that make condition handling simple---these special functions can be inputted as strings, but `catchr` promotes more-readable code and saves you extra typing by letting you enter them unquoted special terms, like `collect` and `muffle` in the example above.^[See `help(catchr_DSL, "catchr")`.]
+But `catchr` also comes full of stock functions that make condition handling simple---these special functions can be inputted as strings, but `catchr` promotes more-readable code and saves you extra typing by letting you enter them unquoted special terms, like `collect` and `muffle` in the example above.^[See `help(`catchr-DSL`, "catchr")`.]
 
 ## Even _less_ typing
 
@@ -229,7 +229,7 @@ tell_you_when_it_blows_up(message("Oopsies!"))
 
 ### All plans are "calling handlers"
 
-This is definitely more of a technical point, but all the plans in `catchr` are technically evaluated in order.  Currently (`rlang 0.3.1`) `rlang`'s condition-handling function, `with_handlers`, has the relatively unintuitive property of not checking its handlers in the order they are defined, but first checking all the "exiting" handlers, and then checking all the "calling" handlers.  `catchr` actually offers a modified version of `with_handlers` that checks these strictly in order and uses `rlang`'s schema (`with_ordered_handlers`), but `catchr`'s main condition handling does one better: it gets rid of "exiting" handlers all together.
+This is definitely more of a technical point, but all the plans in `catchr` are technically evaluated in order.  Currently (`rlang 0.3.1`) `rlang`'s condition-handling function, `with_handlers`, has the relatively unintuitive property of not checking its handlers in the order they are defined, but first checking all the "exiting" handlers, and then checking all the "calling" handlers.  `catchr` actually offers a function inspired by `with_handlers` that strictly checks these in order and uses `rlang`'s schema (`with_ordered_handlers`), but `catchr`'s main condition handling does one better: it gets rid of "exiting" handlers all together.
 
 Ok, this is beginning to get _much_ more technical, but there are many other benefits to making all the plans (and therefore, handlers) "calling" handlers. For one, any plan has the option of restarting the code (via `muffle`, or invoking user-created restarts). 
 

@@ -2,7 +2,7 @@
 #'
 #' @description
 #'
-#' One of the most useful aspects of `catchr` is its ability to catch and 'collect' the conditions (e.g., warnings, errors, messages, etc.) raised by an expression without halting/restarting the evaluation of that expression. This can be particularly useful in a number of scenarios:
+#' One of the most useful aspects of `catchr` is its ability to catch and 'collect' the conditions (e.g., warnings, errors, messages, etc.) raised by an expression without halting/redoing the evaluation of that expression. This can be particularly useful in a number of scenarios:
 #'
 #'  - If you are trying to catch the warning messages from code that takes a long time to run, where having to restart the whole process from square one would be too costly.
 #'
@@ -10,7 +10,38 @@
 #'
 #'  - If you are running lots of code in parallel and want to log all of the conditions within R, such as in a large-scale power simulation, or with packages such \code{\link[purrr:purrr-package]{purrr}}.
 #'
-#' Using the `collect` term lets you do this. Although the exact details/format of the collection process are still being ironed out across versions, the basic premise will remain the same.  When you use `collect`, the captured condition will be added to a list of other conditions of that same type. When the expression is done being evaluated, `catchr` will return a named list, where "value" is the output of the expression, and the other named elements are sublists with all their collected conditions.
+#' Using the `collect` term lets you do this. When the plan for a condition uses `collect`, the captured condition will be added to a list of other conditions of that same type. When the expression is done being evaluated, `catchr` will return a named list, where `$value` is the output of the expression, and the other named elements are sublists with all their collected conditions. The exact behavior of this process is determined by options in [catchr_opts()]
+#'
+#' @examples
+#' one_of_each <- function(with_error) {
+#'   rlang::inform("This is a message")
+#'   rlang::warn("This is a warning")
+#'   if (with_error)
+#'     stop("This is an error", call.=FALSE)
+#'   "return value!"
+#' }
+#'
+#' collecting_plans <- make_plans(message, warning, error,
+#'                                .opts = catchr_opts(default_plan = c(collect, muffle),
+#'                                                    drop_empty_conds = FALSE))
+#'
+#' # When the evaluation completes, the "value" element is the value the expression returns
+#' no_error <- catch_expr(one_of_each(FALSE), collecting_plans)
+#' no_error$value
+#'
+#' # If it doesn't return, the value is generally NULL
+#' with_error <- catch_expr(one_of_each(TRUE), collecting_plans)
+#' with_error$value
+#'
+#' # If the option `drop_empty_conds` == TRUE, then
+#' #   sublists without collected condition will be dropped
+#' catch_expr(one_of_each(FALSE), collecting_plans,
+#'            .opts = catchr_opts(drop_empty_conds=TRUE))
+#'
+#' # If the option `bare_if_possible` == TRUE, then even
+#' #   functions that don't use `collect` will return the value
+#' #   of the expression as a "value" sublist
+#' catch_expr("DONE", .opts = catchr_opts(bare_if_possible=FALSE))
 #' @name collecting-conditions
 #' @aliases collect
 NULL
@@ -28,7 +59,7 @@ NULL
 #'
 #' @section Special reserved terms:
 #'
-#' The following are the special terms and what they do. Note that there are also some \link[=reserved_conditions]{special condition names}, but those are different from the following.
+#' The following are the special terms and what they do. Note that there are also some \link[=reserved-conditions]{special condition names}, but those are different from the following.
 #'
 #' - `tomessage`, `towarning`, `toerror`: these terms will become functions that will convert captured conditions into a message, warning, or error, respectively, and raise them. The original classes of the condition will be lost.
 #'
@@ -61,8 +92,8 @@ NULL
 #'
 #'  - the reserved terms are used inside a function definition. For example, if the user had defined `muffle <- function(x) print("not special")`, and `fn <- function(x) muffle`, using the argument `warning = fn()` would not use the special term of `muffle`.
 #'
-#' @name catchr_DSL
-#' @aliases language_of_catchr reserved_terms masking tomessage towarning toerror beep display muffle exit raise
+#' @name catchr-DSL
+#' @aliases language-of-catchr reserved-terms masking tomessage towarning toerror beep display muffle exit raise
 NULL
 
 
@@ -70,7 +101,7 @@ NULL
 #'
 #' @description
 #'
-#' In addition to having \link[=reserved_terms]{reserved terms} for use in making condition-handling plans, `catchr` also places special meaning on two types of conditions, `misc` and `last_stop`. The `misc` is very useful, `last_stop` is something most users should probably stay away from.
+#' In addition to having \link[=reserved-terms]{reserved terms} for use in making condition-handling plans, `catchr` also places special meaning on two types of conditions, `misc` and `last_stop`. The `misc` is very useful, `last_stop` is something most users should probably stay away from.
 #'
 #'
 #' @section The `misc` condition:
@@ -89,6 +120,6 @@ NULL
 #'
 #' This condition name is reserved for \code{\link{user_exit}} and \code{\link{exit_with}}. There's basically zero chance any code other than `catchr` will ever raise a condition of `"last_stop"`, so this shouldn't be a problem, but until `catchr` becomes more mature, do not use this name for any condition or plan.
 #'
-#' @name reserved_conditions
+#' @name reserved-conditions
 #' @aliases misc last_stop
 NULL

@@ -97,7 +97,7 @@ first_muffle_restart <- function(cond) {
 #'
 #' Customizing how conditions are handled in `catchr` is done by giving `catchr` 'plans' for when it encounters particular conditions. These plans are essentially just lists of functions that are called in order, and that take in the particular condition as an argument.
 #'
-#' However, since `catchr` evaluates things \link[=catchr_DSL]{slightly differently than base R}, the user input to make these plans has to first be passed into `make_plans` (or, for setting the default plan, \code{\link{set_default_plan}}). `make_plans` also lets users specify options for how they want these plans to be evaluated with the `.opts` argument (see \code{\link{catchr_opts}} for more details).
+#' However, since `catchr` evaluates things \link[=catchr-DSL]{slightly differently than base R}, the user input to make these plans has to first be passed into `make_plans` (or, for setting the default plan, \code{\link{set_default_plan}}). `make_plans` also lets users specify options for how they want these plans to be evaluated with the `.opts` argument (see \code{\link{catchr_opts}} for more details).
 #'
 #' See the 'Input' section below and the examples for how to use `make_plans`.
 #'
@@ -168,7 +168,7 @@ first_muffle_restart <- function(cond) {
 #'
 #' @param \dots Named and unnamed arguments for making plans. See 'Input' for more detail.
 #' @param .opts The options to be used for the plan. Generally passed in using \code{\link{catchr_opts}}.
-#' @aliases catchr_plans plans
+#' @aliases catchr-plans
 #' @export
 make_plans <- function(..., .opts = catchr_opts()) {
   if (is.null(.opts)) .opts <- catchr_opts()

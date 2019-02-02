@@ -5,12 +5,43 @@
 \alias{collect}
 \title{Collect conditions, without halting processes}
 \description{
-One of the most useful aspects of \code{catchr} is its ability to catch and 'collect' the conditions (e.g., warnings, errors, messages, etc.) raised by an expression without halting/restarting the evaluation of that expression. This can be particularly useful in a number of scenarios:
+One of the most useful aspects of \code{catchr} is its ability to catch and 'collect' the conditions (e.g., warnings, errors, messages, etc.) raised by an expression without halting/redoing the evaluation of that expression. This can be particularly useful in a number of scenarios:
 \itemize{
 \item If you are trying to catch the warning messages from code that takes a long time to run, where having to restart the whole process from square one would be too costly.
 \item If you want to collect warnings, messages, and errors from code that is running remotely, where these conditions would not be returned with the rest of the results, such as with the \code{\link[future]{future}} package.
 \item If you are running lots of code in parallel and want to log all of the conditions within R, such as in a large-scale power simulation, or with packages such \code{\link[purrr:purrr-package]{purrr}}.
 }
 
-Using the \code{collect} term lets you do this. Although the exact details/format of the collection process are still being ironed out across versions, the basic premise will remain the same.  When you use \code{collect}, the captured condition will be added to a list of other conditions of that same type. When the expression is done being evaluated, \code{catchr} will return a named list, where "value" is the output of the expression, and the other named elements are sublists with all their collected conditions.
+Using the \code{collect} term lets you do this. When the plan for a condition uses \code{collect}, the captured condition will be added to a list of other conditions of that same type. When the expression is done being evaluated, \code{catchr} will return a named list, where \code{$value} is the output of the expression, and the other named elements are sublists with all their collected conditions. The exact behavior of this process is determined by options in \code{\link[=catchr_opts]{catchr_opts()}}
+}
+\examples{
+one_of_each <- function(with_error) {
+  rlang::inform("This is a message")
+  rlang::warn("This is a warning")
+  if (with_error)
+    stop("This is an error", call.=FALSE)
+  "return value!"
+}
+
+collecting_plans <- make_plans(message, warning, error,
+                               .opts = catchr_opts(default_plan = c(collect, muffle),
+                                                   drop_empty_conds = FALSE))
+
+# When the evaluation completes, the "value" element is the value the expression returns
+no_error <- catch_expr(one_of_each(FALSE), collecting_plans)
+no_error$value
+
+# If it doesn't return, the value is generally NULL
+with_error <- catch_expr(one_of_each(TRUE), collecting_plans)
+with_error$value
+
+# If the option `drop_empty_conds` == TRUE, then
+#   sublists without collected condition will be dropped
+catch_expr(one_of_each(FALSE), collecting_plans,
+           .opts = catchr_opts(drop_empty_conds=TRUE))
+
+# If the option `bare_if_possible` == TRUE, then even
+#   functions that don't use `collect` will return the value
+#   of the expression as a "value" sublist
+catch_expr("DONE", .opts = catchr_opts(bare_if_possible=FALSE))
 }
