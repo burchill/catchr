@@ -202,7 +202,7 @@ make_compiled_qual <- function(l, original_calls, .opts) {
 #' @param x An object to test
 #' @export
 is_catchr_plan <- function(x) {
-  inherits_all(x, c("catchr_compiled_plans", "list"))
+  inherits_all(x, c("catchr_compiled_plans"))
 }
 
 #' Make a string to display from a condition
