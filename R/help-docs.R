@@ -41,7 +41,7 @@
 #' # If the option `bare_if_possible` == TRUE, then even
 #' #   functions that don't use `collect` will return the value
 #' #   of the expression as a "value" sublist
-#' catch_expr("DONE", .opts = catchr_opts(bare_if_possible=FALSE))
+#' catch_expr("DONE", fake_cond = muffle, .opts = catchr_opts(bare_if_possible=FALSE))
 #' @name collecting-conditions
 #' @aliases collect
 NULL
