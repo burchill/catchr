@@ -186,7 +186,7 @@ compile_plans <- function(kwargs, .opts, original_calls) {
 
 # Internal
 make_compiled_qual <- function(l, original_calls, .opts) {
-  `attr<-`(x, "class", "catchr_compiled_plans") %>%
+  `attr<-`(l, "class", "catchr_compiled_plans") %>%
     `attr<-`("calls", original_calls) %>%
     `attr<-`("catchr_opts", .opts)
 }
