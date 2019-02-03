@@ -146,7 +146,7 @@ combine_functions <- function(...) {
 }
 
 # Gets cleaned plans, turns them into handlers with all their glorious shit
-compile_plans <- function(kwargs, .opts) {
+compile_plans <- function(kwargs, .opts, original_calls) {
   .opts$collectors <- has_collect(kwargs)
   names <- names(kwargs)
 
@@ -181,16 +181,28 @@ compile_plans <- function(kwargs, .opts) {
     handlers$condition <- add_exit_protector(handlers$condition)
   }
   handlers %>%
-    make_compiled_qual() %>%
-    `attr<-`("catchr_opts", .opts)
+    make_compiled_qual(original_calls, .opts)
 }
 
 # Internal
-make_compiled_qual <- function(x) {
-  `attr<-`(x, "class", "catchr_compiled_plans")
+make_compiled_qual <- function(l, original_calls, .opts) {
+  `attr<-`(x, "class", "catchr_compiled_plans") %>%
+    `attr<-`("calls", original_calls) %>%
+    `attr<-`("catchr_opts", .opts)
 }
-is_compiled_plan <- function(x) {
-  inherits(x, "catchr_compiled_plans")
+
+
+#' Check if list is a catchr plan
+#'
+#' Currently, this function just checks whether a list was made via
+#' [make_plans()]. It does so simply by looking at the class of the list. \cr \cr
+#' In the future, `catchr` plans may become more complicated (i.e., to avoid the
+#' horrible printing) and this will become a more useful API
+#'
+#' @param x An object to test
+#' @export
+is_catchr_plan <- function(x) {
+  inherits_all(x, c("catchr_compiled_plans", "list"))
 }
 
 #' Make a string to display from a condition

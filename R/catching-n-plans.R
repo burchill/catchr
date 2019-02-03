@@ -20,10 +20,12 @@
 # @importFrom rlang child_env quo_is_call quo_is_symbol is_logical as_logical as_double dbl lgl
 
 
-
+# Constants
 special_terms <- c("towarning", "tomessage", "toerror",
                    "display", "beep", "exit", "muffle", "collect",
                    "raise")
+options_to_hide <- c("collectors")
+
 
 # source("R/check-n-clean.R")
 # source("R/make-handlers.R")
@@ -97,14 +99,14 @@ first_muffle_restart <- function(cond) {
 #'
 #' Customizing how conditions are handled in `catchr` is done by giving `catchr` 'plans' for when it encounters particular conditions. These plans are essentially just lists of functions that are called in order, and that take in the particular condition as an argument.
 #'
-#' However, since `catchr` evaluates things \link[=catchr-DSL]{slightly differently than base R}, the user input to make these plans has to first be passed into `make_plans` (or, for setting the default plan, \code{\link{set_default_plan}}). `make_plans` also lets users specify options for how they want these plans to be evaluated with the `.opts` argument (see \code{\link{catchr_opts}} for more details).
+#' However, since `catchr` evaluates things \link[=catchr-DSL]{slightly differently than base R}, the user input to make these plans has to first be passed into `make_plans` (or, for setting the default plan, [set_default_plan()]). `make_plans` also lets users specify options for how they want these plans to be evaluated with the `.opts` argument (see [catchr_opts()] for more details).
 #'
 #' See the 'Input' section below and the examples for how to use `make_plans`.
 #'
 #'
 #' @section Input:
 #'
-#' User input to `make_plans` is very similar to how one makes handlers for \code{\link[base:withCallingHandlers]{withCallingHandlers}}, \code{\link[base:tryCatch]{tryCatch}} and `rlang`'s \code{\link[rlang]{with_handlers}}, albeit with some important differences.
+#' User input to `make_plans` is very similar to how one makes handlers for [base::withCallingHandlers()], [base::tryCatch()] and `rlang`'s [rlang::with_handlers()], albeit with some important differences.
 #'
 #' Like the functions above, the name of each argument determines which type of condition it will be the plan for. Hence, `warnings = fn` will apply the `fn` function to the warnings raised in evaluating `expr`.
 #'
@@ -167,7 +169,7 @@ first_muffle_restart <- function(cond) {
 #' random_plan <- make_plans(!!!qs)
 #'
 #' @param \dots Named and unnamed arguments for making plans. See 'Input' for more detail.
-#' @param .opts The options to be used for the plan. Generally passed in using \code{\link{catchr_opts}}.
+#' @param .opts The options to be used for the plan. Generally passed in using [catchr_opts()].
 #' @aliases catchr-plans
 #' @export
 make_plans <- function(..., .opts = catchr_opts()) {
@@ -179,8 +181,11 @@ make_plans <- function(..., .opts = catchr_opts()) {
   kwargs <- append(as_list(akw$kwargs), args) %>%
     order_by_arg_pos()
 
-  .opts$default_plan <- NULL
-  compile_plans(kwargs, .opts)
+  if (length(kwargs) == 0)
+    abort("Must have at least one plan specified.")
+
+  original_calls <- enexprs(...)
+  compile_plans(kwargs, .opts, original_calls)
 }
 
 
@@ -302,7 +307,7 @@ decide_opts <- function(plans, .opts) {
 check_if_args_compiled <- function(...) {
   qs <- enquos(...)
   if (length(qs) > 1) return(FALSE)
-  tryCatch(is_compiled_plan(eval_tidy(qs[[1]])),
+  tryCatch(is_catchr_plan(eval_tidy(qs[[1]])),
            error = function(x) return(FALSE))
 }
 
@@ -316,9 +321,9 @@ check_if_args_compiled <- function(...) {
 #'
 #' @description
 #'
-#' `with_ordered_handlers()` is inspired by `rlang`'s \code{\link[rlang]{with_handlers}} function, which essentially lets you handle conditions in ways that don't stop the evaluation ("calling" handlers) and ways that will immediately break out of the evaluation ("exiting" handlers) in a single function.
+#' `with_ordered_handlers()` is inspired by `rlang`'s [rlang::with_handlers()] function, which essentially lets you handle conditions in ways that don't stop the evaluation ("calling" handlers) and ways that will immediately break out of the evaluation ("exiting" handlers) in a single function.
 #'
-#' However, `with_handlers` does not check handlers in the order they are inputted (at least, in rlang 0.3.0), as \{code\link[base]{withCallingHandlers}} and \{code\link[base]{tryCatch}} do: all exiting handlers are checked first, then all calling handlers. `with_ordered_handlers()` makes sure all handlers are checked in the order they are input into the function, regardless of exiting/calling status.
+#' However, `with_handlers` does not check handlers in the order they are inputted (at least, in rlang 0.3.0), as [base::withCallingHandlers()] and [base::tryCatch()] do: all exiting handlers are checked first, then all calling handlers. `with_ordered_handlers()` makes sure all handlers are checked in the order they are input into the function, regardless of exiting/calling status.
 #' @examples
 #' # Although set first, 'condition' never gets to catch the condition
 #' rlang::with_handlers(warning("woops!"),
@@ -330,7 +335,7 @@ check_if_args_compiled <- function(...) {
 #'               condition = rlang::calling(function(x) print("CONDITION")),
 #'               warning = rlang::exiting(function(x) { print("WARNING")}))
 #' @param .expr An expression to execute in a context where new handlers are established.
-#' @param \dots Named handlers. These should be functions of one argument. These handlers are treated as exiting by default. Use \code{\link[rlang]{calling}()} to specify a calling handler. These dots support \link[rlang:tidy-dots]{tidy dots} features and are passed to  \code{\link[rlang]{as_function}()} to enable the formula shortcut for lambda functions.
+#' @param \dots Named handlers. These should be functions of one argument. These handlers are treated as exiting by default. Use [rlang::calling()] to specify a calling handler. These dots support \link[rlang:tidy-dots]{tidy dots} features and are passed to [rlang::as_function()] to enable the formula shortcut for lambda functions.
 #' @export
 # # old version:
 # with_ordered_handlers <- function(.expr, ...) {
@@ -367,12 +372,4 @@ with_ordered_handlers <- function(.expr, ...) {
   }
   eval_tidy(expr)
 }
-
-
-
-
-
-
-
-
 

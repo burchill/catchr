@@ -80,10 +80,10 @@ warn_of_specials <- function(x) {
 # need to use splicing to pass stuff in
 approx_arg_name <- function(x, len = 25) {
   v <- get_expr(enquo(x)) %>% expr_deparse(999) %>% paste(collapse = "")
-  if (nchar(v) > len)
-    paste0(substr(v,1,len), "...")
-  else v
+  add_ellipses(v, len)
 }
+
+
 
 
 #' Make sure a function can be a handler
