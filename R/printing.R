@@ -1,17 +1,8 @@
-#' @rdname view-plans
-#' @export
-summary.catchr_compiled_plans <- function(object, ...) {
-  print(object, show_opts = TRUE, show_full = TRUE)
-  invisible(object)
-}
-
-
 #' View and print 'compiled' catchr plans
 #'
 #' 'Compiled' `catchr` plans returned by [make_plans()] look very ugly "naked". These functions make plans understandable at a single glance.
 #'
 #' @param x The "compiled" plans, i.e., from `make_plans()`
-#' @param object The "compiled" plans, i.e., from `make_plans()`
 #' @param \dots Currently unused.
 #' @param show_opts A logical; if `TRUE`, prints the `catchr` options set for the plans.
 #' @param total_len An integer; sets the total number of characters each line can span before being cut off with "..."
@@ -73,12 +64,22 @@ print.catchr_compiled_plans <- function(x, ...,
   if (show_opts)
     opts_string <- paste0(" ", opt_names, ": ", opts_padding, opts, collapse = "\n")
 
-  paste0(cond_headers, ": ", padding, og_qs, collapse="\n") %>%
-    paste(header, ., footer, opts_string, sep="\n") %>%
+  paste(header,
+        paste0(cond_headers, ": ", padding, og_qs, collapse="\n"),
+        footer, opts_string, sep="\n") %>%
     cat()
 
   invisible(x)
 }
+
+#' @param object The "compiled" plans, i.e., from `make_plans()`
+#' @rdname view-plans
+#' @export
+summary.catchr_compiled_plans <- function(object, ...) {
+  print(object, show_opts = TRUE, show_full = TRUE)
+  invisible(object)
+}
+
 
 
 # Internal
