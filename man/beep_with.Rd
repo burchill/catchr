@@ -16,9 +16,9 @@ If you have the \code{[beepr][beepr::beep()]} package installed, \code{catchr} c
 }
 \examples{
 warning_in_middle <- function() {
-  Sys.sleep(5)
+  Sys.sleep(2)
   message("It's time!")
-  Sys.sleep(5)
+  Sys.sleep(2)
   invisible("done")
 }
 
