@@ -7,12 +7,16 @@
 ## R CMD check results
 There were no ERRORs or WARNINGs.
 
-There were 2 NOTEs:
+There was 1 NOTE in win-builder:
 
-    - the name of the package was listed as "Possibly mis-spelled words in DESCRIPTION"
-    
-    - the example for one function has an elapsed time > 5s because it uses `Sys.sleep()`
-    	for a few seconds to demonstrate code functionality. 
+* checking CRAN incoming feasibility ... NOTE
+	Maintainer: 'Zachary Burchill <zach.burchill.code@gmail.com>'
+
+	Possibly mis-spelled words in DESCRIPTION:
+  		catchr (15:62)
+
+`catchr` is the name of the package, though.
+	
 
 ## Downstream dependencies
 There are currently no downstream dependencies
