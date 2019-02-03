@@ -20,14 +20,13 @@ print.catchr_compiled_plans <- function(x,
                                         show_opts = FALSE,
                                         total_len = getOption("width"),
                                         show_full = FALSE) {
-  return(x)
   header <- "<catchr_compiled_plans>"
   footer <- "catchr options: "
-  if (any(map_lgl(is_def_plan, is_true)) && show_opts == FALSE)
-    footer <- "  * to see the default plan, use `summary()`"
 
   og_qs <- as.list(attr(x, "calls", exact = TRUE))
   is_def_plan <- names2(og_qs) == ""
+  if (any(map_lgl(is_def_plan, is_true)) && show_opts == FALSE)
+    footer <- "  * to see the default plan, use `summary()`"
 
   cond_headers <- names2(x)[1:length(x) - 1]
   max_nchar <- max(nchar(cond_headers))

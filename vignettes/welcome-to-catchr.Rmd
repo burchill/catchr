@@ -16,7 +16,7 @@ knitr::opts_chunk$set(
   comment = "#>"
 )
 library(catchr)
-
+library(rlang)
 ```
 
 ```{r, echo=FALSE}
@@ -211,9 +211,9 @@ For example, you can have it alert you when a condition is raised via sound, dis
 
 ```{r, eval=FALSE}
 warning_in_middle <- function() {
-  Sys.sleep(5)
+  Sys.sleep(2)
   message("It's time!")
-  Sys.sleep(5)
+  Sys.sleep(2)
   invisible("done")
 }
 

@@ -1,10 +1,10 @@
 Package: catchr
 Type: Package
 Title: Taking the Pain Out of Catching and Handling Conditions
-Version: 0.2.0.9000
+Version: 0.2.0
 Authors@R: c(
     person("Zachary", "Burchill", email = "zach.burchill.code@gmail.com", 
-                                  role = c("aut", "cre"))
+                                  role = c("aut", "cre", "cph"))
   )
 Maintainer: Zachary Burchill <zach.burchill.code@gmail.com>
 Description: R has a unique way of dealing with warnings, errors, messages, 
