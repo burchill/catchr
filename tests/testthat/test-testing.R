@@ -1,5 +1,13 @@
 context("test-testing")
 
+
+test_that("Basic tests", {
+  expect_error(make_plans())
+  expect_error(make_plans(condition = NULL))
+  expect_error(make_plans(condition = NA_character_))
+  expect_error(make_plans(condition, warning = muffle, condition = collect))
+})
+
 test_that("Namespaces and environments", {
   taboo <- "sup"
   sup <- "NO"
@@ -164,7 +172,10 @@ test_that("Testing collections v1", {
 })
 
 
-test_that("Testing misc v2", {
+test_that("Testing misc", {
+  expect_error(make_plans(condition, warning = muffle, misc = collect))
+  expect_error(make_plans(warning = muffle, misc = collect, condition = collect))
+
   res <- catch_expr(
     condition_thrower(),
     misc = c(collect, exit_with("YAY"), exit),
