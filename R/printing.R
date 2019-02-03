@@ -1,8 +1,8 @@
 #' @rdname view-plans
 #' @export
-summary.catchr_compiled_plans <- function(x) {
-  print(x, show_opts = TRUE, show_full = TRUE)
-  invisible(x)
+summary.catchr_compiled_plans <- function(object, ...) {
+  print(object, show_opts = TRUE, show_full = TRUE)
+  invisible(object)
 }
 
 
@@ -10,25 +10,25 @@ summary.catchr_compiled_plans <- function(x) {
 #'
 #' 'Compiled' `catchr` plans returned by [make_plans()] look very ugly "naked". These functions make plans understandable at a single glance.
 #'
-#' @param x The "compiled" plans, i.e., from `make_plans()`
+#' @param object The "compiled" plans, i.e., from `make_plans()`
 #' @param show_opts A logical; if `TRUE`, prints the `catchr` options set for the plans.
 #' @param total_len An integer; sets the total number of characters each line can span before being cut off with "..."
 #' @param show_full A logical; if `TRUE`, will print out the full length of each line.
 #' @rdname view-plans
 #' @export
-print.catchr_compiled_plans <- function(x,
+print.catchr_compiled_plans <- function(object, ...,
                                         show_opts = FALSE,
                                         total_len = getOption("width"),
                                         show_full = FALSE) {
   header <- "<catchr_compiled_plans>"
   footer <- "catchr options: "
 
-  og_qs <- as.list(attr(x, "calls", exact = TRUE))
+  og_qs <- as.list(attr(object, "calls", exact = TRUE))
   is_def_plan <- names2(og_qs) == ""
   if (any(map_lgl(is_def_plan, is_true)) && show_opts == FALSE)
     footer <- "  * to see the default plan, use `summary()`"
 
-  cond_headers <- names2(x)[1:length(x) - 1]
+  cond_headers <- names2(object)[1:length(object) - 1]
   max_nchar <- max(nchar(cond_headers))
   padding <- get_padding(cond_headers, s=" ")
 
@@ -42,7 +42,7 @@ print.catchr_compiled_plans <- function(x,
 
   # ----------- Make the options -------------------------------------$
   if (show_opts) {
-    opts <- attr(x, "catchr_opts", exact = TRUE)
+    opts <- attr(object, "catchr_opts", exact = TRUE)
     opts[options_to_hide] <- NULL
     opts <- append(opts[names(opts) != "default_plan"], opts["default_plan"])
     opt_names <- names2(opts)
@@ -75,7 +75,7 @@ print.catchr_compiled_plans <- function(x,
     paste(header, ., footer, opts_string, sep="\n") %>%
     cat()
 
-  invisible(x)
+  invisible(object)
 }
 
 
