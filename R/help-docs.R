@@ -65,10 +65,10 @@ NULL
 #'
 #'  - `beep`: if the \link[beepr:beepr-package]{beepr} package is installed, this will play a sound via \code{\link[beepr:beepr]{beepr::beep}}.
 #'
-#'  - `display`: the purpose of this term is to immediately display information about the captured condition on the screen without raising additional conditions (as would be done with `tomessage`). Currently, this term just calls \code{\link[utils]{str}} on the condition, **but this will probably change in later versions.**
+#'  - `display`: the purpose of this term is to immediately display information about the captured condition on the output terminal without raising additional conditions (as would be done with `tomessage`). Currently, it attempts to display this information with bold, turquoise-blue text if the [crayon::crayon] package is installed. In future versions of `catchr`, this default styling (and other display options) made be able to be changed by the user.
 #'
 #' - `muffle`: this term will be substituted for a function that 'muffles' (i.e., 'suppresses', 'catches', 'hides'---whatever you want to call it) the captured condition, preventing it from being raised to higher levels or subsequent plans. Anything in a plan _after_ `muffle` will be ignored, so put it last. \cr
-#' The function `muffle` is built on, \code{\link{first_muffle_restart}}, searches for the first available \link[base:conditions]{restart} with `"muffle"` in its name (the two typical ones are `"muffleMessage"` and `"muffleWarning"`) and calls `invokeRestart` with it. If the captured condition is an error, which can't be muffled, it will exit the evaluation and give `NULL` for the returned value of the evaluated expression.
+#' The function `muffle` is built on, [first_muffle_restart()], searches for the first available \link[base:conditions]{restart} with `"muffle"` in its name (the two typical ones are `"muffleMessage"` and `"muffleWarning"`) and calls `invokeRestart` with it. If the captured condition is an error, which can't be muffled, it will exit the evaluation and give `NULL` for the returned value of the evaluated expression.
 #'
 #' - `exit`: when encountered, this will exit the evaluation of the expression immediately and by default muffle the captured condition (use `raise` to ensure this doesn't happen). Any instructions after `exit` in the input will be ignored, so put it last. To keep `catchr`'s behavior similar to how conditions are handled elsewhere, whatever the previous function in the plan returned will be returned as the value of the evaluated expression, so if you want to make sure you knew the evaluated expression did not finish, make sure the previous function returns `NULL` (e.g., use `function(cond) NULL`).
 #'
@@ -118,7 +118,7 @@ NULL
 #'
 #' @section The `last_stop` condition:
 #'
-#' This condition name is reserved for \code{\link{user_exit}} and \code{\link{exit_with}}. There's basically zero chance any code other than `catchr` will ever raise a condition of `"last_stop"`, so this shouldn't be a problem, but until `catchr` becomes more mature, do not use this name for any condition or plan.
+#' This condition name is reserved for [user_exit()] and [exit_with()]. There's basically zero chance any code other than `catchr` will ever raise a condition of `"last_stop"`, so this shouldn't be a problem, but until `catchr` becomes more mature, do not use this name for any condition or plan.
 #'
 #' @name reserved-conditions
 #' @aliases misc last_stop

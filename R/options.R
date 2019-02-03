@@ -1,8 +1,8 @@
 #' Get/set the input for the default catchr plan
 #'
-#' These functions allow the user to set and retrieve the input that will be assigned to any conditions passed to [make_plans()] without plans (i.e., as unnamed arguments). Using the same inputting style as `make_plans`, the argument `new_plan` will essentially be treated the same way a single named argument would be in \code{make_plans()}, without actually having a name/specific condition.
+#' These functions allow the user to set and retrieve the input that will be assigned to any conditions passed to [make_plans()] without plans (i.e., as unnamed arguments). Using the same inputting style as `make_plans()`, the argument `new_plan` will essentially be treated the same way a single named argument would be in `make_plans()`, without actually having a name/specific condition.
 #'
-#' @param new_plan The input (in the style of named arguments to \code{\link{make_plans}}) that will become the input of default plan.
+#' @param new_plan The input (in the style of named arguments to [make_plans()]) that will become the input of default plan.
 #' @return `set_default_plan()` will invisibly return a "cleaned up" version of the input (i.e., evaluated, and with the unquoted terms replaced with strings), which is what will also be returned by `get_default_plan()` until a new default is set.
 #' @rdname default_plan
 #' @seealso [default catchr options][default-catchr-options]
