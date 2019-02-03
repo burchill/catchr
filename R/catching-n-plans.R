@@ -78,18 +78,18 @@ first_muffle_restart <- function(cond) {
   if (inherits(cond, "error")) {
     if ("return_error" %in% restartNames)
       return(possibleRestarts[which(restartNames=="return_error")][[1]])
-    else
-      return(NULL)
+  } else if (inherits(cond, "interrupt")) {
+    if ("resume" %in% restartNames)
+      return(possibleRestarts[which(restartNames=="resume")][[1]])
   } else {
     muffleRestarts <- possibleRestarts[grepl("muffle", restartNames, ignore.case = TRUE)]
     if (length(muffleRestarts) > 0)
       # Picks the first restart with "muffle" in its name (hack-y?)
       return(muffleRestarts[[1]])
-    # If it doesn't have a muffling restart and isn't an error (ie its a custom condition),
-    #   just cofntinue by returning a null value, but don't stop anything/restart
-    else
-      return(NULL)
   }
+  # If it doesn't have a muffling restart and isn't an error (ie its a custom condition),
+  #   just continue by returning a null value, but don't stop anything/restart
+  return(NULL)
 }
 
 
@@ -238,7 +238,7 @@ make_catch_fn <- function(..., .opts = NULL) {
 
     # If you keep empty conds, make 'em now
     if (!.opts$drop_empty_conds && length(.opts$collectors) > 0)
-      for (c_type in sort(.opts$collectors))
+      for (c_type in .opts$collectors)
         .myConditions[[c_type]] <- list()
 
     kwargs <- plans %>%
@@ -313,7 +313,46 @@ check_if_args_compiled <- function(...) {
            error = function(x) return(FALSE))
 }
 
+#' Return the value after raising all collected conditions
+#'
+#' @description
+#'
+#' This function takes in the [collected conditions list][collect] that is the output of [catch_expr()] or a function from [make_catch_fn()], raises all the conditions that were collected, and then returns the value the original evaluated expression had returned.  This might be useful in situations in which one had collected conditions from a remote evaluation of an expression, and wishes to raise the conditions locally.
+#'
+#' The way the errors are treated can be changed as well: they can either be raised as-is, displayed on screen, or raised as warnings.
+#'
+#' @param l The results of [catch_expr()] or a function from [make_catch_fn()]
+#' @param treat_errs One of three strings governing how errors are treated: `"raise"` which will simply raise errors as they are, `"display"` which will just print the error messages on-screen, and `"warn"` which will raise the errors as warnings.
+#' @export
+dispense_collected <- function(l, treat_errs = c("raise", "display", "warn")) {
+  treat_errs <- match.arg(treat_errs)
 
+  raise_cond <- function(cond, err_behav) {
+    raise_f <- cnd_signal
+    if (inherits(cond, "error"))
+      raise_f <- switch(err_behav,
+                        raise = raise_f,
+                        display = function(x) cat("Error:", trimws(x$message, "both"), file=stderr()),
+                        warn = function(cond) {
+                          class(cond) <- c("warning","condition")
+                          warning(cond)
+                        })
+
+    withRestarts(raise_f(cond), catchr_muffle = function() NULL)
+  }
+
+  if (!is_named(l) || !is_list(l))
+    return(l)
+  if (!("value" %in% names(l)))
+    return(l)
+  res <- l[["value"]]
+  l[["value"]] <- NULL
+
+  for (sublist in l) {
+    walk(sublist, ~raise_cond(., treat_errs))
+  }
+  res
+}
 
 
 

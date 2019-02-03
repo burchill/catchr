@@ -21,7 +21,7 @@ print.catchr_compiled_plans <- function(x, ...,
   if (any(map_lgl(is_def_plan, is_true)) && show_opts == FALSE)
     footer <- "  * to see the default plan, use `summary()`"
 
-  cond_headers <- names2(x)[1:length(x) - 1]
+  cond_headers <- ifelse(is_def_plan, as.character(get_expr(og_qs)), names2(og_qs))
   max_nchar <- max(nchar(cond_headers))
   padding <- get_padding(cond_headers, s=" ")
 
