@@ -7,11 +7,15 @@
 \usage{
 \method{summary}{catchr_compiled_plans}(object, ...)
 
-\method{print}{catchr_compiled_plans}(object, ..., show_opts = FALSE,
+\method{print}{catchr_compiled_plans}(x, ..., show_opts = FALSE,
   total_len = getOption("width"), show_full = FALSE)
 }
 \arguments{
 \item{object}{The "compiled" plans, i.e., from \code{make_plans()}}
+
+\item{\dots}{Currently unused.}
+
+\item{x}{The "compiled" plans, i.e., from \code{make_plans()}}
 
 \item{show_opts}{A logical; if \code{TRUE}, prints the \code{catchr} options set for the plans.}
 
