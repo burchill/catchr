@@ -80,9 +80,9 @@ results <- catch_expr(arbitrary_code(), warning = c(collect, muffle))
 
 This is pretty quintessential of the `catchr` system. You have the expression you want to evaluate and catch conditions for (here, `arbitrary_code()`), followed by the names of the types of conditions you want to catch and the plans you have for them when they're caught (`warning = c(collect, muffle)`).
 
-A "catchr plan" starts off as a named argument, where its name is the type of condition it will apply to (e.g., "message", "warning", "error", etc.), and its value will eventually become a function that will take in the condition and do stuff with it. `catchr`'s "secret sauce" lets you pass in each plan as a list of functions that will be applied to the condition in order.^[See `help(catchr_plans, "catchr")`.] 
+A "catchr plan" starts off as a named argument, where its name is the type of condition it will apply to (e.g., "message", "warning", "error", etc.), and its value will eventually become a function that will take in the condition and do stuff with it. `catchr`'s "secret sauce" lets you pass in each plan as a list of functions that will be applied to the condition in order.^[See ``help(`catchr-plans`, "catchr")``.] 
 
-But `catchr` also comes full of stock functions that make condition handling simple---these special functions can be inputted as strings, but `catchr` promotes more-readable code and saves you extra typing by letting you enter them unquoted special terms, like `collect` and `muffle` in the example above.^[See `help(`catchr-DSL`, "catchr")`.]
+But `catchr` also comes full of stock functions that make condition handling simple---these special functions can be inputted as strings, but `catchr` promotes more-readable code and saves you extra typing by letting you enter them unquoted special terms, like `collect` and `muffle` in the example above.^[See ``help(`catchr-DSL`, "catchr")``.]
 
 ## Even _less_ typing
 
