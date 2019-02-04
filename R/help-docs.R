@@ -44,6 +44,7 @@
 #' catch_expr("DONE", fake_cond = muffle, .opts = catchr_opts(bare_if_possible=FALSE))
 #' @name collecting-conditions
 #' @aliases collect
+#' @seealso [dispense_collected()] to raise the collected conditions and return the bare result
 NULL
 
 
