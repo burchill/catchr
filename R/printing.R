@@ -18,8 +18,12 @@ print.catchr_compiled_plans <- function(x, ...,
 
   og_qs <- as.list(attr(x, "calls", exact = TRUE))
   is_def_plan <- names2(og_qs) == ""
-  if (any(map_lgl(is_def_plan, is_true)) && show_opts == FALSE)
-    footer <- "  * to see the default plan, use `summary()`"
+  if (show_opts == FALSE) {
+    if (any(map_lgl(is_def_plan, is_true)))
+      footer <- "  * to see the default plan, use `summary()`"
+    else
+      footer <- "  to see catchr options, use `summary()`"
+  }
 
   cond_headers <- ifelse(is_def_plan, as.character(get_expr(og_qs)), names2(og_qs))
   max_nchar <- max(nchar(cond_headers))
