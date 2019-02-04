@@ -37,7 +37,7 @@ At its heart, `catchr` is designed to ~~make it so that you never have to read a
 
 ## The ol' razzle-dazzle
 
-Let's hit you with some imaginary scenarios here. Suppose I want to run some code, and I want to catch any warnings it produces, "hide" them so they don't appear, and instead just store them so I can do something else with them later on.  All without making my code halt or start over.
+Let's hit you with some imaginary scenarios here, before I show you how it works. Suppose I want to run some code, and I want to catch any warnings it produces, "hide" them so they don't appear, and instead just store them so I can do something else with them later on.  All without making my code halt or start over.
 
 ```{r, eval=FALSE}
 library(catchr)
@@ -80,9 +80,27 @@ results <- catch_expr(arbitrary_code(), warning = c(collect, muffle))
 
 This is pretty quintessential of the `catchr` system. You have the expression you want to evaluate and catch conditions for (here, `arbitrary_code()`), followed by the names of the types of conditions you want to catch and the plans you have for them when they're caught (`warning = c(collect, muffle)`).
 
-A "catchr plan" starts off as a named argument, where its name is the type of condition it will apply to (e.g., "message", "warning", "error", etc.), and its value will eventually become a function that will take in the condition and do stuff with it. `catchr`'s "secret sauce" lets you pass in each plan as a list of functions that will be applied to the condition in order.^[See ``help(`catchr-plans`, "catchr")``.] 
+In `catchr`, users use functions like building blocks to a "plan" of what to do for particular conditions. Users can specify their own functions or use `catchr` functions, but `catcher` also offers a useful toolbox of behaviors that work their magic behind the scene through `catchr`'s simple [domain-specific language](http://adv-r.had.co.nz/dsl.html).^[See `help("catchr-DSL", "catchr")` for the details.]
 
-But `catchr` also comes full of stock functions that make condition handling simple---these special functions can be inputted as strings, but `catchr` promotes more-readable code and saves you extra typing by letting you enter them unquoted special terms, like `collect` and `muffle` in the example above.^[See ``help(`catchr-DSL`, "catchr")``.]
+A catchr "plan" starts off as a named argument, where its name is the type of condition it will apply to (e.g., "message", "warning", "error", etc.), and its value will eventually become a function that will take in the condition and do stuff with it. `catchr`'s "secret sauce" lets you pass in each plan as a list of functions that will be applied to the condition in order.^[See ``help(`catchr-plans`, "catchr")``.] 
+
+But `catchr` also comes full of stock functions that make condition handling simple---these special functions can be inputted as strings, but `catchr` promotes more-readable code and saves you extra typing by letting you enter them as unquoted special terms, like `collect` and `muffle` in the example above.
+
+### Special reserved terms
+
+These special terms cover some of the most common behaviors users might want to use:
+
+Special "reserved" term | Function
+--------------------- | -------------------------------------------------------
+`tomessage`, `towarning`, `toerror` | convert conditions to other types of conditions
+`beep` | play a short sound
+`display` | displays the contents of the condition on-screen
+`collect` | collects the condition and saves it to a list that will be returned at the end
+`muffle` | "muffles",^[i.e., "suppresses", "catches", "hides"---whatever you want to call it] a condition so it doesn't keep going up, and restarts the code
+`exit` | immediately stops the code and muffles the condition
+`raise` | raises conditions past `exit`
+
+These can be used as building blocks just like normal functions. For example, in the previous example, we saw how `collect` and `muffle` were strung together to make a plan.
 
 ## Even _less_ typing
 
@@ -205,9 +223,9 @@ catch_expr(make_warnings(), warning = c(display_with(c("pink","underline","bold"
 
 ### Play sounds when conditions are raised
 
-Particularly useful for when you're working in a different window and waiting for a job to finish / do something unexpected, `catchr` lets you play short sounds whenever conditions are raised.  This functionality requires the [`beepr`](https://CRAN.R-project.org/package=beepr) package, which I've found absolutely worth downloading.
+Particularly useful for when you're working in a different window and waiting for a job to finish / do something unexpected, `catchr` lets you play short sounds whenever conditions are raised.^[If you're going to be doing something like this, make sure `getOption("warn")==1`]  This functionality requires the [`beepr`](https://CRAN.R-project.org/package=beepr) package, which I've found absolutely worth downloading.
 
-For example, you can have it alert you when a condition is raised via sound, display it, and keep going:
+For example, you can have it alert you when a condition is raised via sound, display the condition without raising it, and keep going:
 
 ```{r, eval=FALSE}
 warning_in_middle <- function() {
