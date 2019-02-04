@@ -324,7 +324,8 @@ user_display <- function(cond, crayon_style, ...) {
 #' @export
 display_with <- function(crayon_style, ...) {
   force(crayon_style)
-  force(...)
+  # A way of forcing dots that's safe even when there are no dots
+  enquos(...)
   function(cond) user_display(cond, crayon_style, ...)
 }
 
