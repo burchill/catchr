@@ -25,18 +25,6 @@ test_that("trimws testing", {
 })
 
 
-test_that("HMMM", {
-  cat("huh")
-  cat("what", file=stderr())
-  expect_identical(capture.output(cat("huh")), "huh")
-  sink(stdout(), type="message")
-  expect_identical(capture.output(cat("xx")), "xx")
-  expect_identical(capture.output(cat("yy", file=stderr())), "yy")
-  expect_identical("a","b")
-})
-
-
-
 test_that("Collecting and raising", {
   opts = catchr_opts(default_plan = c(collect, muffle),
                      drop_empty_conds = FALSE,
@@ -51,11 +39,14 @@ test_that("Collecting and raising", {
   expect_message(dispense_collected(res[c("value", "message")]))
   expect_error(dispense_collected(res[c("value", "error")]))
 
+  # Ugh, frickin' capture.output in R 3.1...
+  if (as.numeric(paste0(R.Version()$major, ".", floor(as.numeric(R.Version()$minor)))) >= 3.2) {
   output <- capture.output({
     res1.5 <- dispense_collected(res[c("value", "error")], treat_errs = "display")},
     type="message")
   expect_equivalent("Error: collaborate and listen", output)
   expect_null(res1.5)
+  }
 
   res[["value"]] <- "good"
   expect_warning(
