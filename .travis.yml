@@ -19,8 +19,8 @@ matrix:
       warnings_are_errors: false
     - r: 3.5
       warnings_are_errors: false
-      after_success:
-        - Rscript -e 'covr::codecov()'
+      #after_success:
+      #  - Rscript -e 'covr::codecov()'
     - r: devel
       warnings_are_errors: false
   allow_failures:
