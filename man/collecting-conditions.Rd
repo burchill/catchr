@@ -8,7 +8,7 @@
 One of the most useful aspects of \code{catchr} is its ability to catch and 'collect' the conditions (e.g., warnings, errors, messages, etc.) raised by an expression without halting/redoing the evaluation of that expression. This can be particularly useful in a number of scenarios:
 \itemize{
 \item If you are trying to catch the warning messages from code that takes a long time to run, where having to restart the whole process from square one would be too costly.
-\item If you want to collect warnings, messages, and errors from code that is running remotely, where these conditions would not be returned with the rest of the results, such as with the \code{\link[future]{future}} package.
+\item If you want to collect warnings, messages, and errors from code that is running remotely, where these conditions would not be returned with the rest of the results, such as with the \link[future:future]{future} package.
 \item If you are running lots of code in parallel and want to log all of the conditions within R, such as in a large-scale power simulation, or with packages such \code{\link[purrr:purrr-package]{purrr}}.
 }
 

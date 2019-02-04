@@ -101,7 +101,7 @@ add_ellipses <- function(x, len) {
 }
 
 
-
+# Base R code for v 3.1 support
 trimws <- function (x, which = c("both", "left", "right")) {
   which <- match.arg(which)
   mysub <- function(re, x) sub(re, "", x, perl = TRUE)
