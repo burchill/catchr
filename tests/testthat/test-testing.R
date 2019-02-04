@@ -25,13 +25,14 @@ test_that("trimws testing", {
 })
 
 
-test_that("", {
+test_that("HMMM", {
   cat("huh")
   cat("what", file=stderr())
   expect_identical(capture.output(cat("huh")), "huh")
   sink(stdout(), type="message")
   expect_identical(capture.output(cat("xx")), "xx")
   expect_identical(capture.output(cat("yy", file=stderr())), "yy")
+  expect_identical("a","b")
 })
 
 
