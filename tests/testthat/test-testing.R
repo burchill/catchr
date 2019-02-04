@@ -17,6 +17,13 @@ test_that("Basic format errors", {
   expect_error(make_plans(condition, warning = muffle, condition = collect))
 })
 
+test_that("trimws testing", {
+  message <-"\t test \n\n"
+  expect_identical(trimws(message, "left"), "test \n\n")
+  expect_identical(trimws(message, "right"), "\t test")
+  expect_identical(trimws(message, "both"), "test")
+})
+
 
 test_that("Collecting and raising", {
   opts = catchr_opts(default_plan = c(collect, muffle),
