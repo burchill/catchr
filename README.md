@@ -122,8 +122,8 @@ raise, first a beep is played and then it is converted to an error.
 
 Instead of using R’s “calling”/“exiting” “handler” terminology, `catchr`
 keeps things simple with a single concept, “plans”. In `catchr`, users
-use different functions like building blocks to a “plan” of what to do
-for particular conditions. Users can specify their own functions or use
+use functions like building blocks to a “plan” of what to do for
+particular conditions. Users can specify their own functions or use
 `catchr` functions, but `catcher` also offers a useful toolbox of
 behaviors that work their magic behind the scene through `catchr`’s
 simple [domain-specific language](http://adv-r.had.co.nz/dsl.html).\[1\]

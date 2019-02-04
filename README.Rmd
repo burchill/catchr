@@ -102,7 +102,7 @@ bad_results <- catch_expr(fake_model(-7), warning = c(beep, toerror))
 
 ## `catchr` "plans"
 
-Instead of using R's "calling"/"exiting" "handler" terminology, `catchr` keeps things simple with a single concept, "plans". In `catchr`, users use different functions like building blocks to a "plan" of what to do for particular conditions. Users can specify their own functions or use `catchr` functions, but `catcher` also offers a useful toolbox of behaviors that work their magic behind the scene through `catchr`'s simple [domain-specific language](http://adv-r.had.co.nz/dsl.html).^[See `help("catchr-DSL", "catchr")` for the details.]
+Instead of using R's "calling"/"exiting" "handler" terminology, `catchr` keeps things simple with a single concept, "plans". In `catchr`, users use functions like building blocks to a "plan" of what to do for particular conditions. Users can specify their own functions or use `catchr` functions, but `catcher` also offers a useful toolbox of behaviors that work their magic behind the scene through `catchr`'s simple [domain-specific language](http://adv-r.had.co.nz/dsl.html).^[See `help("catchr-DSL", "catchr")` for the details.]
 
 This toolbox consists of special "reserved" terms that users can input as strings or unquoted terms, and cover some of the most common behaviors users might want to use:
 
