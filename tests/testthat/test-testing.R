@@ -25,6 +25,17 @@ test_that("trimws testing", {
 })
 
 
+test_that("", {
+  cat("huh")
+  cat("what", file=stderr())
+  expect_identical(capture.output(cat("huh")), "huh")
+  sink(stdout(), type="message")
+  expect_identical(capture.output(cat("xx")), "xx")
+  expect_identical(capture.output(cat("yy", file=stderr())), "yy")
+})
+
+
+
 test_that("Collecting and raising", {
   opts = catchr_opts(default_plan = c(collect, muffle),
                      drop_empty_conds = FALSE,
