@@ -1,12 +1,54 @@
 context("test-testing")
 
 
-test_that("Basic tests", {
+condition_thrower <- function() {
+  warning("1")
+  message("A")
+  warning("2")
+  signal_custom_condition("X","weirdo")
+  stop("collaborate and listen")
+}
+
+
+test_that("Basic format errors", {
   expect_error(make_plans())
   expect_error(make_plans(condition = NULL))
   expect_error(make_plans(condition = NA_character_))
   expect_error(make_plans(condition, warning = muffle, condition = collect))
 })
+
+
+test_that("Collecting and raising", {
+  opts = catchr_opts(default_plan = c(collect, muffle),
+                     drop_empty_conds = FALSE,
+                     bare_if_possible = FALSE)
+  plans <- make_plans(warning, message, error,
+                      .opts = opts)
+
+  res <- catch_expr(condition_thrower(), plans)
+  res2 <- catch_expr(dispense_collected(res), plans)
+  expect_identical(res, res2)
+  expect_warning(dispense_collected(res[c("value", "warning")]))
+  expect_message(dispense_collected(res[c("value", "message")]))
+  expect_error(dispense_collected(res[c("value", "error")]))
+
+  output <- capture.output({
+    res1.5 <- dispense_collected(res[c("value", "error")], treat_errs = "display")},
+    type="message")
+  expect_equivalent("Error: collaborate and listen", output)
+  expect_null(res1.5)
+
+  res[["value"]] <- "good"
+  expect_warning(
+    expect_identical(
+      dispense_collected(res[c("value", "error")], treat_errs = "warn"), "good"))
+
+  res3 <- catch_expr("no conditions", plans)
+  expect_identical(res3$value, dispense_collected(res3))
+  expect_identical(res3$value, dispense_collected(res3$value))
+
+})
+
 
 test_that("Namespaces and environments", {
   taboo <- "sup"
@@ -69,13 +111,6 @@ test_that("Function names are not masked", {
 ####################################
 
 
-condition_thrower <- function() {
-  warning("1")
-  message("A")
-  warning("2")
-  signal_custom_condition("X","weirdo")
-  stop("collaborate and listen")
-}
 
 
 test_that("No collection = no sublists when bare_if_possible", {
