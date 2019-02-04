@@ -31,13 +31,15 @@ arbitrary_code <- function() {}
 ```
 
 
-Compared to many other programming languages, the way `R` handles 'conditions'---errors, warnings, messages, and most things referred to as 'exceptions' in other languages---is pretty unintuitive.^[At least, I *thought* it was. Now I understand that it's everything *else* that doesn't make sense.] R's help file on the subject is basically impenetrable,^[Accessible via `help(conditions)`.] and even though Hadley Wickham has stepped in and produced [a very helpful guide on conditions](http://adv-r.had.co.nz/beyond-exception-handling.html), understanding what's going on is still pretty hard, and actually _handling_ conditions is even harder.
+Compared to many other programming languages, the way `R` handles "conditions"---errors, warnings, messages, and most things referred to as "exceptions" in other languages---is pretty unintuitive.^[At least, I *thought* it was. Now I understand that it's everything *else* that doesn't make sense.] R's help file on the subject is basically impenetrable,^[Accessible via `help(conditions)`.] and even though Hadley Wickham has stepped in and produced [a very helpful guide on conditions](http://adv-r.had.co.nz/beyond-exception-handling.html), understanding what's going on is still pretty hard, and actually _handling_ conditions is even harder.
 
 At its heart, `catchr` is designed to ~~make it so that you never have to read any of that stuff~~ make dealing with conditions easy from the get-go. 
 
 ## The ol' razzle-dazzle
 
-Let's hit you with some imaginary scenarios here, before I show you how it works. Suppose I want to run some code, and I want to catch any warnings it produces, "hide" them so they don't appear, and instead just store them so I can do something else with them later on.  All without making my code halt or start over.
+Let's hit you with some imaginary scenarios here, before we get down to the nitty-gritty. 
+
+Suppose I want to run some code, and I want to catch any warnings it produces, "hide" them so they don't appear, and instead just store them so I can do something else with them later on.  All without making my code halt or start over.
 
 ```{r, eval=FALSE}
 library(catchr)
@@ -58,17 +60,16 @@ One line. Look at my nice, portable function:
 same_results <- collect_warnings(arbitrary_code())
 ```
 
-But let's say ~~I'm a _naaaaasty_ boy~~^[Ed.: you can't say that in a CRAN package] I have a complex situation which necessitates printing something when the code raises a message and immediately exiting it, but also turning any warnings into messages, and prevent any errors from crashing everything else.
+But let's say ~~I'm a _naaaaasty_ boy~~^[Ed.: you can't say that in a CRAN package] I have a complex situation which necessitates printing something when the code raises a message and immediately exiting it, but also turning any warnings into messages, and preventing any errors from crashing everything else. _\*Shiver\*_.
 
 ```{r, eval=FALSE}
 weirdo_catcher <- make_catch_fn(
   message = c(function(x) print("oops"), exit),
   warning = c(tomessage, muffle),
-  error = muffle
-)
+  error = muffle)
 ```
 
-\*Shiver\*. I can do that too, and that's only _beginning_ to scratch the surface of `catchr`. Although most of the detailed information can be found in the help files, let's take a look at the basics.
+I can do that too, and that's only _beginning_ to scratch the surface of `catchr`. Although most of the detailed information can be found in the help files and manual, let's go over some of the basics.
 
 ## Catching conditions with "plans"
 
@@ -93,7 +94,7 @@ These special terms cover some of the most common behaviors users might want to 
 Special "reserved" term | Function
 --------------------- | -------------------------------------------------------
 `tomessage`, `towarning`, `toerror` | convert conditions to other types of conditions
-`beep` | play a short sound
+`beep` | plays a short sound
 `display` | displays the contents of the condition on-screen
 `collect` | collects the condition and saves it to a list that will be returned at the end
 `muffle` | "muffles",^[i.e., "suppresses", "catches", "hides"---whatever you want to call it] a condition so it doesn't keep going up, and restarts the code
@@ -112,7 +113,7 @@ print(get_default_plan())
 my_plans <- make_plans(warning, message, error)
 ```
 
-These unnamed arguments can be entered as either strings or unquoted terms, and should correspond to the name of a condition you want to catch. They will automatically be given whatever `catchr`'s default plan is, which can be get/set via `get_default_plan()` and `set_default_plan`, respectively. Named and unnamed arguments can be mixed freely.
+These unnamed arguments can be entered as either strings or unquoted terms, and should correspond to the name of a condition you want to catch. They will automatically be given whatever `catchr`'s default plan is, which can be get/set via `get_default_plan()` and `set_default_plan`, respectively. Named and unnamed arguments can be mixed freely.  Other default behaviors can be get/set with `catchr_default_opts()`.
 
 ## "Collecting" conditions
 
@@ -134,7 +135,7 @@ print(collected_results)
 
 This is particularly useful if you want to catch warnings and messages, etc. from code that takes a long time to run, where having to restart the whole process from square one would be too costly. 
 
-Or if you want to collect warnings, messages, and errors from code that is running remotely, where these conditions would not be returned with the rest of the results, such as with the [`future` package](https://github.com/HenrikBengtsson/future/). The following isn't a very... *natural* example, but the things I use it for would be too involved to use here:
+Or if you want to collect warnings, messages, and errors from code that is running remotely, where these conditions would not be returned with the rest of the results, such as with the [future package](https://github.com/HenrikBengtsson/future/). The following isn't a very... *natural* example, but I'm trying to keep things simple:
 
 ```{r, eval=FALSE}
 library(future)
@@ -159,7 +160,7 @@ l %<-% {
 Filter(function(e) length(e$error) == 0, l)
 ```
 
-_OR_, if you're running a lot of code in parallel and want to log all of the conditions within R (where it's easiest to manipulate), such as in a large-scale power simulation, or with packages such [`purrr`](https://github.com/tidyverse/purrr).
+_OR_, maybe you're running a lot of code in parallel and want to keep track of all of the raised conditions in R (where they're easiest to manipulate), such as in a large-scale power simulation, or with packages such [purrr](https://github.com/tidyverse/purrr).
 
 ```{r, eval=FALSE}
 # Let's combine both `future` and `purrr` with Davis Vaughan's `furrr` package instead

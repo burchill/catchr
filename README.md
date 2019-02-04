@@ -28,10 +28,10 @@ R’s powerful condition-handling abilities.
 To lower the barrier of entry, keep code clean and readable, and reduce
 the amount of typing required, `catchr` uses a very simple
 domain-specific language that simplifies things on the front-end.
-`catchr` focuses on letting users generate their own “catching”
-functions where they can specify behavior via conceptual “plans”,
-removing unnecessary complexities—like the distinction between “calling”
-vs. “exiting” handlers—and adding many very useful features, like the
+`catchr` focuses on letting users build their own “catching” functions
+where they can specify behavior via conceptual “plans”, removing
+unnecessary complexities—like the distinction between “calling”
+vs. “exiting” handlers—and adding many useful features, like the
 ability to “collect” the conditions raised from a call.
 
 ## Installation
@@ -55,8 +55,9 @@ devtools::install_github("burchill/catchr")
 In R, “warnings” (which generally indicate something *might* be going
 wrong), “errors” (which indicate something *definitely* has gone wrong),
 and “messages” (which generally just indicate neutral information) are
-all subclasses of “conditions”, and they make up a vast majoirty of the
-conditions you will ever encounter if you’re not a developer.
+all subclasses of “conditions”, and these three types make up a vast
+majoirty of the conditions you will ever encounter if you’re not a
+developer.
 
 When a condition is “raised”, the code essentially stops, and the
 condition floats up through the code until something “catches” it or
@@ -65,7 +66,7 @@ errors will print a message out on your screen. Then, unless the
 condition was an error, the code picks up where it left off.
 
 Phrased as such, conditions may seem like no big deal. And for many
-basic uses of R, maybe they’re not—if you’re just tidying up some data
+basic uses of R, maybe they’re not; if you’re just tidying up some data
 and making a plot out of it, you can react to warnings and errors as
 they come, with little cost. But for more involved R projects, being
 able to deal with conditions programmatically becomes *indispensable*.
@@ -104,7 +105,7 @@ bad_results <- catch_expr(fake_model(-7), warning = toerror)
 ```
 
 But let’s say you want to be alerted about this issue as soon as
-possible and you’re working on something else in a different window
+possible, and you’re working on something else in a different window
 while the code runs. You can have `catchr` play a beeping sound whenever
 this event happens with a simple addition:
 
@@ -113,10 +114,10 @@ this event happens with a simple addition:
 bad_results <- catch_expr(fake_model(-7), warning = c(beep, toerror))
 ```
 
-`catchr` is designed so that making “plans” for how a condition is
-handled simple, extendable, and flexible. In the example above, we made
-a “plan” for conditions of the class “warning” so that when one is
-raise, first a beep is played and then it is converted to an error.
+`catchr` is designed so that making “plans” for a condition is simple,
+extendable, and flexible. In the example above, we made a “plan” for
+conditions of the class “warning” so that when one is raised, first a
+beep is played and then the warning is converted to an error.
 
 ## `catchr` “plans”
 
@@ -267,7 +268,9 @@ results <- l %>% imap(function(e, i) {
 #> 
 #> in l[[3]]:
 #> I'm tired of this data!
+```
 
+``` r
 print(results)
 #> [[1]]
 #> [1] "model-1"
