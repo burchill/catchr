@@ -100,3 +100,6 @@ add_ellipses <- function(x, len) {
   else x
 }
 
+trimws <- function(x) {
+  sub("\\s+$", "", sub("^\\s+", "", x))
+}
