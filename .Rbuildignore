@@ -1,3 +1,5 @@
+^Meta$
+^doc$
 ^to-do\.R$
 ^codecov\.yml$
 ^.*\.Rproj$
