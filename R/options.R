@@ -23,18 +23,18 @@ get_default_plan <- function() {
 #'
 #' @description
 #'
-#' `catchr` offers a number of options for planning condition handling, and the `catchr_opts` function
+#' catchr offers a number of options for planning condition handling, and the `catchr_opts` function
 #'  provides a way of passing those options to whatever function is handling the planning. If any
 #'  argument is left unspecified it defaults to the global defaults (accessible via
 #'  [catchr_default_opts()], [base::options()], or [base::getOption()]).
 #'
 #' @section Catchr options:
 #'
-#'  `catchr`'s options are specified below. The names of the global default option are preceded by `"catchr."` so they don't collide with other packages' options (i.e., `drop_empty_conds` can be accessed via `getOption("catchr.drop_empty_conds")`:
+#'  catchr's options are specified below. The names of the global default option are preceded by `"catchr."` so they don't collide with other packages' options (i.e., `drop_empty_conds` can be accessed via `getOption("catchr.drop_empty_conds")`:
 #'
 #'  * `default_plan`: The default plan that will be used for unnamed arguments (i.e., conditions specified without plans) to [make_plans()] or the like. See [get_default_plan()] for more details. The original package default is `c("collect", "muffle")`.
-#'  * `warn_about_terms`: If one of its [reserved terms][catchr-DSL] would mask a previously defined variable name when `catchr` is compiling plans, you can specify whether or not a warning will be generated. The original package default is `TRUE`, which will warn the user of these occurrences.
-#'  * `bare_if_possible`: When no plans are set to [collect] conditions, you have the option of returning the value of the evaluated expression by itself, *without* being the `$value` element of a list. If `bare_if_possible` is `TRUE` and no plans collect conditions, it will return the value without the wrapping list. If one is using `catchr` extensively, it might be wise to set this option to `FALSE` so `catchr`'s returned values are always consistent. The original package default is `TRUE`.
+#'  * `warn_about_terms`: If one of its [reserved terms][catchr-DSL] would mask a previously defined variable name when catchr is compiling plans, you can specify whether or not a warning will be generated. The original package default is `TRUE`, which will warn the user of these occurrences.
+#'  * `bare_if_possible`: When no plans are set to [collect] conditions, you have the option of returning the value of the evaluated expression by itself, *without* being the `$value` element of a list. If `bare_if_possible` is `TRUE` and no plans collect conditions, it will return the value without the wrapping list. If one is using catchr extensively, it might be wise to set this option to `FALSE` so catchr's returned values are always consistent. The original package default is `TRUE`.
 #'  * `drop_empty_conds`: If conditions have plans that would collect them but none are raised in the evaluation of an expression, you have the option of dropping their sublists. For example, conditions that aren't warnings, messages, or errors are very rare. If you wanted to return the ["misc"][reserved-conditions] condition sublist only when such conditions were raised, you could do this by setting the value to `TRUE`. The original package default is `FALSE`.
 #'
 #' @param default_plan The default plan for unnamed input arguments. See [get_default_plan()] for more details.
@@ -77,7 +77,7 @@ catchr_opts <- function(default_plan = NULL,
 #'
 #' @description
 #'
-#' `catchr`'s options for planning condition handling are passed into `catchr` functions with [catchr_opts()], but when an option isn't specified in the call, `catchr_opts()` uses whatever the default for that option is. You can get and set these global defaults with `catchr_default_opts()` and do a "factory reset" on them to restore the original package values with `restore_catchr_defaults()`.
+#' catchr's options for planning condition handling are passed into catchr functions with [catchr_opts()], but when an option isn't specified in the call, `catchr_opts()` uses whatever the default for that option is. You can get and set these global defaults with `catchr_default_opts()` and do a "factory reset" on them to restore the original package values with `restore_catchr_defaults()`.
 #'
 #' @section Arguments:
 #'

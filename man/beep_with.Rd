@@ -10,9 +10,9 @@ beep_with(beepr_sound)
 \item{beepr_sound}{A character string or number specifying the sound to be played. See the \code{sound} argument in \code{\link[beepr:beep]{beepr::beep()}} documentation.}
 }
 \description{
-If you have the \link[beepr:beep]{beepr} package installed, \code{catchr} can use it to play sounds when certain conditions are being handled with \code{beep_with()}, similar to how \code{\link[=catchr-DSL]{beep}} works. But unlike \code{beep} and most \code{catchr} functions or special reserved terms, \code{beep_with()} is meant to be used as a user-defined function in a plan. It is particularly useful for when you're working with \code{futures} and busy doing something else while code is running in the background, or when you're working in a different window and want something to grab your attention.
+If you have the \link[beepr:beep]{beepr} package installed, catchr can use it to play sounds when certain conditions are being handled with \code{beep_with()}, similar to how \code{\link[=catchr-DSL]{beep}} works. But unlike \code{beep} and most catchr functions or special reserved terms, \code{beep_with()} is meant to be used as a user-defined function in a plan. It is particularly useful for when you're working with \code{futures} and busy doing something else while code is running in the background, or when you're working in a different window and want something to grab your attention.
 
-\code{beep_with} can be used at the "top" level of a plan, since it returns a \emph{function} (which is required custom input for a \code{catchr} plan) that will play the beeping sound you've specified.
+\code{beep_with} can be used at the "top" level of a plan, since it returns a \emph{function} (which is required custom input for a catchr plan) that will play the beeping sound you've specified.
 }
 \examples{
 warning_in_middle <- function() {

@@ -14,7 +14,7 @@ restore_catchr_defaults(...)
 \item{\dots}{Default options to get or set. See the Arguments section for details.}
 }
 \description{
-\code{catchr}'s options for planning condition handling are passed into \code{catchr} functions with \code{\link[=catchr_opts]{catchr_opts()}}, but when an option isn't specified in the call, \code{catchr_opts()} uses whatever the default for that option is. You can get and set these global defaults with \code{catchr_default_opts()} and do a "factory reset" on them to restore the original package values with \code{restore_catchr_defaults()}.
+catchr's options for planning condition handling are passed into catchr functions with \code{\link[=catchr_opts]{catchr_opts()}}, but when an option isn't specified in the call, \code{catchr_opts()} uses whatever the default for that option is. You can get and set these global defaults with \code{catchr_default_opts()} and do a "factory reset" on them to restore the original package values with \code{restore_catchr_defaults()}.
 }
 \section{Arguments}{
 

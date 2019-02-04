@@ -66,7 +66,7 @@ give_newline <- function(s, trim = FALSE) {
 
 #' Find the first 'mufflable' restart
 #'
-#' This function attempts to return the first available \link[base:conditions]{restart} with the string "muffle" in its name. If the condition is an error, it will attempt to find the first restart named "return_error" (used internally in `catchr` to return a `NULL` value). If the condition is an "interrupt", it will attempt to find the first restart named "resume". If no such restarts can be found, it returns `NULL`.
+#' This function attempts to return the first available \link[base:conditions]{restart} with the string "muffle" in its name. If the condition is an error, it will attempt to find the first restart named "return_error" (used internally in catchr to return a `NULL` value). If the condition is an "interrupt", it will attempt to find the first restart named "resume". If no such restarts can be found, it returns `NULL`.
 #'
 #' @param cond A condition
 #' @return A restart or `NULL` if none can be found.
@@ -99,9 +99,9 @@ first_muffle_restart <- function(cond) {
 #'
 #' @description
 #'
-#' Customizing how conditions are handled in `catchr` is done by giving `catchr` 'plans' for when it encounters particular conditions. These plans are essentially just lists of functions that are called in order, and that take in the particular condition as an argument.
+#' Customizing how conditions are handled in catchr is done by giving catchr 'plans' for when it encounters particular conditions. These plans are essentially just lists of functions that are called in order, and that take in the particular condition as an argument.
 #'
-#' However, since `catchr` evaluates things \link[=catchr-DSL]{slightly differently than base R}, the user input to make these plans has to first be passed into `make_plans` (or, for setting the default plan, [set_default_plan()]). `make_plans` also lets users specify options for how they want these plans to be evaluated with the `.opts` argument (see [catchr_opts()] for more details).
+#' However, since catchr evaluates things \link[=catchr-DSL]{slightly differently than base R}, the user input to make these plans has to first be passed into `make_plans` (or, for setting the default plan, [set_default_plan()]). `make_plans` also lets users specify options for how they want these plans to be evaluated with the `.opts` argument (see [catchr_opts()] for more details).
 #'
 #' See the 'Input' section below and the examples for how to use `make_plans`.
 #'
@@ -114,7 +114,7 @@ first_muffle_restart <- function(cond) {
 #'
 #' However, *unnamed* arguments are *also* accepted: the value of any unnamed arguments will be treated as the type of a condition, which will then have the default plan assigned to it, as specified either in `.opts = catchr_opts(...)` or via `getOption("catchr.default_plan")`. Unnamed arguments must be either strings or unquoted expressions which will then be converted to strings. Currently, unnamed arguments are _never_ evaluated, so cannot be calls that evaluate to strings.
 #'
-#' **However, this may change in future versions of `catchr`.**
+#' **However, this may change in future versions of catchr.**
 #'
 #' @section Passing input in programmatically:
 #'
@@ -366,7 +366,7 @@ dispense_collected <- function(l, treat_errs = c("raise", "display", "warn")) {
 #'
 #' @description
 #'
-#' **Note**: `with_ordered_handlers()` is _not_ designed to play nice with the rest of the `catchr` framework, and is exported as a utility function users might find useful elsewhere. Do not consider this a stable part of the API.
+#' **Note**: `with_ordered_handlers()` is _not_ designed to play nice with the rest of the catchr framework, and is exported as a utility function users might find useful elsewhere. Do not consider this a stable part of the API.
 #'
 #' `with_ordered_handlers()` is inspired by `rlang`'s [rlang::with_handlers()] function, which essentially lets you handle conditions in ways that don't stop the evaluation ("calling" handlers) and ways that will immediately break out of the evaluation ("exiting" handlers) in a single function.
 #'

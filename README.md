@@ -18,21 +18,21 @@ on the surface the way exceptions are caught in Python seems so simple
 compared to R—*what even **is** a “restart”? What are those things
 people are referring to as “handlers” anyway?*
 
-The purpose of `catchr` is to provide flexible, useful tools for
-handling R conditions with less hassle and head-scratching. One of the
-most important goals of this package is to maintain a continuous
-learning curve that so new users jump straight in, but more advanced
-users can find the depth and complexity they need to take advantage of
-R’s powerful condition-handling abilities.
+The purpose of catchr is to provide flexible, useful tools for handling
+R conditions with less hassle and head-scratching. One of the most
+important goals of this package is to maintain a continuous learning
+curve that so new users jump straight in, but more advanced users can
+find the depth and complexity they need to take advantage of R’s
+powerful condition-handling abilities.
 
 To lower the barrier of entry, keep code clean and readable, and reduce
-the amount of typing required, `catchr` uses a very simple
-domain-specific language that simplifies things on the front-end.
-`catchr` focuses on letting users build their own “catching” functions
-where they can specify behavior via conceptual “plans”, removing
-unnecessary complexities—like the distinction between “calling”
-vs. “exiting” handlers—and adding many useful features, like the
-ability to “collect” the conditions raised from a call.
+the amount of typing required, catchr uses a very simple domain-specific
+language that simplifies things on the front-end. catchr focuses on
+letting users build their own “catching” functions where they can
+specify behavior via conceptual “plans”, removing unnecessary
+complexities—like the distinction between “calling” vs. “exiting”
+handlers—and adding many useful features, like the ability to “collect”
+the conditions raised from a call.
 
 ## Installation
 
@@ -73,10 +73,10 @@ able to deal with conditions programmatically becomes *indispensable*.
 
 ## A basic example
 
-A (somewhat sassy) introduction to `catchr` can be found in the
-vignettes (`vignette("welcome-to-catchr","catchr")` if you’ve installed
-it). Here, we’ll just cover some cases to demonstrate what the code
-looks like, and some of the advantages it offers.
+A (somewhat sassy) introduction to catchr can be found in the vignettes
+(`vignette("welcome-to-catchr","catchr")` if you’ve installed it). Here,
+we’ll just cover some cases to demonstrate what the code looks like, and
+some of the advantages it offers.
 
 Let’s look at a *very* simple case first. As you may know, trying to
 take the log of a negative number raises a warning and returns a `NaN`.
@@ -96,7 +96,7 @@ fake_model <- function(x, err = F) {
 fine_results <- catch_expr(fake_model(5), warning = toerror)
 ```
 
-But when a `NaN` is made and a warning is raised, `catchr` converts the
+But when a `NaN` is made and a warning is raised, catchr converts the
 warning into an error and the code stops:
 
 ``` r
@@ -106,7 +106,7 @@ bad_results <- catch_expr(fake_model(-7), warning = toerror)
 
 But let’s say you want to be alerted about this issue as soon as
 possible, and you’re working on something else in a different window
-while the code runs. You can have `catchr` play a beeping sound whenever
+while the code runs. You can have catchr play a beeping sound whenever
 this event happens with a simple addition:
 
 ``` r
@@ -114,20 +114,20 @@ this event happens with a simple addition:
 bad_results <- catch_expr(fake_model(-7), warning = c(beep, toerror))
 ```
 
-`catchr` is designed so that making “plans” for a condition is simple,
+catchr is designed so that making “plans” for a condition is simple,
 extendable, and flexible. In the example above, we made a “plan” for
 conditions of the class “warning” so that when one is raised, first a
 beep is played and then the warning is converted to an error.
 
-## `catchr` “plans”
+## catchr “plans”
 
-Instead of using R’s “calling”/“exiting” “handler” terminology, `catchr`
-keeps things simple with a single concept, “plans”. In `catchr`, users
-use functions like building blocks to a “plan” of what to do for
-particular conditions. Users can specify their own functions or use
-`catchr` functions, but `catcher` also offers a useful toolbox of
-behaviors that work their magic behind the scene through `catchr`’s
-simple [domain-specific language](http://adv-r.had.co.nz/dsl.html).\[1\]
+Instead of using R’s “calling”/“exiting” “handler” terminology, catchr
+keeps things simple with a single concept, “plans”. In catchr, users use
+functions like building blocks to a “plan” of what to do for particular
+conditions. Users can specify their own functions or use catchr
+functions, but `catcher` also offers a useful toolbox of behaviors that
+work their magic behind the scene through catchr’s simple
+[domain-specific language](http://adv-r.had.co.nz/dsl.html).\[1\]
 
 This toolbox consists of special “reserved” terms that users can input
 as strings or unquoted terms, and cover some of the most common
@@ -150,7 +150,7 @@ strung together to make a plan.
 
 ## Reusability
 
-`catchr` is all about keeping code minimal, and is built around
+catchr is all about keeping code minimal, and is built around
 reusability. You can make and reuse plans across
 expressions:
 
@@ -200,7 +200,7 @@ res2 <- collect_and_muffle(fake_model(-3.9, err = T))
 
 ## “Collecting” conditions
 
-One of the most useful things about `catchr` is its ability to catch and
+One of the most useful things about catchr is its ability to catch and
 store any conditions raised during evaluation with the `collect` term,
 returning the conditions after the code is finished without restarting
 the evaluation from scratch.
@@ -212,12 +212,12 @@ the beginning would be too costly.
 
 ### With `future`
 
-`catchr` can be incredibly useful when trying to diagnose code run in
+catchr can be incredibly useful when trying to diagnose code run in
 parallel or on remote machines, like it is with `future`. Although
 `future` has come a long way in terms of how easy it is to debug
 (because [Henrik Bengtsson](https://github.com/HenrikBengtsson) is both
 a saint and a genius), but capturing and returning every condition that
-was raised is easy with `catchr`.
+was raised is easy with catchr.
 
 ``` r
 library(future)

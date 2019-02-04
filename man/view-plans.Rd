@@ -15,7 +15,7 @@
 
 \item{\dots}{Currently unused.}
 
-\item{show_opts}{A logical; if \code{TRUE}, prints the \code{catchr} options set for the plans.}
+\item{show_opts}{A logical; if \code{TRUE}, prints the catchr options set for the plans.}
 
 \item{total_len}{An integer; sets the total number of characters each line can span before being cut off with "..."}
 
@@ -24,5 +24,5 @@
 \item{object}{The "compiled" plans, i.e., from \code{make_plans()}}
 }
 \description{
-'Compiled' \code{catchr} plans returned by \code{\link[=make_plans]{make_plans()}} look very ugly "naked". These functions make plans understandable at a single glance.
+'Compiled' catchr plans returned by \code{\link[=make_plans]{make_plans()}} look very ugly "naked". These functions make plans understandable at a single glance.
 }

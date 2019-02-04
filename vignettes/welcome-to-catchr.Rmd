@@ -33,7 +33,7 @@ arbitrary_code <- function() {}
 
 Compared to many other programming languages, the way `R` handles "conditions"---errors, warnings, messages, and most things referred to as "exceptions" in other languages---is pretty unintuitive.^[At least, I *thought* it was. Now I understand that it's everything *else* that doesn't make sense.] R's help file on the subject is basically impenetrable,^[Accessible via `help(conditions)`.] and even though Hadley Wickham has stepped in and produced [a very helpful guide on conditions](http://adv-r.had.co.nz/beyond-exception-handling.html), understanding what's going on is still pretty hard, and actually _handling_ conditions is even harder.
 
-At its heart, `catchr` is designed to ~~make it so that you never have to read any of that stuff~~ make dealing with conditions easy from the get-go. 
+At its heart, catchr is designed to ~~make it so that you never have to read any of that stuff~~ make dealing with conditions easy from the get-go. 
 
 ## The ol' razzle-dazzle
 
@@ -69,7 +69,7 @@ weirdo_catcher <- make_catch_fn(
   error = muffle)
 ```
 
-I can do that too, and that's only _beginning_ to scratch the surface of `catchr`. Although most of the detailed information can be found in the help files and manual, let's go over some of the basics.
+I can do that too, and that's only _beginning_ to scratch the surface of catchr. Although most of the detailed information can be found in the help files and manual, let's go over some of the basics.
 
 ## Catching conditions with "plans"
 
@@ -79,13 +79,13 @@ Let's take a look at some of the code we saw before:
 results <- catch_expr(arbitrary_code(), warning = c(collect, muffle))
 ```
 
-This is pretty quintessential of the `catchr` system. You have the expression you want to evaluate and catch conditions for (here, `arbitrary_code()`), followed by the names of the types of conditions you want to catch and the plans you have for them when they're caught (`warning = c(collect, muffle)`).
+This is pretty quintessential of the catchr system. You have the expression you want to evaluate and catch conditions for (here, `arbitrary_code()`), followed by the names of the types of conditions you want to catch and the plans you have for them when they're caught (`warning = c(collect, muffle)`).
 
-In `catchr`, users use functions like building blocks to a "plan" of what to do for particular conditions. Users can specify their own functions or use `catchr` functions, but `catcher` also offers a useful toolbox of behaviors that work their magic behind the scene through `catchr`'s simple [domain-specific language](http://adv-r.had.co.nz/dsl.html).^[See `help("catchr-DSL", "catchr")` for the details.]
+In catchr, users use functions like building blocks to a "plan" of what to do for particular conditions. Users can specify their own functions or use catchr functions, but `catcher` also offers a useful toolbox of behaviors that work their magic behind the scene through catchr's simple [domain-specific language](http://adv-r.had.co.nz/dsl.html).^[See `help("catchr-DSL", "catchr")` for the details.]
 
-A catchr "plan" starts off as a named argument, where its name is the type of condition it will apply to (e.g., "message", "warning", "error", etc.), and its value will eventually become a function that will take in the condition and do stuff with it. `catchr`'s "secret sauce" lets you pass in each plan as a list of functions that will be applied to the condition in order.^[See ``help(`catchr-plans`, "catchr")``.] 
+A catchr "plan" starts off as a named argument, where its name is the type of condition it will apply to (e.g., "message", "warning", "error", etc.), and its value will eventually become a function that will take in the condition and do stuff with it. catchr's "secret sauce" lets you pass in each plan as a list of functions that will be applied to the condition in order.^[See ``help(`catchr-plans`, "catchr")``.] 
 
-But `catchr` also comes full of stock functions that make condition handling simple---these special functions can be inputted as strings, but `catchr` promotes more-readable code and saves you extra typing by letting you enter them as unquoted special terms, like `collect` and `muffle` in the example above.
+But catchr also comes full of stock functions that make condition handling simple---these special functions can be inputted as strings, but catchr promotes more-readable code and saves you extra typing by letting you enter them as unquoted special terms, like `collect` and `muffle` in the example above.
 
 ### Special reserved terms
 
@@ -105,7 +105,7 @@ These can be used as building blocks just like normal functions. For example, in
 
 ## Even _less_ typing
 
-Is typing out plans multiple times _still_ too much typing?  Well, `catchr` lets you save even _more_ space by giving you the option of passing in _unnamed_ arguments into plans!
+Is typing out plans multiple times _still_ too much typing?  Well, catchr lets you save even _more_ space by giving you the option of passing in _unnamed_ arguments into plans!
 
 ```{r}
 print(get_default_plan())
@@ -113,11 +113,11 @@ print(get_default_plan())
 my_plans <- make_plans(warning, message, error)
 ```
 
-These unnamed arguments can be entered as either strings or unquoted terms, and should correspond to the name of a condition you want to catch. They will automatically be given whatever `catchr`'s default plan is, which can be get/set via `get_default_plan()` and `set_default_plan`, respectively. Named and unnamed arguments can be mixed freely.  Other default behaviors can be get/set with `catchr_default_opts()`.
+These unnamed arguments can be entered as either strings or unquoted terms, and should correspond to the name of a condition you want to catch. They will automatically be given whatever catchr's default plan is, which can be get/set via `get_default_plan()` and `set_default_plan`, respectively. Named and unnamed arguments can be mixed freely.  Other default behaviors can be get/set with `catchr_default_opts()`.
 
 ## "Collecting" conditions
 
-As you might have noticed, many of the previous examples use a special term, `collect`. Having the ability to "collect" conditions is one of the most useful features in `catchr`.
+As you might have noticed, many of the previous examples use a special term, `collect`. Having the ability to "collect" conditions is one of the most useful features in catchr.
 
 
 ```{r}
@@ -183,13 +183,13 @@ df <- future_imap_dfr(
 
 ## Other goodies
 
-`catchr` offers many other benefits, to the point where trying to document them all in a single vignette doesn't make sense. I'll point out some of the more unique ones here, but the help docs are very extensive, so give them a try!
+catchr offers many other benefits, to the point where trying to document them all in a single vignette doesn't make sense. I'll point out some of the more unique ones here, but the help docs are very extensive, so give them a try!
 
 ### Catching "misc" conditions
 
 Sometimes we don't want to have to specify every alternative condition out there, and we might just want to divide conditions into one type and "everything else".
 
-You can do this by making plans for the "misc" condition, a term `catchr` reserves for any condition(s) that you haven't already specified. Thus:
+You can do this by making plans for the "misc" condition, a term catchr reserves for any condition(s) that you haven't already specified. Thus:
 
 ```{r}
 messages_or_bust <- make_catch_fn(messages = collect, misc = exit_with("Sorry, busted"))
@@ -224,7 +224,7 @@ catch_expr(make_warnings(), warning = c(display_with(c("pink","underline","bold"
 
 ### Play sounds when conditions are raised
 
-Particularly useful for when you're working in a different window and waiting for a job to finish / do something unexpected, `catchr` lets you play short sounds whenever conditions are raised.^[If you're going to be doing something like this, make sure `getOption("warn")==1`]  This functionality requires the [`beepr`](https://CRAN.R-project.org/package=beepr) package, which I've found absolutely worth downloading.
+Particularly useful for when you're working in a different window and waiting for a job to finish / do something unexpected, catchr lets you play short sounds whenever conditions are raised.^[If you're going to be doing something like this, make sure `getOption("warn")==1`]  This functionality requires the [`beepr`](https://CRAN.R-project.org/package=beepr) package, which I've found absolutely worth downloading.
 
 For example, you can have it alert you when a condition is raised via sound, display the condition without raising it, and keep going:
 
@@ -248,11 +248,11 @@ tell_you_when_it_blows_up(message("Oopsies!"))
 
 ### All plans are "calling handlers"
 
-This is definitely more of a technical point, but all the plans in `catchr` are technically evaluated in order.  Currently (`rlang 0.3.1`) `rlang`'s condition-handling function, `with_handlers`, has the relatively unintuitive property of not checking its handlers in the order they are defined, but first checking all the "exiting" handlers, and then checking all the "calling" handlers.  `catchr` actually offers a function inspired by `with_handlers` that strictly checks these in order and uses `rlang`'s schema (`with_ordered_handlers`), but `catchr`'s main condition handling does one better: it gets rid of "exiting" handlers all together.
+This is definitely more of a technical point, but all the plans in catchr are technically evaluated in order.  Currently (`rlang 0.3.1`) `rlang`'s condition-handling function, `with_handlers`, has the relatively unintuitive property of not checking its handlers in the order they are defined, but first checking all the "exiting" handlers, and then checking all the "calling" handlers.  catchr actually offers a function inspired by `with_handlers` that strictly checks these in order and uses `rlang`'s schema (`with_ordered_handlers`), but catchr's main condition handling does one better: it gets rid of "exiting" handlers all together.
 
 Ok, this is beginning to get _much_ more technical, but there are many other benefits to making all the plans (and therefore, handlers) "calling" handlers. For one, any plan has the option of restarting the code (via `muffle`, or invoking user-created restarts). 
 
-But each plan can also act as an "exiting" handler with the use of the `exit` term, or the `user_exit()` and `exit_with()` functions. In essence, `catchr` gives you the best of both worlds!
+But each plan can also act as an "exiting" handler with the use of the `exit` term, or the `user_exit()` and `exit_with()` functions. In essence, catchr gives you the best of both worlds!
 
 
 ```{r, echo=FALSE}

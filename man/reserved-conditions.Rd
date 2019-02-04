@@ -6,25 +6,25 @@
 \alias{last_stop}
 \title{Special condition names}
 \description{
-In addition to having \link[=reserved-terms]{reserved terms} for use in making condition-handling plans, \code{catchr} also places special meaning on two types of conditions, \code{misc} and \code{last_stop}. The \code{misc} is very useful, \code{last_stop} is something most users should probably avoid.
+In addition to having \link[=reserved-terms]{reserved terms} for use in making condition-handling plans, catchr also places special meaning on two types of conditions, \code{misc} and \code{last_stop}. The \code{misc} is very useful, \code{last_stop} is something most users should probably avoid.
 }
 \section{The \code{misc} condition}{
 
 
 The names of the named arguments passed to \code{make_plans} correspond to the type of conditions each plan is designed for---specifically, if any of a condition's \link[base:class]{classes} match a plan's name, it will be caught by that plan. By default, all conditions have a class of "condition".
 
-There is nothing special about a condition with a class of \code{"misc"} in base R, although there are no normal base R functions that would automatically raise such a condition. However, in \code{catchr}, using the name \code{misc} for a plan means that this plan will be applied to any condition that does \emph{not} already have a plan specified for it. Consider the following example:
+There is nothing special about a condition with a class of \code{"misc"} in base R, although there are no normal base R functions that would automatically raise such a condition. However, in catchr, using the name \code{misc} for a plan means that this plan will be applied to any condition that does \emph{not} already have a plan specified for it. Consider the following example:
 
 \code{plans <- make_plans(warning = collect, message = collect, error = exit, misc = collect)}
 
 These plans will collect every non-error condition into three sublists, one for warnings, one for messages, and one for everything else---"misc". If one used \code{condition = collect} instead of \code{misc}, warnings and messages would be collected twice: once in each of their respective sublists, and another time in "condition", since each type also has that class. \code{misc} will \emph{not} catch warnings or messages in the scenario above.
 
-Since ~99\% of all conditions encountered in the wild will be errors, warnings, and messages, \code{misc} is just a short, handy way of making sure you catch anything more "exotic". If you're dealing with conditions that have \code{"misc"} as a \emph{class}, you're probably at an advanced enough stage where you shouldn't be using \code{catchr}. But if you are in this circumstance and feel strongly otherwise, feel free to make a feature request on the \href{https://github.com/burchill/catchr}{GitHub repo}.
+Since ~99\% of all conditions encountered in the wild will be errors, warnings, and messages, \code{misc} is just a short, handy way of making sure you catch anything more "exotic". If you're dealing with conditions that have \code{"misc"} as a \emph{class}, you're probably at an advanced enough stage where you shouldn't be using catchr. But if you are in this circumstance and feel strongly otherwise, feel free to make a feature request on the \href{https://github.com/burchill/catchr}{GitHub repo}.
 }
 
 \section{The \code{last_stop} condition}{
 
 
-This condition name is reserved for \link{exit}, \code{\link[=user_exit]{user_exit()}} and \code{\link[=exit_with]{exit_with()}}. There is basically zero chance any code other than \code{catchr} will ever raise a condition of \code{"last_stop"}, so this shouldn't be a problem, but until \code{catchr} becomes more mature, do not use this name for any condition or plan.
+This condition name is reserved for \link{exit}, \code{\link[=user_exit]{user_exit()}} and \code{\link[=exit_with]{exit_with()}}. There is basically zero chance any code other than catchr will ever raise a condition of \code{"last_stop"}, so this shouldn't be a problem, but until catchr becomes more mature, do not use this name for any condition or plan.
 }
 

@@ -12,7 +12,7 @@ with_ordered_handlers(.expr, ...)
 \item{\dots}{Named handlers. These should be functions of one argument. These handlers are treated as exiting by default. Use \code{\link[rlang:calling]{rlang::calling()}} to specify a calling handler. These dots support \link[rlang:tidy-dots]{tidy dots} features and are passed to \code{\link[rlang:as_function]{rlang::as_function()}} to enable the formula shortcut for lambda functions.}
 }
 \description{
-\strong{Note}: \code{with_ordered_handlers()} is \emph{not} designed to play nice with the rest of the \code{catchr} framework, and is exported as a utility function users might find useful elsewhere. Do not consider this a stable part of the API.
+\strong{Note}: \code{with_ordered_handlers()} is \emph{not} designed to play nice with the rest of the catchr framework, and is exported as a utility function users might find useful elsewhere. Do not consider this a stable part of the API.
 
 \code{with_ordered_handlers()} is inspired by \code{rlang}'s \code{\link[rlang:with_handlers]{rlang::with_handlers()}} function, which essentially lets you handle conditions in ways that don't stop the evaluation ("calling" handlers) and ways that will immediately break out of the evaluation ("exiting" handlers) in a single function.
 

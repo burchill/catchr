@@ -1,10 +1,10 @@
 #' View and print 'compiled' catchr plans
 #'
-#' 'Compiled' `catchr` plans returned by [make_plans()] look very ugly "naked". These functions make plans understandable at a single glance.
+#' 'Compiled' catchr plans returned by [make_plans()] look very ugly "naked". These functions make plans understandable at a single glance.
 #'
 #' @param x The "compiled" plans, i.e., from `make_plans()`
 #' @param \dots Currently unused.
-#' @param show_opts A logical; if `TRUE`, prints the `catchr` options set for the plans.
+#' @param show_opts A logical; if `TRUE`, prints the catchr options set for the plans.
 #' @param total_len An integer; sets the total number of characters each line can span before being cut off with "..."
 #' @param show_full A logical; if `TRUE`, will print out the full length of each line.
 #' @rdname view-plans
