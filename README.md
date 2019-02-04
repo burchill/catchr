@@ -1,16 +1,43 @@
 
 <!-- README.md is generated from README.Rmd. Please edit that file -->
-[![Travis-CI Build Status](https://travis-ci.com/burchill/catchr.svg?branch=master)](https://travis-ci.com/burchill/catchr)
 
-# catchr
+[![Travis-CI Build
+Status](https://travis-ci.com/burchill/catchr.svg?branch=master)](https://travis-ci.com/burchill/catchr)
+[![CRAN
+status](https://www.r-pkg.org/badges/version/furrr)](https://cran.r-project.org/package=furrr)
 
-The goal of `catchr` is to provide a simple code base for handling conditions (e.g., warnings, errors, messages, etc.) in `R`. Other than the simplicity it offers, one of the primary benefits of `catchr` is that it can catch and collect conditions **without needing to halt or restart the code**. This can be especially useful if you're trying to catch the warning messages from code that takes a long time to run, where having to restart the whole process from square one would be too costly.
+# Catchr: the friendlier way of catching errors, warnings, and conditions
 
-`catchr` also comes in handy when trying to collect warnings, messages, and errors from code that is running remotely, where these conditions would not be returned with the rest of the results, such as with the [`future`](https://github.com/HenrikBengtsson/future/) package, or with packages like `purrr`.
+## *“Exceptions?” “Handlers?”* Making sense of conditions
+
+Compared to many other programming languages, the way R handles
+‘conditions’—errors, warnings, messages, and most things referred to
+as ‘exceptions’ in other languages—is pretty unintuitive, and can often
+be troublesome to users coming from different backgrounds. For example,
+on the surface the way exceptions are caught in Python seems so simple
+compared to R—*what even **is** a “restart”? What are those things
+people are referring to as “handlers” anyway?*
+
+The purpose of `catchr` is to provide flexible, useful tools for
+handling R conditions with less hassle and head-scratching. One of the
+most important goals of this package is to maintain a continuous
+learning curve that so new users jump straight in, but more advanced
+users can find the depth and complexity they need to take advantage of
+R’s powerful condition-handling abilities.
+
+To lower the barrier of entry, keep code clean and readable, and reduce
+the amount of typing required, `catchr` uses a very simple
+domain-specific language that simplifies things on the front-end.
+`catchr` focuses on letting users generate their own “catching”
+functions where they can specify behavior via conceptual “plans”,
+removing unnecessary complexities—like the distinction between “calling”
+vs. “exiting” handlers—and adding many very useful features, like the
+ability to “collect” the conditions raised from a call.
 
 ## Installation
 
-You can install the released version of catchr from [CRAN](https://CRAN.R-project.org) with:
+You can install the released version of catchr from
+[CRAN](https://CRAN.R-project.org) with:
 
 ``` r
 install.packages("catchr")
@@ -23,143 +50,223 @@ And the development version from [GitHub](https://github.com/) with:
 devtools::install_github("burchill/catchr")
 ```
 
-## Basic example
+## Introduction
 
-Let's look at a simple case first. Here we see how we we can collect different types of conditions.
+In R, “warnings” (which generally indicate something *might* be going
+wrong), “errors” (which indicate something *definitely* has gone wrong),
+and “messages” (which generally just indicate neutral information) are
+all subclasses of “conditions”, and they make up a vast majoirty of the
+conditions you will ever encounter if you’re not a developer.
+
+When a condition is “raised”, the code essentially stops, and the
+condition floats up through the code until something “catches” it or
+not. If nothing catches it and deals with it, warnings, messages, and
+errors will print a message out on your screen. Then, unless the
+condition was an error, the code picks up where it left off.
+
+Phrased as such, conditions may seem like no big deal. And for many
+basic uses of R, maybe they’re not—if you’re just tidying up some data
+and making a plot out of it, you can react to warnings and errors as
+they come, with little cost. But for more involved R projects, being
+able to deal with conditions programmatically becomes *indispensable*.
+
+## A basic example
+
+A (somewhat sassy) introduction to `catchr` can be found in the
+vignettes (`vignette("welcome-to-catchr","catchr")` if you’ve installed
+it). Here, we’ll just cover some cases to demonstrate what the code
+looks like, and some of the advantages it offers.
+
+Let’s look at a *very* simple case first. As you may know, trying to
+take the log of a negative number raises a warning and returns a `NaN`.
+There are times where it would be important *not* to encounter a `NaN`,
+and maybe you want the code to stop whenever a warning of any kind is
+raised.
 
 ``` r
 library(catchr)
-res <- collect_conditions(
-  {
-    warning("warning 1")
-    message("message 1", appendLF = F)
-    warning("warning 2")
-    signal_custom_condition("Custom condition!")
-    "test value"
-  },
-  catchErrors = FALSE)
-print(res)
-#> $value
-#> [1] "test value"
-#> 
-#> $warnings
-#> $warnings[[1]]
-#> <simpleWarning in doWithOneRestart(return(expr), restart): warning 1>
-#> 
-#> $warnings[[2]]
-#> <simpleWarning in doWithOneRestart(return(expr), restart): warning 2>
-#> 
-#> 
-#> $messages
-#> $messages[[1]]
-#> <simpleMessage in message("message 1", appendLF = F): message 1>
-#> 
-#> 
-#> $conditions
-#> $conditions[[1]]
-#> <custom: Custom condition!>
 
-# `col_cond` is the shorter alias of `collect_conditions`
-col_cond(stop("Error!"), asStrings = T)$errors
-#> [[1]]
-#> [1] "Error in doWithOneRestart(return(expr), restart): Error!\n"
-```
-
-We can then decide to raise and signal all the conditions we've captured, while making the output pretty and easy to read. In the actual console (as opposed to this Markdown file), you won't get the `Warning in doWithOneRestart(return(expr), restart)` text.
-
-``` r
-raise_conditions(res)
-#> Messages:
-#> message 1
-#> Warnings:
-#> Warning in doWithOneRestart(return(expr), restart): warning 1
-#> Warning in doWithOneRestart(return(expr), restart): warning 2
-#> Misc. conditions:
-#> Custom condition!
-#> $value
-#> [1] "test value"
-#> 
-#> $warnings
-#> $warnings[[1]]
-#> <simpleWarning in doWithOneRestart(return(expr), restart): warning 1>
-#> 
-#> $warnings[[2]]
-#> <simpleWarning in doWithOneRestart(return(expr), restart): warning 2>
-#> 
-#> 
-#> $messages
-#> $messages[[1]]
-#> <simpleMessage in message("message 1", appendLF = F): message 1>
-#> 
-#> 
-#> $conditions
-#> $conditions[[1]]
-#> <custom: Custom condition!>
-```
-
-## Use in `future`
-
-`catchr` can be incredibly useful when trying to diagnose code run in parallel or on remote machines, like it is with `future`. Although `future` has come a long way in terms of how easy it is to debug (because [Henrik Bengtsson](https://github.com/HenrikBengtsson) is both a saint and a genius), but capturing and returning every condition that was raised is much easier with `catchr`.
-
-``` r
-library(future)
-plan(multiprocess) # you could use `remote` or whatever you need
-future_res %<-% {
-  col_cond(
-    {
-      warning("You'll get an error because of X")
-      stop("Why did you get this error?")
-      "terminates before this value"
-    }
-  )
+fake_model <- function(x, err = F) {
+  y <- log(x)
+  if (err) stop("Uh oh!")
+  c(y, x+1) 
 }
+# Works fine
+fine_results <- catch_expr(fake_model(5), warning = toerror)
+```
 
-raise_conditions(future_res, raise_errors = FALSE)
-#> Warnings:
-#> Warning in doWithOneRestart(return(expr), restart): You'll get an error
-#> because of X
-#> Errors:
-#> Why did you get this error?
+But when a `NaN` is made and a warning is raised, `catchr` converts the
+warning into an error and the code stops:
+
+``` r
+# Stops the code
+bad_results <- catch_expr(fake_model(-7), warning = toerror)
+```
+
+But let’s say you want to be alerted about this issue as soon as
+possible and you’re working on something else in a different window
+while the code runs. You can have `catchr` play a beeping sound whenever
+this event happens with a simple addition:
+
+``` r
+# Stops the code and make a beeping sound
+bad_results <- catch_expr(fake_model(-7), warning = c(beep, toerror))
+```
+
+`catchr` is designed so that making “plans” for how a condition is
+handled simple, extendable, and flexible. In the example above, we made
+a “plan” for conditions of the class “warning” so that when one is
+raise, first a beep is played and then it is converted to an error.
+
+## `catchr` “plans”
+
+Instead of using R’s “calling”/“exiting” “handler” terminology, `catchr`
+keeps things simple with a single concept, “plans”. In `catchr`, users
+use different functions like building blocks to a “plan” of what to do
+for particular conditions. Users can specify their own functions or use
+`catchr` functions, but `catcher` also offers a useful toolbox of
+behaviors that work their magic behind the scene through `catchr`’s
+simple [domain-specific language](http://adv-r.had.co.nz/dsl.html).\[1\]
+
+This toolbox consists of special “reserved” terms that users can input
+as strings or unquoted terms, and cover some of the most common
+behaviors users might want to
+use:
+
+| Special “reserved” term             | Function                                                                       |
+| ----------------------------------- | ------------------------------------------------------------------------------ |
+| `tomessage`, `towarning`, `toerror` | convert conditions to other types of conditions                                |
+| `beep`                              | play a short sound                                                             |
+| `display`                           | displays the contents of the condition on-screen                               |
+| `collect`                           | collects the condition and saves it to a list that will be returned at the end |
+| `muffle`                            | “muffles”,\[2\] a condition so it doesn’t keep going up, and restarts the code |
+| `exit`                              | immediately stops the code and muffles the condition                           |
+| `raise`                             | raises conditions past `exit`                                                  |
+
+These can be used as building blocks just like normal functions. For
+example, in the previous example, we saw how `beep` and `toerror` were
+strung together to make a plan.
+
+## Reusability
+
+`catchr` is all about keeping code minimal, and is built around
+reusability. You can make and reuse plans across
+expressions:
+
+``` r
+# Since all conditions have class "condition", this is a plan for all conditions
+plans <- make_plans(condition = c(collect, muffle))
+plans
+#> <catchr_compiled_plans>
+#> condition: c(collect, muffle)
+#>   to see catchr options, use `summary()`
+```
+
+``` r
+res1 <- catch_expr(fake_model(-4.0, err = F), plans)
+res1
+#> $value
+#> [1] NaN  -3
+#> 
+#> $condition
+#> $condition[[1]]
+#> <simpleWarning in log(x): NaNs produced>
+```
+
+``` r
+res2 <- catch_expr(fake_model(-3.9, err = T), plans)
+res2
 #> $value
 #> NULL
 #> 
-#> $warnings
-#> $warnings[[1]]
-#> <simpleWarning in doWithOneRestart(return(expr), restart): You'll get an error because of X>
+#> $condition
+#> $condition[[1]]
+#> <simpleWarning in log(x): NaNs produced>
 #> 
-#> 
-#> $messages
-#> list()
-#> 
-#> $errors
-#> $errors[[1]]
-#> <simpleError in doWithOneRestart(return(expr), restart): Why did you get this error?>
+#> $condition[[2]]
+#> <simpleError in fake_model(-3.9, err = T): Uh oh!>
 ```
 
-## Use in `purrr`
+And even more importantly, you can create your *own* functions that you
+can use to catch conditions for *any* code:
 
-`catchr` is also great with `purrr`, for example, if you're running a bunch of models via `map`.[1] If you want to capture which models had which problems (and then print them all pretty), it's trivial to do so.
+``` r
+collect_and_muffle <- make_catch_fn(plans)
+
+res1 <- collect_and_muffle(fake_model(-4.0, err = F))
+res2 <- collect_and_muffle(fake_model(-3.9, err = T))
+```
+
+## “Collecting” conditions
+
+One of the most useful things about `catchr` is its ability to catch and
+store any conditions raised during evaluation with the `collect` term,
+returning the conditions after the code is finished without restarting
+the evaluation from scratch.
+
+There are a number of situations in which this can be immensely handy.
+For example, if you’re trying to catch warning messages from code that
+takes a long time to run, where having to restart the whole process from
+the beginning would be too costly.
+
+### With `future`
+
+`catchr` can be incredibly useful when trying to diagnose code run in
+parallel or on remote machines, like it is with `future`. Although
+`future` has come a long way in terms of how easy it is to debug
+(because [Henrik Bengtsson](https://github.com/HenrikBengtsson) is both
+a saint and a genius), but capturing and returning every condition that
+was raised is easy with `catchr`.
+
+``` r
+library(future)
+future::plan(multiprocess) # you could use `remote` or whatever you need
+
+future_res %<-% collect_and_muffle(fake_model(-99, err = TRUE))
+future_res
+#> $value
+#> NULL
+#> 
+#> $condition
+#> $condition[[1]]
+#> <simpleWarning in log(x): NaNs produced>
+#> 
+#> $condition[[2]]
+#> <simpleError in fake_model(-99, err = TRUE): Uh oh!>
+```
+
+``` r
+# If you wanted to raise all the conditions on your local machine and return the value of the evaluated expression:
+result <- dispense_collected(future_res)
+```
+
+### With `purrr`
+
+Collecting conditions is also great with `purrr` or scenarios where you
+want to apply functions programmatically—for example, if you’re running
+a bunch of models via `map`.\[3\] If you want to capture which models
+had which problems (and then print them all pretty), it’s trivial to do
+so.
 
 ``` r
 library(purrr)
-# Let's assume `l` came from `col_cond`-ing a bunch of models
-#   e.g., `map(datasets, ~col_cond(model_func(.)))`
-results <- l %>% imap(function(e, i)
-  raise_conditions(e, raise_errors=FALSE,
-                   added_text=paste0(" in l[",i,"]:"))) %>%
-  map(~evaluate_results(., raise_errors = FALSE))
-#> Warnings in l[1]:
-#> Warning in doWithOneRestart(return(expr), restart): Bad eigenvalues, bro
-#> Warning in doWithOneRestart(return(expr), restart): Convergence failure!
-#> Messages in l[2]:
+# Let's assume `l` came from running a bunch of models,
+#   e.g., `map(datasets, ~collect_and_muffle(model_func(.)))`
+results <- l %>% imap(function(e, i) {
+  cat("\n")
+  cat("in l[[",i,"]]:\n", sep = "")
+  dispense_collected(e, treat_errs="display") })
+#> 
+#> in l[[1]]:
+#> Warning: Bad eigenvalues, bro
+#> Warning: Convergence failure!
+#> 
+#> in l[[2]]:
 #> Dropping contrasts
-#> Warnings in l[2]:
-#> Warning in doWithOneRestart(return(expr), restart): Were those contrasts
-#> important?
-#> Messages in l[3]:
+#> Warning: Were those contrasts important?
+#> 
+#> in l[[3]]:
 #> I'm tired of this data!
-#> Errors in l[3]:
-#> lmers became sentient!
 
 print(results)
 #> [[1]]
@@ -174,14 +281,15 @@ print(results)
 
 ## Found a bug or have a suggestion?
 
-Please open an issue and I'll try to get to it!
+Please open an issue and I’ll try to get to it\!
 
-### Acknowledgments
+## Footnotes
 
-The inception of the core of the `collect_conditions` function comes from [Luke Tierney's answer to a question on the R-help mailing list](https://tolstoy.newcastle.edu.au/R/help/04/06/0217.html), which was very helpful in my understanding of `R`'s error-handling.
+1.  See `help("catchr-DSL", "catchr")` for the details.
 
-Likewise, much of this code came from other (more personal) packages I've worked on over the years, such as [`zplyr`](https://github.com/burchill/zplyr) and [`cs`](https://github.com/burchill/cs).
+2.  i.e., “suppresses”, “catches”, “hides”—whatever you want to call it
 
-### Footnotes
-
-[1] I've found it's even *more* useful when you combine `purrr` and `future` via [`furrr`](https://github.com/DavisVaughan/furrr) (e.g., to run models in parallel). Shout-out to Davis Vaughan for his lovely code!
+3.  I’ve found it’s even *more* useful when you combine `purrr` and
+    `future` via [`furrr`](https://github.com/DavisVaughan/furrr) (e.g.,
+    to run models in parallel). Shout-out to Davis Vaughan for his
+    lovely code\!

@@ -45,3 +45,6 @@ catch_expr(one_of_each(FALSE), collecting_plans,
 #   of the expression as a "value" sublist
 catch_expr("DONE", fake_cond = muffle, .opts = catchr_opts(bare_if_possible=FALSE))
 }
+\seealso{
+\code{\link[=dispense_collected]{dispense_collected()}} to raise the collected conditions and return the bare result
+}
