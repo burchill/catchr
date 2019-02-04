@@ -10,7 +10,7 @@
 #'
 #'  - If you are running lots of code in parallel and want to log all of the conditions within R, such as in a large-scale power simulation, or with packages such \code{\link[purrr:purrr-package]{purrr}}.
 #'
-#' Using the `collect` term lets you do this. When the plan for a condition uses `collect`, the captured condition will be added to a list of other conditions of that same type. When the expression is done being evaluated, `catchr` will return a named list, where `$value` is the output of the expression, and the other named elements are sublists with all their collected conditions. The exact behavior of this process is determined by options in [catchr_opts()]
+#' Using the `collect` term lets you do this. When the plan for a condition uses `collect`, the captured condition will be added to a list of other conditions of that same type. When the expression is done being evaluated, `catchr` will return a named list, where `$value` is the output of the expression, and the other named elements are sublists with all their collected conditions. The exact behavior of this process is determined by options in [catchr_opts()].
 #'
 #' @examples
 #' one_of_each <- function(with_error) {
@@ -54,7 +54,7 @@ NULL
 #'
 #' @description
 #'
-#' `catchr` implements a small but helpful "domain-specific language" (DSL) to make building condition-handling functions simpler to read and type, somewhat like . Essentially, `catchr` reserves special 'terms' that mean something different than they do in the rest of R. When given as part of the input for a `catchr` plan, these terms will be substituted for special `catchr` functions used to handle conditions.
+#' `catchr` implements a small but helpful "domain-specific language" (DSL) to make building condition-handling functions simpler to read and type. Essentially, `catchr` reserves special 'terms' that mean something different than they do in the rest of R. When given as part of the input for a `catchr` plan, these terms will be substituted for special `catchr` functions used to handle conditions.
 #'
 #' These special terms can be inputted as strings (e.g., `warning = list('collect', 'muffle')`) or as unquoted terms (e.g., `warning = c(collect, muffle)`); `catchr` internally converts the unquoted terms to strings regardless, but being able to input them unquoted saves keystrokes and can highlight their special meanings for code readability.
 #'
@@ -66,14 +66,14 @@ NULL
 #'
 #'  - `beep`: if the \link[beepr:beepr-package]{beepr} package is installed, this will play a sound via \code{\link[beepr:beepr]{beepr::beep}}.
 #'
-#'  - `display`: the purpose of this term is to immediately display information about the captured condition on the output terminal without raising additional conditions (as would be done with `tomessage`). Currently, it attempts to display this information with bold, turquoise-blue text if the [crayon::crayon] package is installed. In future versions of `catchr`, this default styling (and other display options) made be able to be changed by the user.
+#'  - `display`: the purpose of this term is to immediately display information about the captured condition on the output terminal without raising additional conditions (as would be done with `tomessage`). Currently, it attempts to display this information with bold, turquoise-blue text if the [crayon][crayon::crayon] package is installed. In future versions of `catchr`, this default styling (and other display options) may be able to be changed by the user.
 #'
 #' - `muffle`: this term will be substituted for a function that 'muffles' (i.e., 'suppresses', 'catches', 'hides'---whatever you want to call it) the captured condition, preventing it from being raised to higher levels or subsequent plans. Anything in a plan _after_ `muffle` will be ignored, so put it last. \cr
 #' The function `muffle` is built on, [first_muffle_restart()], searches for the first available \link[base:conditions]{restart} with `"muffle"` in its name (the two typical ones are `"muffleMessage"` and `"muffleWarning"`) and calls `invokeRestart` with it. If the captured condition is an error, which can't be muffled, it will exit the evaluation and give `NULL` for the returned value of the evaluated expression.
 #'
-#' - `exit`: when encountered, this will exit the evaluation of the expression immediately and by default muffle the captured condition (use `raise` to ensure this doesn't happen). Any instructions after `exit` in the input will be ignored, so put it last. To keep `catchr`'s behavior similar to how conditions are handled elsewhere, whatever the previous function in the plan returned will be returned as the value of the evaluated expression, so if you want to make sure you knew the evaluated expression did not finish, make sure the previous function returns `NULL` (e.g., use `function(cond) NULL`).
+#' - `exit`: when encountered, this will exit the evaluation of the expression immediately and by default muffle the captured condition (use `raise` in the plan if to ensure this doesn't happen). Any instructions after `exit` in the input will be ignored, so put it last.
 #'
-#' - `collect`: this term will store the captured conditions and append them to the output of the evaluated expression. See the \link[=collecting-conditions]{Collecting conditions} help topic for a full explanation.
+#' - `collect`: this term will store the captured conditions and append them to the output of the evaluated expression. See the \link[=collecting-conditions]{collecting conditions} help topic for a full explanation.
 #'
 #' - `raise`: this term will raise the captured condition "as is". The only *real* use for this term is when you want to use `exit` to stop the evaluation, but to still raise the condition past that as well (in which case, put `raise` in the plan before `exit`). The behavior of this raising might be slightly unpredictable for very odd edge-cases (e.g., if a condition were both a warning *and* an error).
 #'
@@ -89,9 +89,9 @@ NULL
 #'
 #'  - the reserved names are being used as calls, e.g., `warning = collect(foo)`. In these cases, it will attempt to use a previously defined function `collect` on `foo`, and will attempt to use whatever that evaluates to. The reserved terms are all strings/unquoted bare symbols, so it is never a problem anyway.
 #'
-#'  - when the input specifically references a namespace/package, such as `warning = dplyr::collect`. When the symbol of a special terms is preceded by `::` or `:::`, it will be seen as the function of that package, and not as the special term `collect`.
+#'  - the input specifically references a namespace/package, such as `warning = dplyr::collect`. When the symbol of a special terms is preceded by `::` or `:::`, it will be seen as the function of that package, and not as the special term `collect`.
 #'
-#'  - the reserved terms are used inside a function definition. For example, if the user had defined `muffle <- function(x) print("not special")`, and `fn <- function(x) muffle`, using the argument `warning = fn()` would not use the special term of `muffle`.
+#'  - the reserved terms are used inside a previously defined function. For example, if the user had defined `muffle <- function(x) print("not special")`, and `fn <- function(x) muffle`, using the argument `warning = fn()` would not use the special term of `muffle`.
 #'
 #' @name catchr-DSL
 #' @aliases language-of-catchr reserved-terms masking tomessage towarning toerror beep display muffle exit raise
@@ -102,7 +102,7 @@ NULL
 #'
 #' @description
 #'
-#' In addition to having \link[=reserved-terms]{reserved terms} for use in making condition-handling plans, `catchr` also places special meaning on two types of conditions, `misc` and `last_stop`. The `misc` is very useful, `last_stop` is something most users should probably stay away from.
+#' In addition to having \link[=reserved-terms]{reserved terms} for use in making condition-handling plans, `catchr` also places special meaning on two types of conditions, `misc` and `last_stop`. The `misc` is very useful, `last_stop` is something most users should probably avoid.
 #'
 #'
 #' @section The `misc` condition:
@@ -119,7 +119,7 @@ NULL
 #'
 #' @section The `last_stop` condition:
 #'
-#' This condition name is reserved for [user_exit()] and [exit_with()]. There's basically zero chance any code other than `catchr` will ever raise a condition of `"last_stop"`, so this shouldn't be a problem, but until `catchr` becomes more mature, do not use this name for any condition or plan.
+#' This condition name is reserved for [exit], [user_exit()] and [exit_with()]. There is basically zero chance any code other than `catchr` will ever raise a condition of `"last_stop"`, so this shouldn't be a problem, but until `catchr` becomes more mature, do not use this name for any condition or plan.
 #'
 #' @name reserved-conditions
 #' @aliases misc last_stop

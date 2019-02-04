@@ -17,7 +17,7 @@ display_with(crayon_style, ...)
 \item{\dots}{Parameters to pass into \code{\link[=extract_display_string]{extract_display_string()}}; namely \code{cond_name} (which controls how the condition is introduced) and \code{include_call}, which determines whether the call is included.}
 }
 \description{
-These functions make a \code{catchr} plan immediately print the "caught" condition to the output terminal, similar to how \code{\link[=catchr-DSL]{display}} works. But unlike \code{display} and most \code{catchr} functions or special reserved terms, these functions are meant to be used in user-defined functions of a plan.
+These functions make a \code{catchr} plan immediately print the condition to the output terminal, similar to how \code{\link[=catchr-DSL]{display}} works. But unlike \code{display} and most \code{catchr} functions or special reserved terms, these functions are meant to be used in user-defined functions of a plan.
 
 \code{user_display()} immediately displays a condition n the output terminal, and if \link[crayon:crayon]{crayon} is installed, will style the text with whatever \code{crayon} styling is supplied (either as a \code{crayon} function or a character vector for \code{\link[crayon:combine_styles]{crayon::combine_styles()}}). This function should be used \emph{within} a custom function, i.e., \code{function(x) {user_display(x, "pink")}}, and not called by itself, since when it is called, it doesn't evaluate to a function, string or unquoted term, which are required input types to a \link[=make_plans]{catchr plan}.
 

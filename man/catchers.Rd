@@ -17,10 +17,12 @@ make_catch_fn(..., .opts = NULL)
 \item{.opts}{The options to be used for the plans (generally passed in using \code{\link[=catchr_opts]{catchr_opts()}}). If the input plans were already made by \code{make_plans()}, setting this will override whatever options were specified earlier.}
 }
 \value{
-The value of the evaluated expression if there isn't an error and if the plans don't force an exit. If \code{getOption("catchr.bare_if_possible")} is \code{FALSE} (or if any conditions have been collect), it will return a named list, with the "value" element containing the value of the evaluated expression and sublists containing any collected conditions.
+For \code{catch_expr()}: The value of the evaluated expression if there isn't an error and if the plans don't force an exit. If \code{getOption("catchr.bare_if_possible")} is \code{FALSE} (or if any conditions have been collect), it will return a named list, with the "value" element containing the value of the evaluated expression and sublists containing any collected conditions. \cr \cr For \code{make_catch_fn()} A function that catches conditions for expressions the same way \code{catch_expr()} would, but with the plans already specified.
 }
 \description{
-\code{catch_expr} evaluates an expression, catching and handling the conditions it raises according to whatever \link[=make_plans]{catchr plans} are specified.  Plans can be passed in as output from \code{make_plans} or as input that follows the same format as the input to \code{make_plans}.
+These are function that actually evaluate expression and "catch" the conditions. \code{catch_expr()} evaluates an expression, catching and handling the conditions it raises according to whatever \link[=make_plans]{catchr plans} are specified.  \code{make_catch_fn()} is a function factory that returns a function that behaves like \code{catch_expr()} with the plans already specified.
+
+Plans can be passed in as output from \code{make_plans()} or as input that follows the same format as the input to \code{make_plans()}.
 }
 \examples{
 warner <- function() {

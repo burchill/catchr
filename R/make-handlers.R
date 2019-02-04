@@ -196,8 +196,7 @@ make_compiled_qual <- function(l, original_calls, .opts) {
 #'
 #' Currently, this function just checks whether a list was made via
 #' [make_plans()]. It does so simply by looking at the class of the list. \cr \cr
-#' In the future, `catchr` plans may become more complicated (i.e., to avoid the
-#' horrible printing) and this will become a more useful API
+#' In the future, `catchr` plans may become more complicated and this will become a more useful part of the API.
 #'
 #' @param x An object to test
 #' @export
@@ -236,11 +235,11 @@ extract_display_string <- function(cond, cond_name = NA, include_call = T) {
 #'
 #' @description
 #'
-#' If you have the `[beepr][beepr::beep()]` package installed, `catchr` can use it to play sounds when certain conditions are being handled with `beep_with`, similar to how \code{\link[=catchr-DSL]{beep}} works. But unlike `beep` and most `catchr` functions or special reserved terms, `beepr` is meant to be used as a user-defined function in a plan. It is particularly useful for when you're working with `futures` and busy doing something else while code is running in the background, or when you're working in a different window and want something to grab your attention.
+#' If you have the [beepr][beepr::beep()] package installed, `catchr` can use it to play sounds when certain conditions are being handled with `beep_with()`, similar to how \code{\link[=catchr-DSL]{beep}} works. But unlike `beep` and most `catchr` functions or special reserved terms, `beep_with()` is meant to be used as a user-defined function in a plan. It is particularly useful for when you're working with `futures` and busy doing something else while code is running in the background, or when you're working in a different window and want something to grab your attention.
 #'
 #' `beep_with` can be used at the "top" level of a plan, since it returns a _function_ (which is required custom input for a `catchr` plan) that will play the beeping sound you've specified.
 #'
-#' @param beepr_sound A character string or number specifying the sound to be played. See the `sound` argument in \pkg{beepr}::[beepr::beep()] documentation.
+#' @param beepr_sound A character string or number specifying the sound to be played. See the `sound` argument in [beepr::beep()] documentation.
 #' @examples
 #' warning_in_middle <- function() {
 #'   Sys.sleep(2)
@@ -271,7 +270,7 @@ beep_with <- function(beepr_sound) {
 #'
 #' @description
 #'
-#' These functions make a `catchr` plan immediately print the "caught" condition to the output terminal, similar to how \code{\link[=catchr-DSL]{display}} works. But unlike `display` and most `catchr` functions or special reserved terms, these functions are meant to be used in user-defined functions of a plan.
+#' These functions make a `catchr` plan immediately print the condition to the output terminal, similar to how \code{\link[=catchr-DSL]{display}} works. But unlike `display` and most `catchr` functions or special reserved terms, these functions are meant to be used in user-defined functions of a plan.
 #'
 #' `user_display()` immediately displays a condition n the output terminal, and if [crayon][crayon::crayon] is installed, will style the text with whatever `crayon` styling is supplied (either as a `crayon` function or a character vector for [crayon::combine_styles()]). This function should be used _within_ a custom function, i.e., `function(x) {user_display(x, "pink")}`, and not called by itself, since when it is called, it doesn't evaluate to a function, string or unquoted term, which are required input types to a \link[=make_plans]{catchr plan}.
 #'

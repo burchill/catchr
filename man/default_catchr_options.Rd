@@ -14,16 +14,16 @@ restore_catchr_defaults(...)
 \item{\dots}{Default options to get or set. See the Arguments section for details.}
 }
 \description{
-\code{catchr}'s options for planning condition handling are passed into \code{catchr} functions with \code{\link[=catchr_opts]{catchr_opts()}}, but when an option isn't specified, \code{catchr_opts()} uses whatever the default for that option is. You can get and set these global defaults with \code{catchr_default_opts()} and do a "factory reset" on them to restore the original package values with \code{restore_catchr_defaults()}.
+\code{catchr}'s options for planning condition handling are passed into \code{catchr} functions with \code{\link[=catchr_opts]{catchr_opts()}}, but when an option isn't specified in the call, \code{catchr_opts()} uses whatever the default for that option is. You can get and set these global defaults with \code{catchr_default_opts()} and do a "factory reset" on them to restore the original package values with \code{restore_catchr_defaults()}.
 }
 \section{Arguments}{
 
 
-For \code{catchr_default_opts()}, unnamed arguments (unquoted terms / strings of the option names) will have their current default values returned, similar to \code{getOption()}. Named arguments (whose names are option names) will have their default values \emph{set} to whatever their value is.
+For \code{catchr_default_opts()}, unnamed arguments (unquoted terms / strings of the option names) will have their current default values returned, similar to \code{getOption()}. Named arguments (whose names are option names) will have their default values \emph{set} to whatever their value is. If no arguments are specified, it will return all the current default values.
 
 \code{restore_catchr_defaults()} only accepts unnamed arguments (unquoted terms / strings of the option names). The options specified will have their default values set to the \emph{original} default package values. Leaving the arguments empty will result in \emph{all} the option defaults being reset to their original values.
 }
 
 \seealso{
-\code{\link[=catchr_opts]{catchr_opts()}} for what the options mean, \code{\link[=get_default_plan]{get_default_plan()}} and \code{\link[=set_default_plan]{set_default_plan()}}, which are equivalent to \code{catchr_default_opts(default_plan)} and \code{catchr_default_opts(default_plan = ...)}, respectively.
+\code{\link[=catchr_opts]{catchr_opts()}} for what the options mean; \code{\link[=get_default_plan]{get_default_plan()}} and \code{\link[=set_default_plan]{set_default_plan()}}, which are equivalent to \code{catchr_default_opts(default_plan)} and \code{catchr_default_opts(default_plan = ...)}, respectively.
 }

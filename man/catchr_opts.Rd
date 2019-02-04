@@ -17,7 +17,7 @@ catchr_opts(default_plan = NULL, warn_about_terms = NULL,
 \item{drop_empty_conds}{A logical; if \code{TRUE}, the sublists for conditions that used \code{collect} but didn't collect anything will be dropped from the list. Otherwise, they will appear as empty sublists.}
 }
 \description{
-\code{catchr} offers a number of options for planning condition handling, and the \code{catchr_opts} functions
+\code{catchr} offers a number of options for planning condition handling, and the \code{catchr_opts} function
 provides a way of passing those options to whatever function is handling the planning. If any
 argument is left unspecified it defaults to the global defaults (accessible via
 \code{\link[=catchr_default_opts]{catchr_default_opts()}}, \code{\link[base:options]{base::options()}}, or \code{\link[base:getOption]{base::getOption()}}).
@@ -35,5 +35,5 @@ argument is left unspecified it defaults to the global defaults (accessible via
 }
 
 \seealso{
-\link[=default-catchr-options]{default catchr options}, \code{\link[=set_default_plan]{set_default_plan()}}, \code{\link[=get_default_plan]{get_default_plan()}}
+\link[=default-catchr-options]{The default catchr options}, \code{\link[=set_default_plan]{set_default_plan()}}, \code{\link[=get_default_plan]{get_default_plan()}}
 }

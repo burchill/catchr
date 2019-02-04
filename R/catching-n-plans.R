@@ -66,7 +66,7 @@ give_newline <- function(s, trim = FALSE) {
 
 #' Find the first 'mufflable' restart
 #'
-#' This function attempts to return the first available \link[base:conditions]{restart} with the string "muffle" in its name. If the condition is an error, it will attempt to find the first restart named "return_error" (used internally in `catchr` to return a `NULL` value). If no such restarts can be found, it returns `NULL`.
+#' This function attempts to return the first available \link[base:conditions]{restart} with the string "muffle" in its name. If the condition is an error, it will attempt to find the first restart named "return_error" (used internally in `catchr` to return a `NULL` value). If the condition is an "interrupt", it will attempt to find the first restart named "resume". If no such restarts can be found, it returns `NULL`.
 #'
 #' @param cond A condition
 #' @return A restart or `NULL` if none can be found.
@@ -197,12 +197,16 @@ make_plans <- function(..., .opts = catchr_opts()) {
 
 #' Catch conditions
 #'
-#' `catch_expr` evaluates an expression, catching and handling the conditions it raises according to whatever \link[=make_plans]{catchr plans} are specified.  Plans can be passed in as output from `make_plans` or as input that follows the same format as the input to `make_plans`.
+#' @description
+#'
+#' These are function that actually evaluate expression and "catch" the conditions. `catch_expr()` evaluates an expression, catching and handling the conditions it raises according to whatever \link[=make_plans]{catchr plans} are specified.  `make_catch_fn()` is a function factory that returns a function that behaves like `catch_expr()` with the plans already specified.
+#'
+#' Plans can be passed in as output from `make_plans()` or as input that follows the same format as the input to `make_plans()`.
 #'
 #' @param expr the expression to be evaluated
 #' @param \dots a catchr plan as made by [make_plans()] or input for plans that follows the same format as input to `make_plans()`
 #' @param .opts The options to be used for the plans (generally passed in using [catchr_opts()]). If the input plans were already made by `make_plans()`, setting this will override whatever options were specified earlier.
-#' @return The value of the evaluated expression if there isn't an error and if the plans don't force an exit. If `getOption("catchr.bare_if_possible")` is `FALSE` (or if any conditions have been collect), it will return a named list, with the "value" element containing the value of the evaluated expression and sublists containing any collected conditions.
+#' @return For `catch_expr()`: The value of the evaluated expression if there isn't an error and if the plans don't force an exit. If `getOption("catchr.bare_if_possible")` is `FALSE` (or if any conditions have been collect), it will return a named list, with the "value" element containing the value of the evaluated expression and sublists containing any collected conditions. \cr \cr For `make_catch_fn()` A function that catches conditions for expressions the same way `catch_expr()` would, but with the plans already specified.
 #' @examples
 #' warner <- function() {
 #'   warning("Suppress this!")
@@ -361,6 +365,8 @@ dispense_collected <- function(l, treat_errs = c("raise", "display", "warn")) {
 #' Establish handlers on the stack (in order)
 #'
 #' @description
+#'
+#' **Note**: `with_ordered_handlers()` is _not_ designed to play nice with the rest of the `catchr` framework, and is exported as a utility function users might find useful elsewhere. Do not consider this a stable part of the API.
 #'
 #' `with_ordered_handlers()` is inspired by `rlang`'s [rlang::with_handlers()] function, which essentially lets you handle conditions in ways that don't stop the evaluation ("calling" handlers) and ways that will immediately break out of the evaluation ("exiting" handlers) in a single function.
 #'

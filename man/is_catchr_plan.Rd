@@ -12,6 +12,5 @@ is_catchr_plan(x)
 \description{
 Currently, this function just checks whether a list was made via
 \code{\link[=make_plans]{make_plans()}}. It does so simply by looking at the class of the list. \cr \cr
-In the future, \code{catchr} plans may become more complicated (i.e., to avoid the
-horrible printing) and this will become a more useful API
+In the future, \code{catchr} plans may become more complicated and this will become a more useful part of the API.
 }

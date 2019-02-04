@@ -13,5 +13,5 @@ first_muffle_restart(cond)
 A restart or \code{NULL} if none can be found.
 }
 \description{
-This function attempts to return the first available \link[base:conditions]{restart} with the string "muffle" in its name. If the condition is an error, it will attempt to find the first restart named "return_error" (used internally in \code{catchr} to return a \code{NULL} value). If no such restarts can be found, it returns \code{NULL}.
+This function attempts to return the first available \link[base:conditions]{restart} with the string "muffle" in its name. If the condition is an error, it will attempt to find the first restart named "return_error" (used internally in \code{catchr} to return a \code{NULL} value). If the condition is an "interrupt", it will attempt to find the first restart named "resume". If no such restarts can be found, it returns \code{NULL}.
 }

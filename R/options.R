@@ -23,7 +23,7 @@ get_default_plan <- function() {
 #'
 #' @description
 #'
-#' `catchr` offers a number of options for planning condition handling, and the `catchr_opts` functions
+#' `catchr` offers a number of options for planning condition handling, and the `catchr_opts` function
 #'  provides a way of passing those options to whatever function is handling the planning. If any
 #'  argument is left unspecified it defaults to the global defaults (accessible via
 #'  [catchr_default_opts()], [base::options()], or [base::getOption()]).
@@ -41,7 +41,7 @@ get_default_plan <- function() {
 #' @param warn_about_terms A logical; if `FALSE`, will not warn about masking special terms
 #' @param bare_if_possible A logical; if `TRUE`, and no conditions are collected, will return the result of the evaluated expression as-is, without encompassing named list.
 #' @param drop_empty_conds A logical; if `TRUE`, the sublists for conditions that used `collect` but didn't collect anything will be dropped from the list. Otherwise, they will appear as empty sublists.
-#' @seealso [default catchr options][default-catchr-options], [set_default_plan()], [get_default_plan()]
+#' @seealso [The default catchr options][default-catchr-options], [set_default_plan()], [get_default_plan()]
 #' @export
 catchr_opts <- function(default_plan = NULL,
                         warn_about_terms = NULL,
@@ -77,18 +77,18 @@ catchr_opts <- function(default_plan = NULL,
 #'
 #' @description
 #'
-#' `catchr`'s options for planning condition handling are passed into `catchr` functions with [catchr_opts()], but when an option isn't specified, `catchr_opts()` uses whatever the default for that option is. You can get and set these global defaults with `catchr_default_opts()` and do a "factory reset" on them to restore the original package values with `restore_catchr_defaults()`.
+#' `catchr`'s options for planning condition handling are passed into `catchr` functions with [catchr_opts()], but when an option isn't specified in the call, `catchr_opts()` uses whatever the default for that option is. You can get and set these global defaults with `catchr_default_opts()` and do a "factory reset" on them to restore the original package values with `restore_catchr_defaults()`.
 #'
 #' @section Arguments:
 #'
-#' For `catchr_default_opts()`, unnamed arguments (unquoted terms / strings of the option names) will have their current default values returned, similar to `getOption()`. Named arguments (whose names are option names) will have their default values *set* to whatever their value is.
+#' For `catchr_default_opts()`, unnamed arguments (unquoted terms / strings of the option names) will have their current default values returned, similar to `getOption()`. Named arguments (whose names are option names) will have their default values *set* to whatever their value is. If no arguments are specified, it will return all the current default values.
 #'
 #' `restore_catchr_defaults()` only accepts unnamed arguments (unquoted terms / strings of the option names). The options specified will have their default values set to the *original* default package values. Leaving the arguments empty will result in _all_ the option defaults being reset to their original values.
 #'
 #' @param \dots Default options to get or set. See the Arguments section for details.
 #' @name default-catchr-options
 #' @rdname default_catchr_options
-#' @seealso [catchr_opts()] for what the options mean, [get_default_plan()] and [set_default_plan()], which are equivalent to `catchr_default_opts(default_plan)` and `catchr_default_opts(default_plan = ...)`, respectively.
+#' @seealso [catchr_opts()] for what the options mean; [get_default_plan()] and [set_default_plan()], which are equivalent to `catchr_default_opts(default_plan)` and `catchr_default_opts(default_plan = ...)`, respectively.
 #' @export
 # Ugh, BEASTLY (in a bad way) code
 catchr_default_opts <- function(...) {
