@@ -4,7 +4,7 @@
 [![Travis-CI Build
 Status](https://travis-ci.com/burchill/catchr.svg?branch=master)](https://travis-ci.com/burchill/catchr)
 [![CRAN
-status](https://www.r-pkg.org/badges/version/furrr)](https://cran.r-project.org/package=furrr)
+status](https://www.r-pkg.org/badges/version/catchr)](https://cran.r-project.org/package=catchr)
 
 # Catchr: the friendlier way of catching errors, warnings, and conditions
 
