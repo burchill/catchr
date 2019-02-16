@@ -69,10 +69,18 @@ check_for_calls <- function(qs, names_to_check, message, ...) {
 
 # The warning was bulky so I moved it here
 warn_of_specials <- function(x) {
-  if (length(x) > 0)
+  if (length(x) > 0) {
+    agreement <- ""
+    verb <- "have"
+    if (length(x) == 1) {
+      agreement <- "s"
+      verb <- "has"
+    }
+    agreement <- ifelse(length(x)==1, "has", "have")
     warning("`", paste(x, collapse = "`, `"),
-            "` have special meaning in these arguments, but seem to already be defined elsewhere.  These previous definitions may be masked when determining condition behavior.",
+            "` ", verb, " special meaning as catchr input, but seem", agreement, " to already be defined elsewhere.  These previous definitions may be masked when determining condition behavior.",
             immediate. = TRUE, call. = FALSE)
+  }
 }
 
 
