@@ -1,3 +1,9 @@
+# catchr 0.2.1
+
+## Bug fixes
+
+ * `summary` now works correctly on `catchr_compiled_plans`, rather than throwing an error.
+
 # catchr 0.2.0
 
 ## Major breaking changes: everything
