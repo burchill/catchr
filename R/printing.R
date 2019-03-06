@@ -43,11 +43,13 @@ print.catchr_compiled_plans <- function(x, ...,
     opts[options_to_hide] <- NULL
     opts <- append(opts[names(opts) != "default_plan"], opts["default_plan"])
     opt_names <- names2(opts)
-    opts <- paste0(opts) %>%
-      map_chr( ~add_ellipses(., total_len - max_opt_nchar - 4))
 
     max_opt_nchar <- max(nchar(opt_names))
     opts_padding <- get_padding(opt_names)
+    
+    opts <- paste0(opts) %>%
+      map_chr( ~add_ellipses(., total_len - max_opt_nchar - 4))
+    
     # end_padding <- total_len - max_opt_nchar - nchar(opts) - 4
     # end_padding <- map_chr(end_padding, ~join(rep(" ", .)))
   }
