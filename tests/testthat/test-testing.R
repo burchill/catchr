@@ -283,14 +283,6 @@ test_that("Ordered handlers respect order", {
 test_that("Ordered handlers respects order when with_handlers doesn't", {
   test_val <- NULL
 
-  expect_silent(res <- with_handlers(
-    warning("woops!"),
-    condition = calling(function(x) test_val <<- "condition"),
-    warning = exiting(function(x) "WARNING")))
-
-  expect_equal(res, "WARNING")
-  expect_equal(test_val, NULL)
-
   expect_silent(res <- with_ordered_handlers(
     warning("woops!"),
     condition = calling(function(x) test_val <<- "condition"),
