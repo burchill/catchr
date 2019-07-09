@@ -101,10 +101,10 @@ approx_arg_name <- function(x, len = 25) {
 #' @param fn A function that is a candidate for being a handler
 #' @export
 has_handler_args <- function(fn) {
-  args <- Map(is_missing, fn_fmls(fn)) # purrr can't iterate over pairlist
+  args <- Map(is_missing, fn_fmls(args(fn))) # purrr can't iterate over pairlist
   needed <- args %>% keep(~.) %>% length()
   supplied <- args %>% keep(~!.) %>% length()
-  has_dots <- "..." %in% fn_fmls_names(fn)
+  has_dots <- "..." %in% fn_fmls_names(args(fn))
   return(needed == 1 || (needed == 0 && supplied > 0) || has_dots)
 }
 
