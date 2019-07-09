@@ -26,6 +26,8 @@ Roxygen: list(markdown = TRUE, roclets = c("rd", "namespace", "collate"))
 Imports:
     rlang    (>= 0.3.1),
     purrr    (>= 0.2.0),
+Depends:
+    R (>= 3.2.0)
 Suggests:
 	testthat,
     beepr,
