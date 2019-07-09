@@ -265,19 +265,6 @@ test_that("user_exit/user_display need to be IN a function", {
     error = user_display))
 })
 
-test_that("Ordered handlers respects order when with_handlers doesn't", {
-  test_val <- NULL
-
-  expect_silent(res <- with_ordered_handlers(
-    warning("woops!"),
-    condition = calling(function(x) test_val <<- "condition"),
-    warning = exiting(function(x) "WARNING")))
-
-  expect_equal(test_val, "condition")
-  expect_equal(res, "WARNING")
-
-})
-
 #############################
 
 test_that("Testing getting and setting default options", {
