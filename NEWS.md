@@ -1,9 +1,13 @@
 # catchr 0.2.1
 
+## Patches
+
+Fixed some breaking changes from `rlang` updating to version `0.4.0`, primarily with `rlang::fn_fmls()` and `rlang::with_handlers()`. `catchr::with_ordered_handlers()` should be viewed suspiciously, as it hasn't been vetted with the new `rlang::with_handlers` code. 
+
 ## Bug fixes
 
  * `summary` now works correctly on `catchr_compiled_plans`, rather than throwing an error.
-
+ 
 # catchr 0.2.0
 
 ## Major breaking changes: everything
