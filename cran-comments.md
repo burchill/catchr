@@ -1,6 +1,6 @@
 ## Test environments
 * local OS X install, R 3.3.1
-* Ubuntu 14.04.5 LTS (on travis-ci), R versions 3.1, 3.2, 3.3, 3.4, 3.5
+* Ubuntu 14.04.5 LTS (on travis-ci), R versions 3.2, 3.3, 3.4, 3.5
 * Fedora 28, R 3.5.1
 * win-builder (devel and release)
 
