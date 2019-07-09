@@ -9,7 +9,6 @@ condition_thrower <- function() {
   stop("collaborate and listen")
 }
 
-
 test_that("Basic format errors", {
   expect_error(make_plans())
   expect_error(make_plans(condition = NULL))
@@ -41,11 +40,11 @@ test_that("Collecting and raising", {
 
   # Ugh, frickin' capture.output in R 3.1...
   if (as.numeric(paste0(R.Version()$major, ".", floor(as.numeric(R.Version()$minor)))) >= 3.2) {
-  output <- capture.output({
-    res1.5 <- dispense_collected(res[c("value", "error")], treat_errs = "display")},
-    type="message")
-  expect_equivalent("Error: collaborate and listen", output)
-  expect_null(res1.5)
+    output <- capture.output({
+      res1.5 <- dispense_collected(res[c("value", "error")], treat_errs = "display")},
+      type="message")
+    expect_equivalent("Error: collaborate and listen", output)
+    expect_null(res1.5)
   }
 
   res[["value"]] <- "good"
@@ -73,14 +72,14 @@ test_that("Namespaces and environments", {
   # If you define it in the function, it should give a warning
   expect_warning(
     res1 <- check_and_clean_input(d1 = function(x) { return(sup) },
-                             spec_names = taboo)
+                                  spec_names = taboo)
   )
   expect_equal(res1$kwargs$d1(""), sup)
 
   expect_silent(
     res2 <- check_and_clean_input(d2 = samenamespace,
-                             d3 = diffnamespace,
-                             spec_names = taboo)
+                                  d3 = diffnamespace,
+                                  spec_names = taboo)
   )
 
   expect_equal(sup, "NO")
@@ -169,7 +168,7 @@ test_that("Basic display testing", {
   expect_warning(output1 <- capture.output(
     catch_expr(make_warnings(),
                warning = display)
-    ))
+  ))
   expect_silent(output1 <- capture.output(
     catch_expr(make_warnings(),
                warning = c(display, muffle))
@@ -266,42 +265,6 @@ test_that("user_exit/user_display need to be IN a function", {
     error = user_display))
 })
 
-
-test_that("Ordered handlers respect order", {
-  test_val <- NULL
-
-  expect_silent(res <- with_ordered_handlers(
-    warning("woops!"),
-    warning = exiting(function(x) "WARNING"),
-    condition = calling(function(x) test_val <<- "condition")))
-
-  expect_equal(res, "WARNING")
-  expect_equal(test_val, NULL)
-
-})
-
-
-test_that("Ordered handlers respects order when with_handlers doesn't", {
-  test_val <- NULL
-
-  expect_silent(res <- with_handlers(
-    warning("woops!"),
-    condition = calling(function(x) test_val <<- "condition"),
-    warning = exiting(function(x) "WARNING")))
-
-  expect_equal(res, "WARNING")
-  expect_equal(test_val, NULL)
-
-  expect_silent(res <- with_ordered_handlers(
-    warning("woops!"),
-    condition = calling(function(x) test_val <<- "condition"),
-    warning = exiting(function(x) "WARNING")))
-
-  expect_equal(test_val, "condition")
-  expect_equal(res, "WARNING")
-
-})
-
 #############################
 
 test_that("Testing getting and setting default options", {
@@ -332,9 +295,9 @@ test_that("Testing getting and setting default options", {
   expect_equivalent(
     what_im_testing,
     list(getOption("catchr.warn_about_terms"),
-                   getOption("catchr.drop_empty_conds"),
-                   getOption("catchr.default_plan"),
-                   getOption("catchr.bare_if_possible"))
+         getOption("catchr.drop_empty_conds"),
+         getOption("catchr.default_plan"),
+         getOption("catchr.bare_if_possible"))
   )
 
   # Should all be the same
@@ -457,6 +420,67 @@ test_that("Testing restoring default options", {
   expect_identical(
     catchr_original_default_values[c("catchr.warn_about_terms", "catchr.drop_empty_conds")],
     catchr_default_opts("catchr.warn_about_terms", "catchr.drop_empty_conds"))
+})
+
+
+test_that("Testing basic compiled plan printing", {
+  expect_silent(
+    test_plans <- make_plans(
+      warning,
+      error=c("muffle"),
+      message=list(beep, function(x) {print(paste0(x, "THIS IS A VERY LONG STRING AND I THINK IT WILL GET CUT OFF")); stop(x)}),
+      .opts = catchr_opts(
+        default_plan = c(display, muffle),
+        warn_about_terms = FALSE,
+        bare_if_possible = TRUE,
+        drop_empty_conds = TRUE))
+  )
+
+  test_order_and_existence <- function(to_print, l, ...) {
+    expect_silent(output1 <- capture.output(print(to_print, ...)))
+
+    for (i in 1:(length(l)-1)) {
+
+      expect_true(
+        which(grepl(l[[i]], output1, fixed=TRUE)) <
+          which(grepl(l[[i+1]], output1, fixed=TRUE)),
+        label= paste0("'", l[[i]], "' not before '", l[[i+1]],
+                      "' or either one is missing from: ",
+                      paste(output1, collapse="\n"))
+      )
+    }
+    output1
+  }
+
+  o1 <- test_order_and_existence(
+    test_plans,
+    c("warning:","error:","message:","to see the default plan"),
+    total_len = 30)
+  expect_true(any(grepl("<default_plan>*", o1, fixed=TRUE)))
+
+  o2 <- test_order_and_existence(
+    test_plans,
+    c("warning:","error:","message:","catchr options:",
+      "warn_about_terms: FALSE", "default_plan:"),
+    show_opts = TRUE)
+
+  expect_true(!any(grepl("to see the default plan", o2, fixed=TRUE)))
+  expect_true(grepl("default_plan:.*display.*muffle", o2[length(o2)]))
+
+  o3 <- test_order_and_existence(
+    test_plans,
+    c("warning:","error:","message:","to see the default plan"),
+    total_len = 190)
+  expect_true(any(grepl("WILL GET CUT OFF", o3, fixed=TRUE)))
+
+  expect_identical(
+    capture.output(  print(test_plans, show_opts = TRUE, show_full = TRUE)),
+    capture.output(summary(test_plans))
+  )
+
+  o4 <- capture.output(make_plans(warning="muffle"))
+  expect_true(!any(grepl("default_plan", o4)))
+
 })
 
 

@@ -69,10 +69,18 @@ check_for_calls <- function(qs, names_to_check, message, ...) {
 
 # The warning was bulky so I moved it here
 warn_of_specials <- function(x) {
-  if (length(x) > 0)
+  if (length(x) > 0) {
+    agreement <- ""
+    verb <- "have"
+    if (length(x) == 1) {
+      agreement <- "s"
+      verb <- "has"
+    }
+    agreement <- ifelse(length(x)==1, "has", "have")
     warning("`", paste(x, collapse = "`, `"),
-            "` have special meaning in these arguments, but seem to already be defined elsewhere.  These previous definitions may be masked when determining condition behavior.",
+            "` ", verb, " special meaning as catchr input, but seem", agreement, " to already be defined elsewhere.  These previous definitions may be masked when determining condition behavior.",
             immediate. = TRUE, call. = FALSE)
+  }
 }
 
 
@@ -93,10 +101,10 @@ approx_arg_name <- function(x, len = 25) {
 #' @param fn A function that is a candidate for being a handler
 #' @export
 has_handler_args <- function(fn) {
-  args <- Map(is_missing, fn_fmls(fn)) # purrr can't iterate over pairlist
+  args <- Map(is_missing, fn_fmls(args(fn))) # purrr can't iterate over pairlist
   needed <- args %>% keep(~.) %>% length()
   supplied <- args %>% keep(~!.) %>% length()
-  has_dots <- "..." %in% fn_fmls_names(fn)
+  has_dots <- "..." %in% fn_fmls_names(args(fn))
   return(needed == 1 || (needed == 0 && supplied > 0) || has_dots)
 }
 

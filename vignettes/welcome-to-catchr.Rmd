@@ -248,7 +248,7 @@ tell_you_when_it_blows_up(message("Oopsies!"))
 
 ### All plans are "calling handlers"
 
-This is definitely more of a technical point, but all the plans in catchr are technically evaluated in order.  Currently (`rlang 0.3.1`) `rlang`'s condition-handling function, `with_handlers`, has the relatively unintuitive property of not checking its handlers in the order they are defined, but first checking all the "exiting" handlers, and then checking all the "calling" handlers.  catchr actually offers a function inspired by `with_handlers` that strictly checks these in order and uses `rlang`'s schema (`with_ordered_handlers`), but catchr's main condition handling does one better: it gets rid of "exiting" handlers all together.
+This is definitely more of a technical point, but all the plans in catchr are technically evaluated in order.  Currently (`rlang 0.3.1`) `rlang`'s condition-handling function, `with_handlers`, has the relatively unintuitive property of not checking its handlers in the order they are defined, but first checking all the "exiting" handlers, and then checking all the "calling" handlers.  catchr's main condition handling does better: it gets rid of "exiting" handlers all together.
 
 Ok, this is beginning to get _much_ more technical, but there are many other benefits to making all the plans (and therefore, handlers) "calling" handlers. For one, any plan has the option of restarting the code (via `muffle`, or invoking user-created restarts). 
 
