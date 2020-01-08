@@ -83,7 +83,6 @@ warn_of_specials <- function(x) {
       agreement <- "s"
       verb <- "has"
     }
-    agreement <- ifelse(length(x)==1, "has", "have")
     warning("`", paste(x, collapse = "`, `"),
             "` ", verb, " special meaning as catchr input, but seem", agreement, " to already be defined elsewhere.  These previous definitions may be masked when determining condition behavior.",
             immediate. = TRUE, call. = FALSE)
