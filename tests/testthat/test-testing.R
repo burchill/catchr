@@ -59,6 +59,8 @@ test_that("Collecting and raising", {
 })
 
 
+#### Namespace and environment stuff
+
 test_that("Namespaces and environments", {
   taboo <- "sup"
   sup <- "NO"
@@ -133,7 +135,6 @@ test_that("No collection = no sublists when bare_if_possible", {
   expect_named(results, expected = NULL)
 
 })
-
 
 test_that("Equivalences between catching funcs", {
   p <- make_plans(error = c(collect, muffle),
@@ -265,7 +266,7 @@ test_that("user_exit/user_display need to be IN a function", {
     error = user_display))
 })
 
-#############################
+####Defaults and options #########################
 
 test_that("Testing getting and setting default options", {
 
@@ -484,3 +485,49 @@ test_that("Testing basic compiled plan printing", {
 })
 
 
+
+
+test_that("Quasiquotation and namespaces", {
+  sup <- "NO"
+  diffnamespace <- function(x) {warning(sup); "diff"}
+  samenamespace <- function(x) {warning(sup); "same"}
+  environment(diffnamespace) <- child_env(asNamespace("base"),
+                                          sup = "YES",
+                                          diffnamespace = diffnamespace)
+
+
+  f <- function(expr, ...) {
+    quosures <- quos(...)
+    q <- quo(expr)
+    catch_expr(!!q,!!!quosures)
+  }
+
+  g <- function(expr, ...) {
+    quosures <- quos(...)
+    q <- quo(expr)
+    make_catch_fn(!!!quosures)(!!q)
+  }
+
+  expect_silent({
+    res1 <- f(diffnamespace(), warning=function(e) user_exit(e$message))
+    res2 <- f(samenamespace(), warning=function(e) user_exit(e$message))
+  })
+  expect_warning(res3 <- f(diffnamespace(), warning=function(e) user_exit(samenamespace())))
+
+  expect_equal(res1, "YES")
+  expect_equal(res2, "NO")
+  expect_equal(res3, "same")
+
+  # ----------------
+
+  expect_silent({
+    gres1 <- g(diffnamespace(), warning=function(e) user_exit(e$message))
+    gres2 <- g(samenamespace(), warning=function(e) user_exit(e$message))
+  })
+  expect_warning(gres3 <- g(diffnamespace(), warning=function(e) user_exit(samenamespace())))
+
+  expect_equal(gres1, "YES")
+  expect_equal(gres2, "NO")
+  expect_equal(gres3, "same")
+
+})
