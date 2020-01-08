@@ -35,7 +35,10 @@ options_to_hide <- c("collectors")
 # source("R/printing.R")
 
 
-
+# Internal
+as_list <- function(x) {
+  map(x, identity)
+}
 
 
 
