@@ -62,20 +62,20 @@ NULL
 #'
 #' The following are the special terms and what they do. Note that there are also some \link[=reserved-conditions]{special condition names}, but those are different from the following.
 #'
-#' - `tomessage`, `towarning`, `toerror`: these terms will become functions that will convert captured conditions into a message, warning, or error, respectively, and raise them. The original classes of the condition will be lost.
+#' - **`tomessage`**, **`towarning`**, **`toerror`**: these terms will become functions that will convert captured conditions into a message, warning, or error, respectively, and raise them. The original classes of the condition will be lost.
 #'
-#'  - `beep`: if the \link[beepr:beepr-package]{beepr} package is installed, this will play a sound via \code{\link[beepr:beepr]{beepr::beep}}.
+#'  - **`beep`**: if the \link[beepr:beepr-package]{beepr} package is installed, this will play a sound via \code{\link[beepr:beepr]{beepr::beep}}.
 #'
-#'  - `display`: the purpose of this term is to immediately display information about the captured condition on the output terminal without raising additional conditions (as would be done with `tomessage`). Currently, it attempts to display this information with bold, turquoise-blue text if the [crayon][crayon::crayon] package is installed. In future versions of catchr, this default styling (and other display options) may be able to be changed by the user.
+#'  - **`display`**: the purpose of this term is to immediately display information about the captured condition on the output terminal without raising additional conditions (as would be done with `tomessage`). Currently, it attempts to display this information with bold, turquoise-blue text if the [crayon][crayon::crayon] package is installed. In future versions of catchr, this default styling (and other display options) may be able to be changed by the user.
 #'
-#' - `muffle`: this term will be substituted for a function that 'muffles' (i.e., 'suppresses', 'catches', 'hides'---whatever you want to call it) the captured condition, preventing it from being raised to higher levels or subsequent plans. Anything in a plan _after_ `muffle` will be ignored, so put it last. \cr
+#' - **`muffle`**: this term will be substituted for a function that 'muffles' (i.e., 'suppresses', 'catches', 'hides'---whatever you want to call it) the captured condition, preventing it from being raised to higher levels or subsequent plans. Anything in a plan _after_ `muffle` will be ignored, so put it last. \cr
 #' The function `muffle` is built on, [first_muffle_restart()], searches for the first available \link[base:conditions]{restart} with `"muffle"` in its name (the two typical ones are `"muffleMessage"` and `"muffleWarning"`) and calls `invokeRestart` with it. If the captured condition is an error, which can't be muffled, it will exit the evaluation and give `NULL` for the returned value of the evaluated expression.
 #'
-#' - `exit`: when encountered, this will exit the evaluation of the expression immediately and by default muffle the captured condition (use `raise` in the plan if to ensure this doesn't happen). Any instructions after `exit` in the input will be ignored, so put it last.
+#' - **`exit`**: when encountered, this will exit the evaluation of the expression immediately and by default muffle the captured condition (use `raise` in the plan if to ensure this doesn't happen). Any instructions after `exit` in the input will be ignored, so put it last.
 #'
-#' - `collect`: this term will store the captured conditions and append them to the output of the evaluated expression. See the \link[=collecting-conditions]{collecting conditions} help topic for a full explanation.
+#' - **`collect`**: this term will store the captured conditions and append them to the output of the evaluated expression. See the \link[=collecting-conditions]{collecting conditions} help topic for a full explanation.
 #'
-#' - `raise`: this term will raise the captured condition "as is". The only *real* use for this term is when you want to use `exit` to stop the evaluation, but to still raise the condition past that as well (in which case, put `raise` in the plan before `exit`). The behavior of this raising might be slightly unpredictable for very odd edge-cases (e.g., if a condition were both a warning *and* an error).
+#' - **`raise`**: this term will raise the captured condition "as is". The only *real* use for this term is when you want to use `exit` to stop the evaluation, but to still raise the condition past that as well (in which case, put `raise` in the plan before `exit`). The behavior of this raising might be slightly unpredictable for very odd edge-cases (e.g., if a condition were both a warning *and* an error).
 #'
 #' @section Masking:
 #'
