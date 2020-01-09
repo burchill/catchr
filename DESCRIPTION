@@ -1,7 +1,7 @@
 Package: catchr
 Type: Package
 Title: Taking the Pain Out of Catching and Handling Conditions
-Version: 0.2.1
+Version: 0.2.2
 Authors@R: c(
     person("Zachary", "Burchill", email = "zach.burchill.code@gmail.com", 
                                   role = c("aut", "cre", "cph"))
@@ -21,7 +21,7 @@ Description: R has a unique way of dealing with warnings, errors, messages,
 License: MIT + file LICENSE
 Encoding: UTF-8
 LazyData: true
-RoxygenNote: 6.1.0
+RoxygenNote: 6.1.1
 Roxygen: list(markdown = TRUE, roclets = c("rd", "namespace", "collate"))
 Imports:
     rlang    (>= 0.3.1),

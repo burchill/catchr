@@ -2,7 +2,7 @@
 
 # ----- What I'm going with right now
 #' @import rlang
-#' @importFrom purrr %>% detect_index imap keep lift_dl map map2 map_chr map_dbl map_if map_lgl reduce walk
+#' @importFrom purrr %>% as_mapper detect_index imap keep lift_dl map map2 map_chr map_dbl map_if map_lgl reduce walk
 
 
 # ---Lots of warnings -----------------------
@@ -35,7 +35,10 @@ options_to_hide <- c("collectors")
 # source("R/printing.R")
 
 
-
+# Internal
+as_list <- function(x) {
+  map(x, identity)
+}
 
 
 
@@ -225,7 +228,8 @@ make_plans <- function(..., .opts = catchr_opts()) {
 #' @rdname catchers
 #' @export
 catch_expr <- function(expr, ..., .opts=NULL) {
-  make_catch_fn(..., .opts=.opts)(expr)
+  expr <- enquo(expr)
+  make_catch_fn(..., .opts=.opts)(!!expr)
 }
 
 #' @rdname catchers
@@ -239,6 +243,7 @@ make_catch_fn <- function(..., .opts = NULL) {
   function(expr) {
     .myConditions <- NULL
     baby_env <- child_env(current_env())
+    expr <- enquo(expr)
 
     # If you keep empty conds, make 'em now
     if (!.opts$drop_empty_conds && length(.opts$collectors) > 0)
@@ -248,7 +253,7 @@ make_catch_fn <- function(..., .opts = NULL) {
     kwargs <- plans %>%
       map(~`environment<-`(., baby_env))
 
-    res <- withRestarts(with_only_calling_handlers(expr, !!!kwargs),
+    res <- withRestarts(with_only_calling_handlers(!!expr, !!!kwargs),
                         return_error = function() NULL)
 
     if (.opts$bare_if_possible && is.null(.myConditions))
@@ -287,10 +292,9 @@ with_only_calling_handlers <- function(.expr, ...) {
   all_handlers <- final_handler_check(...)
   last_stop <- all_handlers["last_stop"]
   handlers <- all_handlers$handlers
-  expr <- quote(.expr)
-
-  expr <- expr(withCallingHandlers(!!expr, !!!handlers))
-  expr <- expr(tryCatch(!!expr, !!!last_stop))
+  expr <- enquo(.expr)
+  expr <- quo(withCallingHandlers(!!expr, !!!handlers))
+  expr <- quo(tryCatch(!!expr, !!!last_stop))
 
   eval_tidy(expr)
 }

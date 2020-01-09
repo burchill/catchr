@@ -1,6 +1,7 @@
 
 # Recursively moves through AST (kinda)
-check_nodes <- function(x, nms, check_calls = F, depth = NA) {
+check_nodes <- function(x, nms, check_calls = F, depth = NA,
+                        stop_pred = NULL) {
   depth = depth - 1
   if (!is.na(depth) && depth < 0)
     return(NULL)
@@ -18,13 +19,18 @@ check_nodes <- function(x, nms, check_calls = F, depth = NA) {
   }
 
   # e.g. `beepr::beep` shouldn't ruffle feathers
-  if (is_call(x) && !(call_name(x) %in% c("::", ":::")))
-    call_args(x) %>%
-    map(~check_nodes(., nms, check_calls, depth))
+  if (is_call(x) && !(call_name(x) %in% c("::", ":::"))) {
+
+    if (is.null(stop_pred) || !as_mapper(stop_pred)(x))
+      call_args(x) %>%
+      map(~check_nodes(., nms=nms, check_calls=check_calls,
+                       depth=depth, stop_pred=stop_pred))
+  }
 }
 
 # Checks all the symbols in the AST
-find_used_symbols <- function(x, nms, check_calls = F, depth = NA) {
+find_used_symbols <- function(x, nms, check_calls = F, depth = NA,
+                              stop_pred = NULL) {
   expr <- enexpr(x)
   symbol_list <- NULL
 
@@ -34,7 +40,8 @@ find_used_symbols <- function(x, nms, check_calls = F, depth = NA) {
   }
 
   withCallingHandlers(
-    check_nodes(expr, nms, check_calls, depth),
+    check_nodes(expr, nms=nms, check_calls=check_calls,
+                depth=depth, stop_pred=stop_pred),
     passer = handler
   )
   return(unique(symbol_list))
@@ -76,7 +83,6 @@ warn_of_specials <- function(x) {
       agreement <- "s"
       verb <- "has"
     }
-    agreement <- ifelse(length(x)==1, "has", "have")
     warning("`", paste(x, collapse = "`, `"),
             "` ", verb, " special meaning as catchr input, but seem", agreement, " to already be defined elsewhere.  These previous definitions may be masked when determining condition behavior.",
             immediate. = TRUE, call. = FALSE)
@@ -161,7 +167,7 @@ check_and_clean_input <- function(..., spec_names) {
   if (getOption("catchr.warn_about_terms", FALSE))
     warn_of_specials(get_used_specials(akw$kwargs, spec_names))
 
-  check_for_calls(akw$kwargs, c("user_exit", "user_display"), "`user_exit/user_display` is being called in the input to a plan at a very shallow level, possibly meaning that it is not in a function. Remember that these functions need to be IN a function or passed in AS a function, not a call. The call in question: ", depth=2)
+  check_for_calls(akw$kwargs, c("user_exit", "user_display"), "`user_exit/user_display` is being called in the input to a plan at a very shallow level, possibly meaning that it is not in a function. Remember that these functions need to be IN a function or passed in AS a function, not a call. The call in question: ", depth=2, stop_pred = ~call_name(.)=="function")
 
   kwargs <- clean_input(akw$kwargs, spec_names)
 

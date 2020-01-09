@@ -1,3 +1,15 @@
+# catchr 0.2.2
+
+## Patches
+
+I added quasiquotation capabilities to `catchr::catch_expr()` and `catchr::make_catch_fn()`, letting you unquote with the tidyverse's `!!` and `!!!` functions. Hopefully this doesn't break anything---it hasn't caused any errors in my tests or code so far, but if you have something weird happen, try version 0.2.1 and report the bug fix on GitHub.
+
+## Bug fixes
+
+ * The warning about catchr's DSL terms potentially masking some variables no longer has a typo.
+ * catchr no longer warns the user about `user_exit()`/`user_display()` being top level if they're within a function.
+
+
 # catchr 0.2.1
 
 ## Changes
@@ -30,7 +42,7 @@ In order to lower the barrier of entry, keep code clean and readable, and reduce
 
 ## Now with dependencies
 
-`catchr` now depends on a few packages. Much of the functions in `catchr v0.1.0` were redundant with functions from `rlang`; now `catchr` leans heavily on this package to bring simplicity to users less familiar with R's condition-handling idiosyncracies. For convenience, it uses a few functions from `purrr` as well.  It also suggests `beepr` and `crayon` for extra functionality in the auditory and visual domains, respectively.
+`catchr` now depends on a few packages. Much of the functions in `catchr v0.1.0` were redundant with functions from `rlang`; now `catchr` leans heavily on this package to bring simplicity to users less familiar with R's condition-handling idiosyncrasies. For convenience, it uses a few functions from `purrr` as well.  It also suggests `beepr` and `crayon` for extra functionality in the auditory and visual domains, respectively.
 
 # catchr 0.1.0
 
