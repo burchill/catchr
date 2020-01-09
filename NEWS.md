@@ -42,7 +42,7 @@ In order to lower the barrier of entry, keep code clean and readable, and reduce
 
 ## Now with dependencies
 
-`catchr` now depends on a few packages. Much of the functions in `catchr v0.1.0` were redundant with functions from `rlang`; now `catchr` leans heavily on this package to bring simplicity to users less familiar with R's condition-handling idiosyncracies. For convenience, it uses a few functions from `purrr` as well.  It also suggests `beepr` and `crayon` for extra functionality in the auditory and visual domains, respectively.
+`catchr` now depends on a few packages. Much of the functions in `catchr v0.1.0` were redundant with functions from `rlang`; now `catchr` leans heavily on this package to bring simplicity to users less familiar with R's condition-handling idiosyncrasies. For convenience, it uses a few functions from `purrr` as well.  It also suggests `beepr` and `crayon` for extra functionality in the auditory and visual domains, respectively.
 
 # catchr 0.1.0
 
