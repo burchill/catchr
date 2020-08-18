@@ -40,7 +40,13 @@ as_list <- function(x) {
   map(x, identity)
 }
 
-
+# Making quosures manually.
+# Necessary to keep any top-level bang-bangs
+make_quosure <- function(expr, env) {
+  rlang::quo() %>%
+    rlang::quo_set_expr(expr) %>%
+    rlang::quo_set_env(env)
+}
 
 
 # Just for signalling my own custom conditions
@@ -228,8 +234,7 @@ make_plans <- function(..., .opts = catchr_opts()) {
 #' @rdname catchers
 #' @export
 catch_expr <- function(expr, ..., .opts=NULL) {
-  expr <- enquo(expr)
-  make_catch_fn(..., .opts=.opts)(!!expr)
+  make_catch_fn(..., .opts = .opts)(expr)
 }
 
 #' @rdname catchers
@@ -243,7 +248,7 @@ make_catch_fn <- function(..., .opts = NULL) {
   function(expr) {
     .myConditions <- NULL
     baby_env <- child_env(current_env())
-    expr <- enquo(expr)
+    expr <- make_quosure(substitute(expr), parent.frame())
 
     # If you keep empty conds, make 'em now
     if (!.opts$drop_empty_conds && length(.opts$collectors) > 0)
