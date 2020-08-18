@@ -499,13 +499,13 @@ test_that("Quasiquotation and namespaces", {
   f <- function(expr, ...) {
     quosures <- quos(...)
     q <- quo(expr)
-    catch_expr(!!q,!!!quosures)
+    rlang::eval_tidy(quo(catch_expr(!!q, !!!quosures)))
   }
 
   g <- function(expr, ...) {
     quosures <- quos(...)
     q <- quo(expr)
-    make_catch_fn(!!!quosures)(!!q)
+    rlang::eval_tidy(quo(catch_expr(!!q, !!!quosures)))
   }
 
   expect_silent({
@@ -531,3 +531,28 @@ test_that("Quasiquotation and namespaces", {
   expect_equal(gres3, "same")
 
 })
+
+test_that("Bang-bang in quasiquotation (catch_expr())", {
+  q <- catch_expr({
+    t <- "test"
+    t2 <- rlang::quo(t)
+    rlang::quo(!!t2)
+  }, warning = display_with("UHOH"))
+  expect_equal(rlang::eval_tidy(q), "test")
+})
+
+test_that("Bang-bang in quasiquotation (make_catch_fn())", {
+  catch <- make_catch_fn(warning = display_with("UHOH"))
+  q <- catch({
+    t <- "test"
+    t2 <- rlang::quo(t)
+    rlang::quo(!!t2)
+  })
+  expect_equal(rlang::eval_tidy(q), "test")
+})
+
+
+
+
+
+
