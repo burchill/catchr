@@ -40,15 +40,6 @@ as_list <- function(x) {
   map(x, identity)
 }
 
-# Making quosures manually.
-# Necessary to keep any top-level bang-bangs
-make_quosure <- function(expr, env) {
-  rlang::quo() %>%
-    rlang::quo_set_expr(expr) %>%
-    rlang::quo_set_env(env)
-}
-
-
 # Just for signalling my own custom conditions
 signal_custom_condition <- function(msg, type="custom") {
   signalCondition(
@@ -248,7 +239,7 @@ make_catch_fn <- function(..., .opts = NULL) {
   function(expr) {
     .myConditions <- NULL
     baby_env <- child_env(current_env())
-    expr <- make_quosure(substitute(expr), parent.frame())
+    expr <- rlang::new_quosure(substitute(expr), parent.frame())
 
     # If you keep empty conds, make 'em now
     if (!.opts$drop_empty_conds && length(.opts$collectors) > 0)
