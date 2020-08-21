@@ -84,7 +84,7 @@ warn_of_specials <- function(x) {
       verb <- "has"
     }
     warning("`", paste(x, collapse = "`, `"),
-            "` ", verb, " special meaning as catchr input, but seem", agreement, " to already be defined elsewhere.  These previous definitions may be masked when determining condition behavior.",
+            "` ", verb, " special meaning as catchr input, but seem", agreement, " to already be defined elsewhere.  These previous definitions may be masked when determining condition behavior. (To turn these warnings off, use `catchr_default_opts(warn_about_terms=FALSE)`.)",
             immediate. = TRUE, call. = FALSE)
   }
 }

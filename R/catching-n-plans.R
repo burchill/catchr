@@ -40,9 +40,6 @@ as_list <- function(x) {
   map(x, identity)
 }
 
-
-
-
 # Just for signalling my own custom conditions
 signal_custom_condition <- function(msg, type="custom") {
   signalCondition(
@@ -228,8 +225,7 @@ make_plans <- function(..., .opts = catchr_opts()) {
 #' @rdname catchers
 #' @export
 catch_expr <- function(expr, ..., .opts=NULL) {
-  expr <- enquo(expr)
-  make_catch_fn(..., .opts=.opts)(!!expr)
+  make_catch_fn(..., .opts = .opts)(expr)
 }
 
 #' @rdname catchers
@@ -243,7 +239,7 @@ make_catch_fn <- function(..., .opts = NULL) {
   function(expr) {
     .myConditions <- NULL
     baby_env <- child_env(current_env())
-    expr <- enquo(expr)
+    expr <- rlang::new_quosure(substitute(expr), parent.frame())
 
     # If you keep empty conds, make 'em now
     if (!.opts$drop_empty_conds && length(.opts$collectors) > 0)
