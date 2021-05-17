@@ -93,7 +93,7 @@ warn_of_specials <- function(x) {
 # used to get some form of "helpful-ish" name for something passed in.
 # need to use splicing to pass stuff in
 approx_arg_name <- function(x, len = 25) {
-  v <- get_expr(enquo(x)) %>% expr_deparse(999) %>% paste(collapse = "")
+  v <- get_expr(enquo(x)) %>% expr_deparse(width = 999) %>% paste(collapse = "")
   add_ellipses(v, len)
 }
 
