@@ -24,7 +24,7 @@ library(purrr)
 library(future)
 ```
 
-[![Travis-CI Build Status](https://travis-ci.com/burchill/catchr.svg?branch=master)](https://travis-ci.com/burchill/catchr)
+[![Travis-CI Build Status](https://app.travis-ci.com/burchill/catchr.svg?branch=master)](https://app.travis-ci.com/burchill/catchr)
 [![CRAN status](https://www.r-pkg.org/badges/version/catchr)](https://cran.r-project.org/package=catchr)
 
 ```{r, echo=FALSE}
