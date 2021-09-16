@@ -333,6 +333,9 @@ display_with <- function(crayon_style, ...) {
 
 # sub in special term functions
 use_special_terms <- function(s, cond_type) {
+  if (s == "beep" & !is_installed("beepr")){
+    abort("Package `beepr` needs to be installed if `beep` is to be used.")
+  }
   switch(
     s,
     exit = function(cond) {
