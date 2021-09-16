@@ -1,3 +1,13 @@
+# catchr 0.2.31
+
+## Patches
+
+ * I incorporated a push request from Lionel (lionel-) due to a change in `rlang`. catchr should work with newer versions of `rlang` from now on.
+ * I made catchr throw an error if plans are made with `beep` and `beepr` is not installed. This was expected by the unit tests, but not implemented.
+ * I fixed some boilerplate stuff so CRAN wouldn't complain.
+ * I updated some presentational stuff and made some minor fixes to the package (non-functional changes).
+
+
 # catchr 0.2.3
 
 ## Patches
