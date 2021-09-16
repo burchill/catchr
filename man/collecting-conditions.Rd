@@ -12,7 +12,7 @@ One of the most useful aspects of catchr is its ability to catch and 'collect' t
 \item If you are running lots of code in parallel and want to log all of the conditions within R, such as in a large-scale power simulation, or with packages such \code{\link[purrr:purrr-package]{purrr}}.
 }
 
-Using the \code{collect} term lets you do this. When the plan for a condition uses \code{collect}, the captured condition will be added to a list of other conditions of that same type. When the expression is done being evaluated, catchr will return a named list, where \code{$value} is the output of the expression, and the other named elements are sublists with all their collected conditions. The exact behavior of this process is determined by options in \code{\link[=catchr_opts]{catchr_opts()}}.
+Using the \code{collect} term lets you do this. When the plan for a condition uses \code{collect}, the captured condition will be added to a list of other conditions of that same type. When the expression is done being evaluated, catchr will return a named list, where \verb{$value} is the output of the expression, and the other named elements are sublists with all their collected conditions. The exact behavior of this process is determined by options in \code{\link[=catchr_opts]{catchr_opts()}}.
 }
 \examples{
 one_of_each <- function(with_error) {

@@ -4,8 +4,12 @@
 \alias{catchr_opts}
 \title{Pass in catchr-specific options}
 \usage{
-catchr_opts(default_plan = NULL, warn_about_terms = NULL,
-  bare_if_possible = NULL, drop_empty_conds = NULL)
+catchr_opts(
+  default_plan = NULL,
+  warn_about_terms = NULL,
+  bare_if_possible = NULL,
+  drop_empty_conds = NULL
+)
 }
 \arguments{
 \item{default_plan}{The default plan for unnamed input arguments. See \code{\link[=get_default_plan]{get_default_plan()}} for more details.}
@@ -20,7 +24,7 @@ catchr_opts(default_plan = NULL, warn_about_terms = NULL,
 catchr offers a number of options for planning condition handling, and the \code{catchr_opts} function
 provides a way of passing those options to whatever function is handling the planning. If any
 argument is left unspecified it defaults to the global defaults (accessible via
-\code{\link[=catchr_default_opts]{catchr_default_opts()}}, \code{\link[base:options]{base::options()}}, or \code{\link[base:getOption]{base::getOption()}}).
+\code{\link[=catchr_default_opts]{catchr_default_opts()}}, \code{\link[base:options]{base::options()}}, or \code{\link[base:options]{base::getOption()}}).
 }
 \section{Catchr options}{
 
@@ -29,7 +33,7 @@ catchr's options are specified below. The names of the global default option are
 \itemize{
 \item \code{default_plan}: The default plan that will be used for unnamed arguments (i.e., conditions specified without plans) to \code{\link[=make_plans]{make_plans()}} or the like. See \code{\link[=get_default_plan]{get_default_plan()}} for more details. The original package default is \code{c("collect", "muffle")}.
 \item \code{warn_about_terms}: If one of its \link[=catchr-DSL]{reserved terms} would mask a previously defined variable name when catchr is compiling plans, you can specify whether or not a warning will be generated. The original package default is \code{TRUE}, which will warn the user of these occurrences.
-\item \code{bare_if_possible}: When no plans are set to \link{collect} conditions, you have the option of returning the value of the evaluated expression by itself, \emph{without} being the \code{$value} element of a list. If \code{bare_if_possible} is \code{TRUE} and no plans collect conditions, it will return the value without the wrapping list. If one is using catchr extensively, it might be wise to set this option to \code{FALSE} so catchr's returned values are always consistent. The original package default is \code{TRUE}.
+\item \code{bare_if_possible}: When no plans are set to \link{collect} conditions, you have the option of returning the value of the evaluated expression by itself, \emph{without} being the \verb{$value} element of a list. If \code{bare_if_possible} is \code{TRUE} and no plans collect conditions, it will return the value without the wrapping list. If one is using catchr extensively, it might be wise to set this option to \code{FALSE} so catchr's returned values are always consistent. The original package default is \code{TRUE}.
 \item \code{drop_empty_conds}: If conditions have plans that would collect them but none are raised in the evaluation of an expression, you have the option of dropping their sublists. For example, conditions that aren't warnings, messages, or errors are very rare. If you wanted to return the \link[=reserved-conditions]{"misc"} condition sublist only when such conditions were raised, you could do this by setting the value to \code{TRUE}. The original package default is \code{FALSE}.
 }
 }

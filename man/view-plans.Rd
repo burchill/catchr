@@ -5,8 +5,13 @@
 \alias{summary.catchr_compiled_plans}
 \title{View and print 'compiled' catchr plans}
 \usage{
-\method{print}{catchr_compiled_plans}(x, ..., show_opts = FALSE,
-  total_len = getOption("width"), show_full = FALSE)
+\method{print}{catchr_compiled_plans}(
+  x,
+  ...,
+  show_opts = FALSE,
+  total_len = getOption("width"),
+  show_full = FALSE
+)
 
 \method{summary}{catchr_compiled_plans}(object, ...)
 }

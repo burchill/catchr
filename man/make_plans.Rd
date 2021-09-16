@@ -22,7 +22,7 @@ See the 'Input' section below and the examples for how to use \code{make_plans}.
 \section{Input}{
 
 
-User input to \code{make_plans} is very similar to how one makes handlers for \code{\link[base:withCallingHandlers]{base::withCallingHandlers()}}, \code{\link[base:tryCatch]{base::tryCatch()}} and \code{rlang}'s \code{\link[rlang:with_handlers]{rlang::with_handlers()}}, albeit with some important differences.
+User input to \code{make_plans} is very similar to how one makes handlers for \code{\link[base:conditions]{base::withCallingHandlers()}}, \code{\link[base:conditions]{base::tryCatch()}} and \code{rlang}'s \code{\link[rlang:with_handlers]{rlang::with_handlers()}}, albeit with some important differences.
 
 Like the functions above, the name of each argument determines which type of condition it will be the plan for. Hence, \code{warnings = fn} will apply the \code{fn} function to the warnings raised in evaluating \code{expr}.
 

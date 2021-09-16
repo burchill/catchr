@@ -12,7 +12,7 @@ display_with(crayon_style, ...)
 \arguments{
 \item{cond}{A condition one wishes to display}
 
-\item{crayon_style}{If \pkg{crayon} is installed, this can be either a \code{\link[crayon:crayon]{crayon style}} (e.g., \code{\link[crayon:green]{crayon::green()}}, \code{blue$bold}, etc.) or a character vector for \code{\link[crayon:combine_styles]{crayon::combine_styles()}}. These styles will be applied to the output.}
+\item{crayon_style}{If \pkg{crayon} is installed, this can be either a \code{\link[crayon:crayon]{crayon style}} (e.g., \code{\link[crayon:crayon]{crayon::green()}}, \code{blue$bold}, etc.) or a character vector for \code{\link[crayon:combine_styles]{crayon::combine_styles()}}. These styles will be applied to the output.}
 
 \item{\dots}{Parameters to pass into \code{\link[=extract_display_string]{extract_display_string()}}; namely \code{cond_name} (which controls how the condition is introduced) and \code{include_call}, which determines whether the call is included.}
 }

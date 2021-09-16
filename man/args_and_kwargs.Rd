@@ -12,7 +12,7 @@ args_and_kwargs(..., .already_quosure = FALSE)
 \item{.already_quosure}{if the arguments are already all quosures (in which case it will just sort them by named vs. unnamed arguments)}
 }
 \value{
-A named list of lists, with \code{$args} being a list of quosures of the unnamed arguments and \code{$kwargs} being a list of quosures of the named arguments.
+A named list of lists, with \verb{$args} being a list of quosures of the unnamed arguments and \verb{$kwargs} being a list of quosures of the named arguments.
 }
 \description{
 This function will return a named list with two sublists, 'args' and 'kwargs', which contain the unnamed and named arguments as quosures, respectively. \cr \cr
