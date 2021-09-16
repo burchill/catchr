@@ -50,7 +50,7 @@ signal_custom_condition <- function(msg, type="custom") {
 
 #' Make a string end with a newline character
 #'
-#' `give_newline` will append a line return ('\\\n') to the end of a string if
+#' `give_newline` will append a line return ('\\n') to the end of a string if
 #' it doesn't already end with one. There is also the option to remove any trailing whitespace before doing so.
 #' @param s A string.
 #' @param trim Indicates whether to remove trailing whitespace before adding newline.
