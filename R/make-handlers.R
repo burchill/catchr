@@ -242,9 +242,8 @@ extract_display_string <- function(cond, cond_name = NA, include_call = T) {
 #' @param beepr_sound A character string or number specifying the sound to be played. See the `sound` argument in [beepr::beep()] documentation.
 #' @examples
 #' warning_in_middle <- function() {
-#'   Sys.sleep(2)
 #'   message("It's time!")
-#'   Sys.sleep(2)
+#'   Sys.sleep(1)
 #'   invisible("done")
 #' }
 #'

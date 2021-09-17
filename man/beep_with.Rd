@@ -16,9 +16,8 @@ If you have the \link[beepr:beep]{beepr} package installed, catchr can use it to
 }
 \examples{
 warning_in_middle <- function() {
-  Sys.sleep(2)
   message("It's time!")
-  Sys.sleep(2)
+  Sys.sleep(1)
   invisible("done")
 }
 
