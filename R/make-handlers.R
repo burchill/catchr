@@ -251,7 +251,7 @@ extract_display_string <- function(cond, cond_name = NA, include_call = T) {
 #'   catch_expr(warning_in_middle(),
 #'              message = c(beep_with(2), display, muffle))
 #'   # Or you can just use the default sound with "beep":
-#'   catch_expr(warning_in_middle(), message = c(beep, display, muffle))
+#'   # catch_expr(warning_in_middle(), message = c(beep, display, muffle))
 #' }
 #' @seealso the [beep] special term, which will play the default beep; [user_exit()] and [exit_with()] for parallel functions for the [exit] special term, and [user_display()] and [display_with()] for parallel functions for the [display] special term.
 #' @export

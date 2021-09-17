@@ -25,7 +25,7 @@ if (requireNamespace("beepr", quietly = TRUE) == TRUE) {
   catch_expr(warning_in_middle(),
              message = c(beep_with(2), display, muffle))
   # Or you can just use the default sound with "beep":
-  catch_expr(warning_in_middle(), message = c(beep, display, muffle))
+  # catch_expr(warning_in_middle(), message = c(beep, display, muffle))
 }
 }
 \seealso{
