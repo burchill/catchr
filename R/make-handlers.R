@@ -256,7 +256,7 @@ extract_display_string <- function(cond, cond_name = NA, include_call = T) {
 #' @seealso the [beep] special term, which will play the default beep; [user_exit()] and [exit_with()] for parallel functions for the [exit] special term, and [user_display()] and [display_with()] for parallel functions for the [display] special term.
 #' @export
 beep_with <- function(beepr_sound) {
-  force(beepr_sound)
+  beepr_sound # forcing it
   if (!is_installed("beepr"))
     abort("Package `beepr` needs to be installed if `beep` is to be used.")
   else

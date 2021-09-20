@@ -429,7 +429,7 @@ test_that("Testing basic compiled plan printing", {
     test_plans <- make_plans(
       warning,
       error=c("muffle"),
-      message=list(beep, function(x) {print(paste0(x, "THIS IS A VERY LONG STRING AND I THINK IT WILL GET CUT OFF")); stop(x)}),
+      message=list(display, function(x) {print(paste0(x, "THIS IS A VERY LONG STRING AND I THINK IT WILL GET CUT OFF")); stop(x)}),
       .opts = catchr_opts(
         default_plan = c(display, muffle),
         warn_about_terms = FALSE,
